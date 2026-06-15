@@ -1,0 +1,2983 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>3Ps CRM — Imobiliário</title>
+
+<!-- PWA -->
+<meta name="application-name" content="3Ps CRM">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="3Ps CRM">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0a1a">
+<meta name="description" content="CRM imobiliário do Método 3Ps">
+<link rel="manifest" href="manifest.json">
+
+<!-- Ícone para iOS (Apple Touch Icon) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%237c3aed'/><text y='.9em' font-size='60' x='50%25' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='white'>3P</text></svg>">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%237c3aed'/><text y='.9em' font-size='60' x='50%25' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='white'>3P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg-base: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-card: #16161f;
+  --bg-card2: #1c1c28;
+  --bg-hover: #1e1e2e;
+  --border: rgba(120,80,220,0.15);
+  --border-bright: rgba(140,90,255,0.35);
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  --purple-dim: rgba(139,92,246,0.12);
+  --purple-glow: rgba(139,92,246,0.25);
+  --text-primary: #f0eeff;
+  --text-secondary: #9490b0;
+  --text-muted: #5a5575;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{height:100%;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg-base);color:var(--text-primary);min-height:100%;height:100%;overflow:hidden;font-size:14px;-webkit-text-size-adjust:100%}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit;outline:none}
+a{text-decoration:none;color:inherit}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:99px}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg-base);background-image:radial-gradient(ellipse 60% 50% at 50% -10%,rgba(139,92,246,0.2) 0%,transparent 70%)}
+.login-card{background:var(--bg-card);border:1px solid var(--border-bright);border-radius:var(--radius-lg);padding:48px 40px;width:100%;max-width:420px;box-shadow:0 0 80px rgba(139,92,246,0.1)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+.login-logo-mark{width:44px;height:44px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;letter-spacing:-1px}
+.login-logo-text{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:var(--text-primary)}
+.login-logo-text span{color:var(--purple-light)}
+.login-subtitle{color:var(--text-secondary);font-size:13px;margin-bottom:32px;line-height:1.6}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;letter-spacing:0.04em;text-transform:uppercase}
+.field input{width:100%;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;color:var(--text-primary);font-size:14px;transition:border-color var(--transition)}
+.field input:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-glow)}
+.field input::placeholder{color:var(--text-muted)}
+.btn-login{width:100%;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:600;color:#fff;letter-spacing:0.02em;transition:opacity var(--transition),transform var(--transition)}
+.btn-login:hover{opacity:0.9;transform:translateY(-1px)}
+.login-demo{margin-top:20px;text-align:center;font-size:12px;color:var(--text-muted)}
+.login-demo span{color:var(--purple-light);cursor:pointer}
+.login-demo span:hover{text-decoration:underline}
+.login-error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:16px;display:none}
+
+#setupBanner{display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:#fbbf24;line-height:1.5}
+
+/* LAYOUT */
+#app{display:none;height:100vh;overflow:hidden;flex-direction:row}
+#app.visible{display:flex}
+.sidebar{width:240px;min-width:240px;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:60px;min-height:60px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px}
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* SIDEBAR */
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text-primary)}
+.logo-name span{color:var(--purple-light)}
+.sidebar-nav{padding:12px 12px;flex:1;overflow-y:auto}
+.nav-section{margin-bottom:20px}
+.nav-label{font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;padding:0 8px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-secondary);font-size:13px;font-weight:400;transition:all var(--transition);position:relative;user-select:none}
+.nav-item:hover{background:var(--purple-dim);color:var(--text-primary)}
+.nav-item.active{background:var(--purple-dim);color:var(--purple-light);font-weight:500}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--purple);border-radius:99px}
+.nav-icon{width:18px;height:18px;flex-shrink:0;opacity:0.7}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{margin-left:auto;background:var(--purple);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px}
+.sidebar-footer{padding:16px 12px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);cursor:pointer;transition:background var(--transition)}
+.user-card:hover{background:var(--bg-hover)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info .user-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+.user-info .user-role{font-size:11px;color:var(--text-muted)}
+.sidebar-supabase{padding:0 12px 12px;font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.supabase-dot{width:6px;height:6px;border-radius:50%;background:var(--danger);flex-shrink:0}
+.supabase-dot.connected{background:var(--success)}
+
+/* TOPBAR */
+.topbar-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text-primary)}
+.topbar-spacer{flex:1}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;border:none;transition:all var(--transition);cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-secondary{background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--border-bright);color:var(--text-primary)}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid transparent}
+.btn-ghost:hover{background:var(--purple-dim);color:var(--purple-light)}
+.btn-danger{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
+.btn-danger:hover{background:rgba(239,68,68,0.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{padding:8px;border-radius:var(--radius-sm)}
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 14px;min-width:220px}
+.search-bar input{background:none;border:none;color:var(--text-primary);font-size:13px;width:100%}
+.search-bar input::placeholder{color:var(--text-muted)}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* DASHBOARD */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:border-color var(--transition)}
+.metric-card:hover{border-color:var(--border-bright)}
+.metric-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-from,transparent),var(--accent-to,transparent));opacity:0.04;pointer-events:none}
+.metric-card.purple{--accent-from:#7c3aed;--accent-to:#a855f7}
+.metric-card.green{--accent-from:#059669;--accent-to:#10b981}
+.metric-card.blue{--accent-from:#1d4ed8;--accent-to:#3b82f6}
+.metric-card.amber{--accent-from:#b45309;--accent-to:#f59e0b}
+.metric-card.pink{--accent-from:#be185d;--accent-to:#ec4899}
+.metric-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-weight:500}
+.metric-value{font-family:'Syne',sans-serif;font-size:32px;font-weight:700;color:var(--text-primary);margin-bottom:6px;line-height:1}
+.metric-change{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.metric-change.up{color:var(--success)}
+.metric-icon{position:absolute;right:16px;top:16px;opacity:0.15;font-size:32px}
+.dashboard-grid{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+.chart-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.chart-title .subtitle{font-size:12px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-weight:400}
+.chart-wrap{position:relative;height:220px}
+.recent-list{display:flex;flex-direction:column;gap:10px}
+.recent-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-card2);border-radius:var(--radius-sm);border:1px solid transparent;transition:border-color var(--transition),background var(--transition);cursor:pointer}
+.recent-item:hover{border-color:var(--border);background:var(--bg-hover)}
+.lead-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.recent-info .name{font-size:13px;font-weight:500;color:var(--text-primary)}
+.recent-info .detail{font-size:11px;color:var(--text-muted);margin-top:2px}
+.recent-status{margin-left:auto;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap}
+
+/* STATUS PILLS */
+.pill-novo{background:rgba(59,130,246,0.15);color:#60a5fa}
+.pill-atendimento{background:rgba(139,92,246,0.15);color:#a78bfa}
+.pill-followup{background:rgba(245,158,11,0.15);color:#fbbf24}
+.pill-visita{background:rgba(16,185,129,0.15);color:#34d399}
+.pill-proposta{background:rgba(236,72,153,0.15);color:#f472b6}
+.pill-fechada{background:rgba(16,185,129,0.2);color:#10b981}
+.pill-perdido{background:rgba(239,68,68,0.15);color:#f87171}
+
+/* LEADS TABLE */
+.table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.table-filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all var(--transition)}
+.filter-btn:hover,.filter-btn.active{background:var(--purple-dim);border-color:var(--border-bright);color:var(--purple-light)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:11px 16px;font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg-card)}
+td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;color:var(--text-secondary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg-hover);color:var(--text-primary)}
+.lead-name{color:var(--text-primary);font-weight:500;display:flex;align-items:center;gap:8px}
+.avatar-sm{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.action-btns{display:flex;gap:4px;opacity:0;transition:opacity var(--transition)}
+tr:hover .action-btns{opacity:1}
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition)}
+.icon-btn:hover{border-color:var(--purple);color:var(--purple-light);background:var(--purple-dim)}
+.whatsapp-btn{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.2);color:#34d399}
+.whatsapp-btn:hover{background:rgba(16,185,129,0.2);border-color:var(--success)}
+
+/* KANBAN */
+.kanban-page-wrap{display:flex;flex-direction:column;height:calc(100vh - 60px);overflow:hidden}
+.kanban-filter-bar{display:flex;align-items:center;gap:8px;padding:14px 0 12px;flex-wrap:wrap;flex-shrink:0}
+.kanban-filter-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-right:4px}
+.kfbtn{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .2s;font-weight:400}
+.kfbtn:hover{border-color:var(--border-bright);color:var(--text-primary);background:var(--bg-card)}
+.kfbtn.active{border-color:var(--purple);background:var(--purple-dim);color:var(--purple-light);font-weight:500}
+.kfbtn .kfbtn-avatar{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700}
+.kanban-wrap{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;flex:1;align-items:flex-start}
+.kanban-col{min-width:230px;width:230px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;max-height:100%}
+.kanban-col-head{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.col-title{font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-secondary)}
+.col-count{font-size:11px;color:var(--text-muted);background:var(--bg-surface);padding:2px 7px;border-radius:99px;border:1px solid var(--border)}
+.kanban-cards{padding:10px 10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1}
+.kanban-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;cursor:grab;transition:all var(--transition);position:relative}
+.kanban-card:hover{border-color:var(--border-bright);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.kanban-card:active{cursor:grabbing}
+.kanban-card.dragging{opacity:0.5;transform:rotate(2deg)}
+.kanban-card-name{font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:6px}
+.kanban-card-detail{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.kanban-card-actions{display:flex;gap:4px;margin-top:8px;align-items:center}
+.kanban-card-broker{display:inline-flex;align-items:center;gap:4px;background:var(--purple-dim);border:1px solid var(--border-bright);border-radius:99px;padding:2px 8px 2px 4px;font-size:10px;color:var(--purple-light);font-weight:500}
+.kanban-card-broker-dot{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700}
+.kanban-col.drag-over{border-color:var(--purple);background:var(--purple-dim)}
+
+/* KANBAN STATS SUMMARY */
+.kanban-summary{display:flex;align-items:center;gap:16px;padding:8px 0 4px;flex-shrink:0}
+.kanban-summary-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.kanban-summary-item strong{color:var(--text-primary);font-weight:600}
+.kanban-summary-divider{width:1px;height:12px;background:var(--border)}
+
+/* LEAD DETAIL MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border-bright);border-radius:var(--radius-lg);width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 80px rgba(0,0,0,0.6)}
+.modal-head{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;position:sticky;top:0;background:var(--bg-card);z-index:1}
+.modal-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.modal-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text-primary)}
+.modal-sub{font-size:13px;color:var(--text-secondary);margin-top:2px}
+.modal-close{margin-left:auto;width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition);font-size:18px}
+.modal-close:hover{border-color:var(--danger);color:#f87171}
+.modal-body{padding:24px 28px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.info-row{background:var(--bg-surface);border-radius:var(--radius-sm);padding:12px 14px;border:1px solid var(--border)}
+.info-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;font-weight:500}
+.info-value{font-size:14px;color:var(--text-primary);font-weight:400}
+.modal-section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.timeline-item{display:flex;gap:14px;padding-bottom:20px;position:relative}
+.timeline-item::before{content:'';position:absolute;left:15px;top:28px;bottom:0;width:1px;background:var(--border)}
+.timeline-item:last-child::before{display:none}
+.timeline-dot{width:30px;height:30px;border-radius:50%;background:var(--purple-dim);border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+.timeline-content{flex:1;padding-top:4px}
+.timeline-text{font-size:13px;color:var(--text-primary)}
+.timeline-date{font-size:11px;color:var(--text-muted);margin-top:3px}
+.note-input{width:100%;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text-primary);font-size:13px;resize:vertical;min-height:80px;transition:border-color var(--transition)}
+.note-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-glow)}
+.whatsapp-big{display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.25);color:#25d366;padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition)}
+.whatsapp-big:hover{background:rgba(37,211,102,0.2)}
+
+/* FORM MODAL */
+.form-modal{max-width:600px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field.full{grid-column:1/-1}
+.form-label{font-size:11px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+.form-input{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text-primary);font-size:13px;transition:border-color var(--transition)}
+.form-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-glow)}
+.form-input::placeholder{color:var(--text-muted)}
+select.form-input option{background:var(--bg-card)}
+
+/* AGENDA */
+.agenda-grid{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.task-list{display:flex;flex-direction:column;gap:8px}
+.task-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color var(--transition)}
+.task-item:hover{border-color:var(--border-bright)}
+.task-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border-bright);flex-shrink:0;margin-top:1px;cursor:pointer;transition:all var(--transition);display:flex;align-items:center;justify-content:center}
+.task-check.done{background:var(--success);border-color:var(--success)}
+.task-info .task-title{font-size:13px;font-weight:500;color:var(--text-primary)}
+.task-info .task-detail{font-size:12px;color:var(--text-muted);margin-top:3px}
+.task-item.overdue .task-title{color:#f87171}
+.task-priority{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:7px}
+.priority-high{background:var(--danger)}
+.priority-medium{background:var(--warning)}
+.priority-low{background:var(--success)}
+
+/* EQUIPE */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.team-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:border-color var(--transition)}
+.team-card:hover{border-color:var(--border-bright)}
+.team-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin-bottom:12px}
+.team-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:2px}
+.team-role{font-size:12px;color:var(--text-muted);margin-bottom:16px}
+.team-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.team-stat{text-align:center;background:var(--bg-surface);border-radius:var(--radius-sm);padding:10px 6px;border:1px solid var(--border)}
+.team-stat-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text-primary)}
+.team-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px}
+.progress-bar{height:4px;background:var(--bg-surface);border-radius:99px;overflow:hidden;margin-top:12px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:99px;transition:width 0.8s ease}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:0.3}
+.empty-title{font-size:16px;font-weight:500;color:var(--text-secondary);margin-bottom:8px}
+.empty-desc{font-size:13px;color:var(--text-muted)}
+
+/* TOAST */
+#toastContainer{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg-card2);border:1px solid var(--border-bright);border-radius:var(--radius-sm);padding:12px 18px;font-size:13px;color:var(--text-primary);box-shadow:var(--shadow);animation:toastIn 0.3s ease;display:flex;align-items:center;gap:8px;max-width:300px}
+.toast.success{border-color:rgba(16,185,129,0.4)}
+.toast.error{border-color:rgba(239,68,68,0.4)}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* SUPABASE CONFIG */
+.settings-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.settings-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.settings-desc{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.connected-indicator{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)}
+.disconnected-indicator{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
+
+/* ASSISTANT MODAL */
+#assistantModal{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px)}
+#assistantModal.open{display:flex}
+.assistant-card{background:linear-gradient(145deg,#13131f,#1a1a2e);border:1px solid var(--border-bright);border-radius:var(--radius-lg);padding:36px 40px;max-width:520px;width:100%;box-shadow:0 0 80px rgba(139,92,246,0.2),0 20px 60px rgba(0,0,0,0.6);position:relative;overflow:hidden}
+.assistant-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(139,92,246,0.12),transparent 70%);pointer-events:none}
+.assistant-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.assistant-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;box-shadow:0 0 20px rgba(139,92,246,0.4)}
+.assistant-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text-primary)}
+.assistant-subtitle{font-size:12px;color:var(--text-muted);margin-top:2px}
+.assistant-text{font-size:14px;color:var(--text-secondary);line-height:1.9;min-height:60px;margin-bottom:20px}
+.assistant-text .hl{color:var(--purple-light);font-weight:600}
+.assistant-text .danger{color:#f87171;font-weight:600}
+.assistant-text .ok{color:#34d399;font-weight:600}
+.cursor{display:inline-block;width:2px;height:15px;background:var(--purple);border-radius:1px;margin-left:2px;vertical-align:middle;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.assistant-alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:220px;overflow-y:auto}
+.asst-alert{display:flex;align-items:flex-start;gap:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-sm);padding:10px 13px}
+.asst-alert-dot{width:7px;height:7px;border-radius:50%;background:#f87171;flex-shrink:0;margin-top:5px}
+.asst-alert-text{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.asst-alert-text b{color:var(--text-primary)}
+.assistant-btn{width:100%;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:var(--radius-sm);padding:13px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .2s,transform .2s;letter-spacing:0.02em}
+.assistant-btn:hover{opacity:0.9;transform:translateY(-1px)}
+
+/* ALERTS PANEL */
+.alerts-panel{background:var(--bg-card);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px}
+.alerts-panel-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.alerts-panel-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:#f87171;display:flex;align-items:center;gap:8px}
+.alerts-panel-badge{background:rgba(239,68,68,0.15);color:#f87171;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.alert-row{display:flex;align-items:center;gap:12px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.12);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:8px;transition:border-color .2s}
+.alert-row:last-child{margin-bottom:0}
+.alert-row:hover{border-color:rgba(239,68,68,0.25)}
+.alert-row-emoji{font-size:16px;flex-shrink:0}
+.alert-row-info{flex:1}
+.alert-row-title{font-size:13px;font-weight:500;color:var(--text-primary)}
+.alert-row-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.alert-row-ago{font-size:11px;color:#f87171;font-weight:500;white-space:nowrap}
+.alert-done-btn{width:26px;height:26px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.08);color:#34d399;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;flex-shrink:0}
+.alert-done-btn:hover{background:rgba(16,185,129,0.2);border-color:var(--success)}
+.alerts-ok{display:flex;align-items:center;gap:8px;color:var(--success);font-size:13px;padding:8px 0}
+
+/* BROKER FILTER (Leads page) */
+.broker-filter-bar{display:flex;align-items:center;gap:8px;padding:12px 22px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.broker-filter-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.bfbtn{padding:5px 13px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .2s}
+.bfbtn:hover{border-color:var(--border-bright);color:var(--text-primary)}
+.bfbtn.active{border-color:var(--purple);background:var(--purple-dim);color:var(--purple-light);font-weight:500}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .sidebar.open{display:flex;position:fixed;inset:0;z-index:200;width:240px;max-width:85vw}
+  .topbar-title{font-size:15px}
+  .metrics-grid{grid-template-columns:1fr 1fr}
+  .dashboard-grid{grid-template-columns:1fr}
+  .agenda-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .modal-grid{grid-template-columns:1fr}
+  .modal{max-height:95vh;overflow-y:auto;margin:10px;width:calc(100% - 20px)}
+  .modal-overlay{padding:10px;align-items:flex-start;padding-top:20px}
+  .kanban-wrap{height:auto;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .kanban-page-wrap{height:auto;overflow:visible}
+  .content{padding:12px;overflow-y:auto;height:calc(100vh - 60px);-webkit-overflow-scrolling:touch}
+  .main{overflow:hidden}
+  .mobile-menu-btn{display:flex!important}
+  #app{flex-direction:column}
+  .login-card{margin:16px;padding:32px 24px}
+  table{font-size:12px}
+  th,td{padding:8px 10px}
+  .kanban-col{min-width:200px;width:200px}
+}
+.mobile-menu-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:20px;margin-right:8px}
+
+
+/* MODAL ETAPAS */
+.stage-item{display:flex;align-items:center;gap:8px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;cursor:grab;transition:border-color .2s}
+.stage-item:hover{border-color:var(--border-bright)}
+.stage-item.dragging-stage{opacity:0.35;border-style:dashed}
+.stage-drag-handle{color:var(--text-muted);font-size:16px;cursor:grab;user-select:none;flex-shrink:0;padding:0 2px}
+.stage-color-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;cursor:pointer;border:2px solid transparent;transition:border-color .2s}
+.stage-color-dot:hover{border-color:#fff}
+.stage-name-input{flex:1;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text-primary);font-size:13px;padding:2px 4px;transition:border-color .2s}
+.stage-name-input:focus{border-bottom-color:var(--purple);outline:none}
+.stage-delete-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:0 4px;line-height:1;transition:color .2s}
+.stage-delete-btn:hover{color:#f87171}
+.color-picker-row{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;background:var(--bg-card2);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:6px}
+.color-opt{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.color-opt:hover{transform:scale(1.25)}
+.color-opt.selected{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,0.3)}
+
+svg.icon{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0}
+svg.icon-lg{width:20px;height:20px}
+
+.kanban-cards::-webkit-scrollbar{width:3px}
+
+/* SUPABASE RECONNECT BANNER */
+.sb-reconnect-banner{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);padding:10px 16px;margin-bottom:16px;font-size:12px;color:#f87171;display:flex;align-items:center;gap:10px}
+.sb-reconnect-banner button{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:background .2s;white-space:nowrap}
+.sb-reconnect-banner button:hover{background:rgba(239,68,68,0.25)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">3P</div>
+      <div class="login-logo-text">3Ps <span>CRM</span></div>
+    </div>
+    <div class="login-subtitle">CRM moderno para o mercado imobiliário.<br>Organize leads, follow-ups e feche mais negócios.</div>
+    <div class="login-error" id="loginError">Credenciais inválidas. Tente novamente.</div>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="loginEmail" placeholder="voce@imobiliaria.com">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">Entrar no sistema</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer"></div>
+
+<!-- EDIT LEAD MODAL -->
+<div class="modal-overlay" id="editLeadModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-name">Editar Lead</div>
+        <div class="modal-sub">Atualize as informações do lead</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('editLeadModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-field"><label class="form-label">Nome *</label><input class="form-input" id="e_nome" placeholder="Nome completo"></div>
+        <div class="form-field"><label class="form-label">Telefone</label><input class="form-input" id="e_telefone" placeholder="(48) 99999-9999"></div>
+        <div class="form-field"><label class="form-label">E-mail</label><input class="form-input" id="e_email" placeholder="email@exemplo.com" type="email"></div>
+        <div class="form-field"><label class="form-label">Origem</label>
+          <select class="form-input" id="e_origem">
+            <option value="">Selecione...</option>
+            <option>Indicação</option><option>Site</option><option>Walk-in</option><option>Instagram</option><option>Facebook</option><option>WhatsApp</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Empreendimento</label>
+          <select class="form-input" id="e_empreendimento"><option value="">Selecione...</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Cidade</label><input class="form-input" id="e_cidade" placeholder="Cidade - UF"></div>
+        <div class="form-field" id="editCorretorField"><label class="form-label">Corretor Responsável</label>
+          <select class="form-input" id="e_corretor"><option value="">Selecione...</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-input" id="e_status"><option value="">Selecione...</option></select>
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:8px"><label class="form-label">Observações</label>
+        <textarea class="form-input" id="e_observacoes" placeholder="Observações sobre o lead..." style="resize:vertical;min-height:70px"></textarea>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="closeModal('editLeadModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarEdicaoLead()">Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEAD DETAIL MODAL -->
+<div class="modal-overlay" id="leadModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-avatar" id="modalAvatar"></div>
+      <div>
+        <div class="modal-name" id="modalName"></div>
+        <div class="modal-sub" id="modalSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('leadModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px" id="modalActions"></div>
+      <div class="modal-grid" id="modalGrid"></div>
+      <div style="margin-bottom:20px">
+        <div class="modal-section-title">Timeline de Atendimento</div>
+        <div class="timeline" id="modalTimeline"></div>
+      </div>
+      <div>
+        <div class="modal-section-title">Adicionar Anotação</div>
+        <textarea class="note-input" id="noteText" placeholder="Adicione uma observação sobre este lead..."></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="addNote()" style="font-size:12px;padding:7px 14px">Salvar Anotação</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LEAD MODAL -->
+<div class="modal-overlay" id="addLeadModal">
+  <div class="modal form-modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-name">Novo Lead</div>
+        <div class="modal-sub">Cadastrar cliente no funil</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('addLeadModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">Nome Completo</label><input class="form-input" id="f_nome" placeholder="João da Silva"></div>
+        <div class="form-field"><label class="form-label">Telefone/WhatsApp</label><input class="form-input" id="f_telefone" placeholder="(11) 99999-9999"></div>
+        <div class="form-field"><label class="form-label">E-mail</label><input class="form-input" id="f_email" placeholder="joao@email.com"></div>
+        <div class="form-field"><label class="form-label">Origem do Lead</label>
+          <select class="form-input" id="f_origem">
+            <option value="">Selecione...</option>
+            <option>Instagram</option><option>Facebook</option><option>Google</option><option>Portal Im veis</option><option>Indicação</option><option>Site</option><option>Walk-in</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Empreendimento de Interesse</label><select class="form-input" id="f_empreendimento"><option value="">Selecione...</option></select></div>
+        <div class="form-field"><label class="form-label">Cidade</label><input class="form-input" id="f_cidade" placeholder="S o Paulo - SP"></div>
+        <div class="form-field"><label class="form-label">Corretor Responsável</label>
+          <select class="form-input" id="f_corretor"><option value="">Selecione...</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-input" id="f_status">
+            <option value="novo">Novo Lead</option>
+          </select>
+        </div>
+        <div class="form-field full"><label class="form-label">Observações</label><textarea class="form-input" id="f_obs" placeholder="Detalhes sobre o interesse..." style="resize:vertical;min-height:70px"></textarea></div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="closeModal('addLeadModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveLead()">Salvar Lead</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal form-modal" style="max-width:480px">
+    <div class="modal-head">
+      <div><div class="modal-name">Nova Tarefa</div><div class="modal-sub">Agendar follow-up ou lembrete</div></div>
+      <button class="modal-close" onclick="closeModal('addTaskModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="form-field"><label class="form-label">Título da Tarefa</label><input class="form-input" id="t_titulo" placeholder="Ligar para cliente"></div>
+        <div class="form-field"><label class="form-label">Lead Relacionado</label><input class="form-input" id="t_lead" placeholder="Nome do lead (opcional)"></div>
+        <div class="form-field" id="taskCorretorField"><label class="form-label">Corretor Responsável</label>
+          <select class="form-input" id="t_corretor"><option value="">Selecione...</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">Data/Hora</label><input class="form-input" type="datetime-local" id="t_data"></div>
+        <div class="form-field"><label class="form-label">Prioridade</label>
+          <select class="form-input" id="t_prioridade">
+            <option value="alta">Alta</option><option value="media" selected>M dia</option><option value="baixa">Baixa</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Notas</label><textarea class="form-input" id="t_notas" placeholder="Detalhes..." style="resize:vertical;min-height:60px"></textarea></div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="closeModal('addTaskModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveTask()">Criar Tarefa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUPABASE CONFIG MODAL -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head">
+      <div><div class="modal-name">Configurar Supabase</div><div class="modal-sub">Conectar banco de dados em produ  o</div></div>
+      <button class="modal-close" onclick="closeModal('configModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px;font-size:13px;color:#93c5fd;line-height:1.6">
+        Para usar dados reais, crie um projeto em <b>supabase.com</b>, execute o SQL abaixo para criar as tabelas, e insira suas credenciais aqui.
+      </div>
+      <div class="form-field" style="margin-bottom:12px"><label class="form-label">Supabase URL</label><input class="form-input" id="sb_url" placeholder="https://xxxx.supabase.co"></div>
+      <div class="form-field" style="margin-bottom:20px"><label class="form-label">Anon Key</label><input class="form-input" id="sb_key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
+      <details style="margin-bottom:20px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--purple-light);margin-bottom:8px">Ver SQL para criar tabelas 📋</summary>
+        <pre style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:11px;color:var(--text-secondary);overflow-x:auto;line-height:1.5">CREATE TABLE leads (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  nome text, telefone text, email text,
+  origem text, empreendimento text, cidade text,
+  observacoes text, corretor text, status text,
+  created_at timestamptz DEFAULT now()
+);
+CREATE TABLE tarefas (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  titulo text, lead_rel text, data_hora timestamptz,
+  prioridade text, notas text, concluida boolean DEFAULT false,
+  corretor text,
+  created_at timestamptz DEFAULT now()
+);
+-- Se a tabela tarefas já existir sem a coluna corretor, rode também:
+-- ALTER TABLE tarefas ADD COLUMN IF NOT EXISTS corretor text;
+CREATE TABLE corretores (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  nome text UNIQUE,
+  created_at timestamptz DEFAULT now()
+);
+CREATE TABLE empreendimentos (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  nome text UNIQUE,
+  created_at timestamptz DEFAULT now()
+);
+CREATE TABLE historico (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  lead_id uuid, texto text, tipo text,
+  created_at timestamptz DEFAULT now()
+);
+-- Habilitar Row Level Security e criar políticas conforme necessidade</pre>
+      </details>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="closeModal('configModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="connectSupabase()">Conectar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSISTANT MODAL -->
+<div id="assistantModal">
+  <div class="assistant-card">
+    <div class="assistant-header">
+      <div class="assistant-icon">🤖</div>
+      <div>
+        <div class="assistant-title">Assistente 3Ps</div>
+        <div class="assistant-subtitle">Resumo do dia — atualizado agora</div>
+      </div>
+    </div>
+    <div class="assistant-text" id="assistantText"></div>
+    <div class="assistant-alerts" id="assistantAlerts"></div>
+    <button class="assistant-btn" onclick="closeAssistant()">Entendido, vamos lá! 👍</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">3P</div>
+      <div class="logo-name">3Ps <span>CRM</span></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Principal</div>
+        <div class="nav-item active" onclick="showPage('dashboard',this)">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item" onclick="showPage('leads',this)">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Leads
+          <span class="nav-badge" id="leadsCount">0</span>
+        </div>
+        <div class="nav-item" onclick="showPage('kanban',this)">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+          Pipeline Kanban
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Gestão</div>
+        <div class="nav-item" onclick="showPage('agenda',this)">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Agenda & Follow-up
+          <span class="nav-badge" id="tasksCount">0</span>
+        </div>
+        <div class="nav-item" id="navEquipe" onclick="showPage('equipe',this)">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Equipe
+        </div>
+      </div>
+      <div class="nav-section" id="navSistema">
+        <div class="nav-label">Sistema</div>
+        <div class="nav-item" id="navConfig" onclick="showPage('config',this)">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
+          Configurações
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-supabase">
+      <div class="supabase-dot" id="sbDot"></div>
+      <span id="sbStatus">Modo demonstração</span>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="userInitials">DM</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Demo User</div>
+          <div class="user-role" id="userRole">Corretor</div>
+        </div>
+        <button onclick="doLogout()" title="Sair" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;border-radius:6px;margin-left:auto" title="Sair">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()" id="menuBtn">☰</button>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="search-bar" style="display:none" id="searchBar">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Buscar leads..." oninput="filterLeads()">
+        </div>
+        <button class="btn btn-primary" id="addLeadBtn" onclick="openModal('addLeadModal')" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Lead
+        </button>
+        <button class="btn btn-secondary" id="exportCsvBtn" onclick="exportCSV()" style="display:none" title="Exportar leads filtrados para Excel/CSV">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+        <button class="btn btn-secondary" id="addTaskBtn" onclick="openModal('addTaskModal')" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Tarefa
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="alerts-panel" id="alertsPanel"></div>
+        <div class="metrics-grid">
+          <div class="metric-card purple">
+            <div class="metric-label">Total de Leads</div>
+            <div class="metric-value" id="m-total">0</div>
+            <div class="metric-change up">📈 Todos os tempos</div>
+            <div class="metric-icon">👥</div>
+          </div>
+          <div class="metric-card blue">
+            <div class="metric-label">Novos (7 dias)</div>
+            <div class="metric-value" id="m-novos">0</div>
+            <div class="metric-change up">📈 Esta semana</div>
+            <div class="metric-icon">✨</div>
+          </div>
+          <div class="metric-card amber">
+            <div class="metric-label">Em Atendimento</div>
+            <div class="metric-value" id="m-atend">0</div>
+            <div class="metric-change">Ativos agora</div>
+            <div class="metric-icon">💬</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Visitas Agendadas</div>
+            <div class="metric-value" id="m-visita">0</div>
+            <div class="metric-change">Esta semana</div>
+            <div class="metric-icon">📅</div>
+          </div>
+          <div class="metric-card pink">
+            <div class="metric-label">Vendas Fechadas</div>
+            <div class="metric-value" id="m-vendas">0</div>
+            <div class="metric-change up">📈 Este mês</div>
+            <div class="metric-icon">💰</div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <div class="chart-title">Leads por Status<span class="subtitle">Distribuição atual</span></div>
+            <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Últimos Leads</div>
+            <div class="recent-list" id="recentLeads"></div>
+          </div>
+        </div>
+        <div class="chart-card" id="empFunnelCard" style="margin-top:20px;display:none">
+          <div class="chart-title">Funil por Empreendimento</div>
+          <div id="empFunnelList"></div>
+        </div>
+      </div>
+
+      <!-- LEADS -->
+      <div class="page" id="page-leads">
+        <div class="table-card">
+          <div class="broker-filter-bar" id="brokerFilterBar">
+            <span class="broker-filter-label">Corretor:</span>
+          </div>
+          <div class="table-header">
+            <div class="table-filters" id="leadsFilters">
+              <button class="filter-btn active" onclick="filterByStatus('all',this)">Todos</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr><th>Lead</th><th>Telefone</th><th>Empreendimento</th><th>Origem</th><th>Corretor</th><th>Status</th><th>Ações</th></tr>
+              </thead>
+              <tbody id="leadsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANBAN -->
+      <div class="page" id="page-kanban">
+        <div class="kanban-page-wrap">
+          <!-- FILTRO DE CORRETOR DO KANBAN -->
+          <div class="kanban-filter-bar" id="kanbanFilterBar">
+            <span class="kanban-filter-label">Visualizando:</span>
+          </div>
+          <!-- FILTRO DE EMPREENDIMENTO DO KANBAN -->
+          <div class="kanban-filter-bar" id="kanbanEmpFilterBar" style="padding-top:0">
+            <span class="kanban-filter-label">Produto:</span>
+          </div>
+          <!-- RESUMO + EDITAR ETAPAS -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:4px 0">
+            <div class="kanban-summary" id="kanbanSummary" style="margin:0;padding:0"></div>
+            <button onclick="openStagesModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:11px;cursor:pointer;font-weight:500;transition:all .2s" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">✏️ Editar etapas</button>
+          </div>
+          <!-- COLUNAS -->
+          <div class="kanban-wrap" id="kanbanWrap"></div>
+        </div>
+      </div>
+
+      <!-- AGENDA -->
+      <div class="page" id="page-agenda">
+        <div class="agenda-grid">
+          <div>
+            <div class="chart-card" style="margin-bottom:20px">
+              <div class="chart-title">Tarefas & Follow-ups</div>
+              <div class="task-list" id="taskList"></div>
+            </div>
+          </div>
+          <div>
+            <div class="chart-card">
+              <div class="chart-title">Próximos Contatos</div>
+              <div id="upcomingList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EQUIPE -->
+      <div class="page" id="page-equipe">
+        <div class="team-grid" id="teamGrid"></div>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="page" id="page-config">
+        <div class="settings-section">
+          <div class="settings-title">Conexão Supabase</div>
+          <div class="settings-desc">Conecte seu banco de dados Supabase para persistir leads, histórico e tarefas em produção.</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <span id="sbIndicator" class="disconnected-indicator">🔴 Desconectado</span>
+            <button class="btn btn-secondary btn-sm" onclick="openModal('configModal')">Configurar Supabase</button>
+            <button class="btn btn-secondary btn-sm" id="btnReconnect" onclick="tryReconnectSupabase()" style="display:none">🔄 Reconectar</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Dados de Demonstração</div>
+          <div class="settings-desc">Preencher o sistema com dados fictícios para explorar as funcionalidades.</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadDemoData();toast('Dados de demonstração carregados!','success')">Carregar Dados Demo</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:8px" onclick="clearData()">Limpar Dados</button>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Equipe de Corretores</div>
+          <div class="settings-desc">Adicione os corretores da sua equipe para atribuir leads.</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input class="form-input" id="newBroker" placeholder="Nome do corretor" style="flex:1;max-width:280px">
+            <button class="btn btn-primary btn-sm" onclick="addBroker()">Adicionar</button>
+          </div>
+          <div id="brokerList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Empreendimentos</div>
+          <div class="settings-desc">Cadastre os produtos disponíveis para vincular aos leads.</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input class="form-input" id="newEmp" placeholder="Nome do empreendimento" style="flex:1;max-width:320px">
+            <button class="btn btn-primary btn-sm" onclick="addEmpreendimento()">Adicionar</button>
+          </div>
+          <div id="empList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+        </div>
+        <!-- GESTÃO DE USUÁRIOS — só visível para gestor -->
+        <div class="settings-section" id="sectionUsuarios" style="display:none">
+          <div class="settings-title">👑 Gestão de Usuários</div>
+          <div class="settings-desc">Crie os acessos individuais de cada corretor e gestor.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <input class="form-input" id="uNome" placeholder="Nome completo">
+            <input class="form-input" id="uEmail" placeholder="E-mail" type="email">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            <input class="form-input" id="uSenha" placeholder="Senha (mín. 6 caracteres)" type="password">
+            <select class="form-input" id="uPerfil">
+              <option value="corretor">👤 Corretor</option>
+              <option value="gestor">👑 Gestor</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="criarUsuario()" style="height:38px">Criar usuário</button>
+          </div>
+          <div id="usuariosList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// -- ESTADO GLOBAL --
+const APP = {
+  leads: [],
+  tasks: [],
+  history: {},
+  brokers: ['Alex','Leide','Eliane'],
+  empreendimentos: [],
+  usuarios: [],
+  currentLead: null,
+  statusFilter: 'all',
+  supabase: null,
+  sbConnected: false,
+  sbUrl: '',
+  sbKey: '',
+  user: null,         // { id, email, nome, perfil, corretor_ref, initials }
+  kanbanBrokerFilter: 'todos',
+  kanbanEmpFilter: 'todos',
+  sbRetryCount: 0,
+  sbRetryTimer: null,
+  _sbInstance: null
+};
+
+const DEFAULT_STAGES = [
+  { id:'novo',        label:'Novo Lead',       color:'#3b82f6' },
+  { id:'atendimento', label:'Em Atendimento',  color:'#8b5cf6' },
+  { id:'followup',    label:'Follow-up',       color:'#f59e0b' },
+  { id:'visita',      label:'Visita Agendada', color:'#10b981' },
+  { id:'proposta',    label:'Proposta',        color:'#ec4899' },
+  { id:'fechada',     label:'Venda Fechada',   color:'#22c55e' },
+  { id:'perdido',     label:'Perdido',         color:'#ef4444' },
+];
+const STAGE_PALETTE = ['#3b82f6','#8b5cf6','#f59e0b','#10b981','#ec4899','#ef4444','#0891b2','#059669','#d97706','#be185d','#4f46e5','#f97316','#84cc16','#06b6d4','#a855f7'];
+
+// Etapas: carregadas do Supabase ao iniciar. Fallback para localStorage/padrão
+// enquanto o SELECT ainda não retornou.
+APP.stages = JSON.parse(localStorage.getItem('3ps_stages') || 'null') || DEFAULT_STAGES.map(s=>({...s}));
+
+function syncStatusMaps() {
+  STATUS_LABELS = {}; STATUS_COLORS = {};
+  APP.stages.forEach(s => { STATUS_LABELS[s.id]=s.label; STATUS_COLORS[s.id]=s.color; });
+}
+let STATUS_LABELS = {}, STATUS_COLORS = {};
+syncStatusMaps();
+const AVATAR_COLORS = ['#7c3aed','#0891b2','#059669','#dc2626','#d97706','#be185d','#4f46e5'];
+
+// ── SUPABASE CONFIG ──
+const SB_URL = 'https://qrfehznrjfaokbuqiroc.supabase.co';
+const SB_KEY = 'sb_publishable_Doo0O0wNZMju0-IKWwRn5g_COKCcjar';
+
+// Singleton — uma única instância do cliente
+function getSBClient() {
+  if (!APP._sbInstance) {
+    APP._sbInstance = supabase.createClient(SB_URL, SB_KEY);
+  }
+  return APP._sbInstance;
+}
+
+function connectSupabase() {
+  try {
+    APP.supabase = getSBClient();
+    APP.sbConnected = true;
+    APP.sbUrl = SB_URL;
+    APP.sbKey = SB_KEY;
+    APP.sbRetryCount = 0;
+    localStorage.setItem('3ps_sb_url', SB_URL);
+    localStorage.setItem('3ps_sb_key', SB_KEY);
+    updateSbStatus();
+    closeModal('configModal');
+    toast('Supabase conectado!', 'success');
+    loadLeadsFromSB();
+    startSbHeartbeat();
+  } catch(e) {
+    console.error('connectSupabase erro:', e);
+    toast('Erro ao conectar: ' + e.message, 'error');
+  }
+}
+
+function tryReconnectSupabase() {
+  try {
+    APP._sbInstance = null; // força nova instância
+    APP.supabase = getSBClient();
+    APP.sbConnected = true;
+    APP.sbUrl = SB_URL;
+    APP.sbKey = SB_KEY;
+    APP.sbRetryCount = 0;
+    updateSbStatus();
+    toast('Reconectado ao Supabase!', 'success');
+    loadLeadsFromSB();
+    startSbHeartbeat();
+  } catch(e) {
+    console.error('tryReconnect erro:', e);
+    APP.sbConnected = false;
+    updateSbStatus();
+    toast('Falha ao reconectar.', 'error');
+  }
+}
+
+// Heartbeat a cada 30s — reconecta automático
+function startSbHeartbeat() {
+  if (APP.sbRetryTimer) clearInterval(APP.sbRetryTimer);
+  APP.sbRetryTimer = setInterval(async () => {
+    if (!APP.supabase) return;
+    try {
+      const { error } = await APP.supabase.from('leads').select('id').limit(1);
+      if (error) throw error;
+      if (!APP.sbConnected) {
+        APP.sbConnected = true;
+        updateSbStatus();
+        loadLeadsFromSB();
+        toast('Reconectado ao Supabase', 'success');
+      }
+    } catch(e) {
+      console.error('Heartbeat erro:', e);
+      APP._sbInstance = null;
+      try {
+        APP.supabase = getSBClient();
+        const { error: e2 } = await APP.supabase.from('leads').select('id').limit(1);
+        if (e2) throw e2;
+        APP.sbConnected = true;
+        APP.sbRetryCount = 0;
+        updateSbStatus();
+      } catch(e3) {
+        APP.sbRetryCount++;
+        if (APP.sbConnected) {
+          APP.sbConnected = false;
+          updateSbStatus();
+        }
+      }
+    }
+  }, 30000);
+}
+
+function updateSbStatus() {
+  const dot = document.getElementById('sbDot');
+  const status = document.getElementById('sbStatus');
+  const ind = document.getElementById('sbIndicator');
+  const btnR = document.getElementById('btnReconnect');
+  if (APP.sbConnected) {
+    dot.className = 'supabase-dot connected';
+    status.textContent = 'Supabase conectado';
+    if(ind){ind.className='connected-indicator';ind.textContent='🟢 Conectado';}
+    if(btnR) btnR.style.display='none';
+  } else {
+    dot.className = 'supabase-dot';
+    const hasCreds = APP.sbUrl || localStorage.getItem('3ps_sb_url');
+    status.textContent = hasCreds ? 'Desconectado' : 'Modo demonstração';
+    if(ind){ind.className='disconnected-indicator';ind.textContent='🔴 Desconectado';}
+    if(btnR) btnR.style.display = hasCreds ? 'inline-flex' : 'none';
+  }
+}
+
+async function loadLeadsFromSB() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  try {
+    const { data, error } = await APP.supabase.from('leads').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('loadLeadsFromSB erro:', error); throw error; }
+    APP.leads = data || [];
+    refreshAll();
+  } catch(e) {
+    console.error('loadLeadsFromSB catch:', e);
+    APP.sbConnected = false;
+    updateSbStatus();
+  }
+}
+
+async function loadTasksFromSB() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  try {
+    const { data, error } = await APP.supabase.from('tarefas').select('*').order('data_hora', { ascending: true });
+    if (error) { console.error('loadTasksFromSB erro:', error); return; }
+    if (data) {
+      APP.tasks = data.map(t => ({
+        id: t.id,
+        titulo: t.titulo,
+        lead_rel: t.lead_rel,
+        corretor: t.corretor || '',
+        data_hora: t.data_hora,
+        prioridade: t.prioridade,
+        notas: t.notas || '',
+        concluida: t.concluida
+      }));
+      saveToLocal();
+      refreshAll();
+    }
+  } catch(e) {
+    console.error('loadTasksFromSB catch:', e);
+  }
+}
+
+async function loadBrokersFromSB() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  try {
+    const { data, error } = await APP.supabase.from('corretores').select('*').order('nome', { ascending: true });
+    if (error) { console.error('loadBrokersFromSB erro:', error); return; }
+    if (data && data.length > 0) {
+      APP.brokers = data.map(b => b.nome);
+      saveToLocal();
+      renderBrokerList();
+      renderBrokerSelects();
+      renderKanbanFilterBar();
+    } else if (APP.brokers.length > 0) {
+      // Tabela vazia: migra os corretores locais para o Supabase
+      for (const nome of APP.brokers) {
+        await APP.supabase.from('corretores').insert([{ nome }]);
+      }
+    }
+  } catch(e) {
+    console.error('loadBrokersFromSB catch:', e);
+  }
+}
+
+async function saveLeadToSB(lead) {
+  if (!APP.supabase || !APP.sbConnected) return;
+  try {
+    // Apenas campos que existem na tabela — sem id (gerado pelo Supabase)
+    const payload = {
+      nome: lead.nome,
+      telefone: lead.telefone || null,
+      email: lead.email || null,
+      origem: lead.origem || null,
+      empreendimento: lead.empreendimento || null,
+      cidade: lead.cidade || null,
+      observacoes: lead.observacoes || null,
+      corretor: lead.corretor || null,
+      status: lead.status || 'novo',
+    };
+    const { data, error } = await APP.supabase.from('leads').insert([payload]).select();
+    if (error) { console.error('saveLeadToSB erro:', error); throw error; }
+    console.log('Lead salvo no Supabase:', data);
+    // Recarrega lista do banco para garantir sincronização
+    await loadLeadsFromSB();
+  } catch(e) {
+    console.error('saveLeadToSB catch:', e);
+    toast('Erro ao salvar no Supabase: ' + e.message, 'error');
+  }
+}
+
+async function updateLeadInSB(id, data) {
+  if (!APP.supabase || !APP.sbConnected) {
+    toast('Sem conexão com o banco — alteração salva localmente', 'error');
+    return;
+  }
+  try {
+    const { error } = await APP.supabase.from('leads').update(data).eq('id', id);
+    if (error) {
+      console.error('UPDATE erro:', error);
+      toast('Erro ao salvar no banco: ' + (error.message || 'tente novamente'), 'error');
+      throw error;
+    }
+    await loadLeadsFromSB();
+  } catch(e) {
+    console.error('UPDATE catch:', e);
+  }
+}
+
+// -- LOGIN --
+function fillDemo() {
+  document.getElementById('loginEmail').value = 'demo@3pscrm.com';
+  document.getElementById('loginPass').value = 'demo123';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) { showLoginError('Preencha e-mail e senha.'); return; }
+
+  const btn = document.getElementById('btnLogin');
+  btn.textContent = 'Entrando...';
+  btn.disabled = true;
+
+  try {
+    // Inicializa Supabase antes do login
+    if (!APP._sbInstance) {
+      APP.sbUrl = SB_URL;
+      APP.sbKey = SB_KEY;
+      APP.supabase = getSBClient();
+    }
+
+    const { data, error } = await APP.supabase.auth.signInWithPassword({ email, password: pass });
+
+    if (error) {
+      showLoginError('E-mail ou senha incorretos.');
+      btn.textContent = 'Entrar no sistema';
+      btn.disabled = false;
+      return;
+    }
+
+    // Busca perfil do usuário na tabela usuarios
+    const { data: perfil, error: perfilErr } = await APP.supabase
+      .from('usuarios').select('*').eq('id', data.user.id).single();
+
+    if (perfilErr || !perfil) {
+      showLoginError('Usuário sem perfil cadastrado. Contate o gestor.');
+      await APP.supabase.auth.signOut();
+      btn.textContent = 'Entrar no sistema';
+      btn.disabled = false;
+      return;
+    }
+
+    APP.user = {
+      id: data.user.id,
+      email: perfil.email,
+      nome: perfil.nome,
+      perfil: perfil.perfil,
+      corretor_ref: perfil.corretor_ref || perfil.nome,
+      initials: perfil.nome.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase()
+    };
+
+    APP.sbConnected = true;
+    enterApp();
+
+  } catch(e) {
+    console.error('Login erro:', e);
+    showLoginError('Erro de conexão. Tente novamente.');
+    btn.textContent = 'Entrar no sistema';
+    btn.disabled = false;
+  }
+}
+
+async function doLogout() {
+  if (APP.supabase) await APP.supabase.auth.signOut();
+  APP.user = null;
+  APP.leads = [];
+  APP.tasks = [];
+  APP.history = {};
+  APP.sbConnected = false;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// -- GESTÃO DE USUÁRIOS --
+async function criarUsuario() {
+  const nome = document.getElementById('uNome').value.trim();
+  const email = document.getElementById('uEmail').value.trim();
+  const senha = document.getElementById('uSenha').value;
+  const perfil = document.getElementById('uPerfil').value;
+
+  if (!nome || !email || !senha) { toast('Preencha todos os campos', 'error'); return; }
+  if (senha.length < 6) { toast('Senha precisa ter pelo menos 6 caracteres', 'error'); return; }
+
+  try {
+    // Cria no Supabase Auth
+    const { data, error } = await APP.supabase.auth.admin.createUser({
+      email, password: senha, email_confirm: true
+    });
+
+    // Se não tiver acesso admin, usa signUp (modo alternativo)
+    let userId;
+    if (error && error.message.includes('not allowed')) {
+      const { data: d2, error: e2 } = await APP.supabase.auth.signUp({ email, password: senha });
+      if (e2) { toast('Erro ao criar usuário: ' + e2.message, 'error'); return; }
+      userId = d2.user.id;
+    } else if (error) {
+      toast('Erro: ' + error.message, 'error'); return;
+    } else {
+      userId = data.user.id;
+    }
+
+    // Insere na tabela usuarios
+    const { error: perfilErr } = await APP.supabase.from('usuarios').insert([{
+      id: userId, nome, email, perfil, corretor_ref: nome
+    }]);
+
+    if (perfilErr) { toast('Erro ao salvar perfil: ' + perfilErr.message, 'error'); return; }
+
+    // Adiciona aos corretores automaticamente
+    if (!APP.brokers.includes(nome)) {
+      APP.brokers.push(nome);
+      saveToLocal();
+      await APP.supabase.from('corretores').insert([{ nome }]);
+      renderBrokerList();
+      renderBrokerSelects();
+    }
+
+    // Limpa form
+    ['uNome','uEmail','uSenha'].forEach(id => document.getElementById(id).value = '');
+    toast(`${nome} criado com sucesso!`, 'success');
+    await carregarUsuarios();
+
+  } catch(e) {
+    console.error('criarUsuario erro:', e);
+    toast('Erro ao criar usuário', 'error');
+  }
+}
+
+async function carregarUsuarios() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  const { data, error } = await APP.supabase.from('usuarios').select('*').order('nome');
+  if (error) { console.error('carregarUsuarios erro:', error); return; }
+  APP.usuarios = data || [];
+  renderUsuariosList();
+}
+
+function renderUsuariosList() {
+  const el = document.getElementById('usuariosList');
+  if (!el) return;
+  if (!APP.usuarios.length) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Nenhum usuário cadastrado ainda.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px">
+      <thead>
+        <tr style="color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">
+          <th style="padding:8px 12px">Nome</th>
+          <th style="padding:8px 12px">E-mail</th>
+          <th style="padding:8px 12px">Perfil</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${APP.usuarios.map(u => `
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 12px;color:var(--text-primary)">${u.perfil === 'gestor' ? '👑' : '👤'} ${u.nome}</td>
+          <td style="padding:8px 12px;color:var(--text-muted)">${u.email}</td>
+          <td style="padding:8px 12px">
+            <span style="background:${u.perfil==='gestor'?'rgba(245,158,11,0.15)':'rgba(139,92,246,0.15)'};color:${u.perfil==='gestor'?'#f59e0b':'#a855f7'};padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600">
+              ${u.perfil === 'gestor' ? 'Gestor' : 'Corretor'}
+            </span>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function aplicarPermissoes() {
+  const isGestor = APP.user?.perfil === 'gestor';
+
+  // Menu — oculta Equipe e Configurações para corretor
+  document.getElementById('navEquipe').style.display = isGestor ? 'flex' : 'none';
+  document.getElementById('navSistema').style.display = isGestor ? 'block' : 'none';
+
+  // Seção de usuários — só gestor
+  const su = document.getElementById('sectionUsuarios');
+  if (su) su.style.display = isGestor ? 'block' : 'none';
+
+  // Badge de perfil no sidebar
+  document.getElementById('userRole').textContent = isGestor ? '👑 Gestor' : '👤 Corretor';
+  document.getElementById('userRole').style.color = isGestor ? '#f59e0b' : 'var(--text-muted)';
+
+  // Filtro de corretor no Kanban — corretor: fixo nos próprios leads, sem barra de filtro
+  if (!isGestor) {
+    APP.kanbanBrokerFilter = APP.user.corretor_ref;
+    // Oculta barra de filtro de corretor (corretor não escolhe)
+    const fb = document.getElementById('kanbanFilterBar');
+    if (fb) fb.style.display = 'none';
+    // Oculta botão "Novo Lead" — corretor cria lead mas já com corretor fixo
+    const addBtn = document.getElementById('addLeadBtn');
+    if (addBtn) addBtn.style.display = 'none'; // reexibido em showPage
+  }
+}
+
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+async function enterApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('userName').textContent = APP.user.nome;
+  document.getElementById('userInitials').textContent = APP.user.initials;
+
+  // Aplica permissões de acordo com o perfil
+  aplicarPermissoes();
+
+  // Auto-registra corretor na tabela corretores se ainda não existir
+  if (APP.user?.perfil === 'corretor') {
+    const nome = APP.user.corretor_ref;
+    try {
+      const { data } = await APP.supabase.from('corretores').select('nome').eq('nome', nome).single();
+      if (!data) {
+        await APP.supabase.from('corretores').insert([{ nome }]);
+        console.log('Corretor auto-registrado:', nome);
+      }
+    } catch(e) {
+      // não existe ainda — insere
+      await APP.supabase.from('corretores').insert([{ nome }]).catch(() => {});
+    }
+  }
+
+  // Carrega localStorage primeiro como cache/fallback
+  loadFromLocalStorage();
+
+  // Conectar Supabase e AGUARDAR o SELECT antes de continuar
+  APP.sbUrl = SB_URL;
+  APP.sbKey = SB_KEY;
+  document.getElementById('sb_url').value = SB_URL;
+  document.getElementById('sb_key').value = SB_KEY;
+  localStorage.setItem('3ps_sb_url', SB_URL);
+  localStorage.setItem('3ps_sb_key', SB_KEY);
+  try {
+    APP.supabase = getSBClient();
+    APP.sbConnected = true;
+    // Carrega etapas primeiro (Kanban depende delas)
+    const hasStages = await loadStagesFromSB();
+    if (!hasStages) {
+      await migrateLocalStagesToSB();
+      await loadStagesFromSB();
+    }
+    await loadLeadsFromSB(); // leads depois das etapas
+    await loadBrokersFromSB();
+    await loadTasksFromSB();
+    await loadEmpFromSB();
+    if (APP.user?.perfil === 'gestor') await carregarUsuarios();
+    startSbHeartbeat();
+  } catch(e) {
+    console.error('enterApp Supabase erro:', e);
+    APP.sbConnected = false;
+  }
+
+  // So carrega demo se Supabase NAO estiver conectado E nao houver leads
+  if (!APP.sbConnected && APP.leads.length === 0) loadDemoData();
+
+  updateSbStatus();
+  refreshAll();
+  document.getElementById('setupBanner').style.display = 'block';
+  setTimeout(showAssistant, 600);
+}
+
+// -- LOCAL STORAGE --
+function saveToLocal() {
+  localStorage.setItem('3ps_leads', JSON.stringify(APP.leads));
+  localStorage.setItem('3ps_tasks', JSON.stringify(APP.tasks));
+  localStorage.setItem('3ps_history', JSON.stringify(APP.history));
+  localStorage.setItem('3ps_brokers', JSON.stringify(APP.brokers));
+  localStorage.setItem('3ps_empreendimentos', JSON.stringify(APP.empreendimentos));
+  // stages: salvo localmente apenas como cache/fallback
+  if (!APP.sbConnected) {
+    localStorage.setItem('3ps_stages', JSON.stringify(APP.stages));
+  }
+}
+
+function loadFromLocalStorage() {
+  const l = localStorage.getItem('3ps_leads');
+  const t = localStorage.getItem('3ps_tasks');
+  const h = localStorage.getItem('3ps_history');
+  const b = localStorage.getItem('3ps_brokers');
+  const e = localStorage.getItem('3ps_empreendimentos');
+  const s = localStorage.getItem('3ps_stages');
+  if (l) APP.leads = JSON.parse(l);
+  if (t) APP.tasks = JSON.parse(t);
+  if (h) APP.history = JSON.parse(h);
+  if (b) APP.brokers = JSON.parse(b);
+  if (e) APP.empreendimentos = JSON.parse(e);
+  // stages: só do localStorage se Supabase não estiver conectado
+  if (s && !APP.sbConnected) { APP.stages = JSON.parse(s); syncStatusMaps(); }
+}
+
+// -- DEMO DATA --
+function loadDemoData() {
+  APP.leads = [
+    { id:'1', nome:'Maria Oliveira', telefone:'(11) 98765-4321', email:'maria@email.com', origem:'Instagram', empreendimento:'Residencial Aurora', cidade:'S o Paulo', observacoes:'Interessada em 3 quartos, bairro Perdizes', corretor:'Alex', status:'atendimento', created_at: new Date(Date.now()-86400000*2).toISOString() },
+    { id:'2', nome:'João Pedro Costa', telefone:'(21) 99887-5566', email:'joao@gmail.com', origem:'Portal Im veis', empreendimento:'Edifício Vista Mar', cidade:'Rio de Janeiro', observacoes:'Busca imóvel para investimento, aceita financiamento', corretor:'Leide', status:'visita', created_at: new Date(Date.now()-86400000*5).toISOString() },
+    { id:'3', nome:'Fernanda Lemos', telefone:'(51) 98800-1234', email:'fernanda.lemos@corp.com', origem:'Indicação', empreendimento:'Condomínio Jardins', cidade:'Porto Alegre', observacoes:'Quer 2 vagas de garagem', corretor:'Eliane', status:'proposta', created_at: new Date(Date.now()-86400000*8).toISOString() },
+    { id:'4', nome:'Ricardo Andrade', telefone:'(11) 99600-7788', email:'', origem:'Google', empreendimento:'Torres Nobre', cidade:'Campinas', observacoes:'', corretor:'Alex', status:'novo', created_at: new Date(Date.now()-86400000*1).toISOString() },
+    { id:'5', nome:'Patrícia Mendes', telefone:'(31) 97700-2233', email:'pat.mendes@email.com', origem:'Facebook', empreendimento:'Residencial Aurora', cidade:'Belo Horizonte', observacoes:'Urgência alta, precisa fechar em 30 dias', corretor:'Leide', status:'fechada', created_at: new Date(Date.now()-86400000*15).toISOString() },
+    { id:'6', nome:'Bruno Carvalho', telefone:'(41) 98900-3344', email:'bruno.c@empresa.com', origem:'Walk-in', empreendimento:'Edifício Central', cidade:'Curitiba', observacoes:'Perguntou sobre permuta', corretor:'Eliane', status:'followup', created_at: new Date(Date.now()-86400000*3).toISOString() },
+    { id:'7', nome:'Amanda Santos', telefone:'(85) 99200-5566', email:'amanda.s@email.com', origem:'Site', empreendimento:'Condomínio Praias', cidade:'Fortaleza', observacoes:'Perdeu interesse após ver o preço', corretor:'Leide', status:'perdido', created_at: new Date(Date.now()-86400000*20).toISOString() },
+    { id:'8', nome:'Thiago Ferreira', telefone:'(48) 98300-9900', email:'thiago@startup.io', origem:'Instagram', empreendimento:'Torres Nobre', cidade:'Florian polis', observacoes:'Busca apartamento pé-na-areia', corretor:'Alex', status:'novo', created_at: new Date(Date.now()-86400000*0.5).toISOString() },
+  ];
+  APP.tasks = [
+    { id:'t1', titulo:'Ligar para Maria Oliveira — confirmar visita', lead_rel:'Maria Oliveira', corretor:'Alex', data_hora: new Date(Date.now()-3600000*3).toISOString(), prioridade:'alta', notas:'', concluida:false },
+    { id:'t2', titulo:'Enviar proposta para Fernanda Lemos', lead_rel:'Fernanda Lemos', corretor:'Eliane', data_hora: new Date(Date.now()-3600000*1).toISOString(), prioridade:'alta', notas:'Incluir condições de financiamento', concluida:false },
+    { id:'t3', titulo:'Follow-up João Pedro — aguardando decisão', lead_rel:'João Pedro Costa', corretor:'Leide', data_hora: new Date(Date.now()-3600000*5).toISOString(), prioridade:'media', notas:'', concluida:false },
+    { id:'t4', titulo:'Atualizar cadastro de Bruno Carvalho', lead_rel:'Bruno Carvalho', corretor:'Eliane', data_hora: new Date(Date.now()+3600000*24).toISOString(), prioridade:'baixa', notas:'', concluida:false },
+  ];
+  APP.history = {
+    '1': [
+      { text:'Lead criado via Instagram', type:'create', date: new Date(Date.now()-86400000*2).toISOString() },
+      { text:'Primeiro contato por WhatsApp — demonstrou interesse no 3/4', type:'contact', date: new Date(Date.now()-86400000).toISOString() },
+    ],
+    '2': [
+      { text:'Lead criado via Portal Imóveis', type:'create', date: new Date(Date.now()-86400000*5).toISOString() },
+      { text:'Ligação realizada — agendar visita para sábado', type:'call', date: new Date(Date.now()-86400000*3).toISOString() },
+      { text:'Visita confirmada para 14h sábado', type:'visit', date: new Date(Date.now()-86400000*1).toISOString() },
+    ],
+  };
+  saveToLocal();
+  refreshAll();
+}
+
+function clearData() {
+  if (confirm('Limpar todos os dados de demonstração?')) {
+    APP.leads = []; APP.tasks = []; APP.history = {};
+    saveToLocal(); refreshAll();
+    toast('Dados limpos','success');
+  }
+}
+
+// -- PAGES --
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = {
+    dashboard:'Dashboard', leads:'Leads', kanban:'Pipeline Kanban',
+    agenda:'Agenda & Follow-up', equipe:'Equipe', config:'Configurações'
+  }[name] || name;
+
+  const lb = document.getElementById('addLeadBtn');
+  const tb = document.getElementById('addTaskBtn');
+  const sb = document.getElementById('searchBar');
+  const eb = document.getElementById('exportCsvBtn');
+  lb.style.display = ['leads','kanban'].includes(name) ? 'inline-flex' : 'none';
+  eb.style.display = name === 'leads' ? 'inline-flex' : 'none';
+  tb.style.display = name === 'agenda' ? 'inline-flex' : 'none';
+  sb.style.display = name === 'leads' ? 'flex' : 'none';
+
+  if(name==='dashboard') renderDashboard();
+  if(name==='leads') renderLeadsTable();
+  if(name==='kanban') { renderKanbanFilterBar(); renderKanbanEmpFilterBar(); renderKanban(); }
+  if(name==='agenda') renderAgenda();
+  if(name==='equipe') renderTeam();
+  if(name==='config') renderConfig();
+
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function refreshAll() {
+  updateBadges();
+  renderBrokerSelects();
+  renderBrokerList();
+  renderEmpList();
+  renderEmpSelect();
+  const activePage = document.querySelector('.page.active');
+  if(activePage) {
+    const id = activePage.id.replace('page-','');
+    if(id==='dashboard') renderDashboard();
+    if(id==='leads') renderLeadsTable();
+    if(id==='kanban') renderKanbanFilterBar(), renderKanbanEmpFilterBar(), renderKanban();
+    if(id==='agenda') renderAgenda();
+    if(id==='equipe') renderTeam();
+  }
+}
+
+function getTasksDoUsuario() {
+  if (APP.user?.perfil === 'gestor') return APP.tasks;
+  return APP.tasks.filter(t => !t.corretor || t.corretor === APP.user?.corretor_ref);
+}
+
+function getLeadsDoUsuario() {
+  if (APP.user?.perfil === 'gestor') return APP.leads;
+  return APP.leads.filter(l => l.corretor === APP.user?.corretor_ref);
+}
+
+function updateBadges() {
+  const leads = getLeadsDoUsuario();
+  const tasks = getTasksDoUsuario();
+  document.getElementById('leadsCount').textContent = leads.filter(l => l.status !== 'fechada' && l.status !== 'perdido').length;
+  document.getElementById('tasksCount').textContent = tasks.filter(t => !t.concluida).length;
+}
+
+// -- EXPORTAR CSV --
+function exportCSV() {
+  const leads = getFilteredLeads();
+  if (leads.length === 0) { toast('Nenhum lead para exportar', 'error'); return; }
+  const cols = ['Nome','Telefone','E-mail','Origem','Empreendimento','Cidade','Corretor','Status','Observações','Criado em'];
+  const rows = leads.map(l => [
+    l.nome || '',
+    l.telefone || '',
+    l.email || '',
+    l.origem || '',
+    l.empreendimento || '',
+    l.cidade || '',
+    l.corretor || '',
+    STATUS_LABELS[l.status] || l.status || '',
+    (l.observacoes || '').replace(/;/g, ','),
+    l.created_at ? new Date(l.created_at).toLocaleDateString('pt-BR') : ''
+  ]);
+  const bom = '\uFEFF'; // BOM para Excel abrir corretamente com acentos
+  const csv = bom + [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  a.href = url;
+  a.download = `3ps-leads-${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`${leads.length} leads exportados!`, 'success');
+}
+
+function getFilteredLeads() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  return getLeadsDoUsuario().filter(l => {
+    const matchSearch = !q || (l.nome||'').toLowerCase().includes(q) || (l.telefone||'').includes(q) || (l.empreendimento||'').toLowerCase().includes(q);
+    const matchStatus = APP.statusFilter === 'all' || l.status === APP.statusFilter;
+    const matchBroker = APP.kanbanBrokerFilter === 'todos' || l.corretor === APP.kanbanBrokerFilter;
+    return matchSearch && matchStatus && matchBroker;
+  });
+}
+
+// -- FUNIL POR EMPREENDIMENTO --
+function renderEmpFunnel() {
+  const card = document.getElementById('empFunnelCard');
+  const list = document.getElementById('empFunnelList');
+  if (!card || !list) return;
+
+  const emps = APP.empreendimentos;
+  if (emps.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const vendaId = APP.stages.find(s => s.label.toLowerCase().includes('fechad') || s.id === 'fechada')?.id || 'fechada';
+  const perdaId = APP.stages.find(s => s.label.toLowerCase().includes('perdid') || s.id === 'perdido')?.id || 'perdido';
+
+  list.innerHTML = emps.map(emp => {
+    const leads = APP.leads.filter(l => l.empreendimento === emp);
+    if (leads.length === 0) return '';
+    const vendas = leads.filter(l => l.status === vendaId).length;
+    const perdidos = leads.filter(l => l.status === perdaId).length;
+    const ativos = leads.length - vendas - perdidos;
+    const conversao = leads.length > 0 ? Math.round((vendas / leads.length) * 100) : 0;
+    const barW = Math.max(conversao, 2);
+
+    return `
+    <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary)">🏢 ${emp}</div>
+        <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted)">
+          <span>📋 ${leads.length} leads</span>
+          <span style="color:#10b981">💰 ${vendas} vendas</span>
+          <span style="color:#8b5cf6">🔄 ${ativos} ativos</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-surface);border-radius:99px;height:6px;overflow:hidden">
+        <div style="height:100%;width:${barW}%;background:linear-gradient(90deg,#7c3aed,#10b981);border-radius:99px;transition:width .4s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Taxa de conversão: ${conversao}%</div>
+    </div>`;
+  }).join('');
+}
+
+// -- DASHBOARD --
+let statusChartInstance = null;
+function renderDashboard() {
+  renderAlertsPanel();
+  const leads = getLeadsDoUsuario();
+  document.getElementById('m-total').textContent = leads.length;
+  const week = Date.now() - 7*86400000;
+  document.getElementById('m-novos').textContent = leads.filter(l => new Date(l.created_at).getTime() > week).length;
+  document.getElementById('m-atend').textContent = leads.filter(l => l.status === 'atendimento').length;
+  document.getElementById('m-visita').textContent = leads.filter(l => l.status === 'visita').length;
+  document.getElementById('m-vendas').textContent = leads.filter(l => l.status === 'fechada').length;
+
+  const statuses = Object.keys(STATUS_LABELS);
+  const counts = statuses.map(s => leads.filter(l => l.status === s).length);
+  const colors = statuses.map(s => STATUS_COLORS[s]);
+
+  if(statusChartInstance) statusChartInstance.destroy();
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  statusChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: statuses.map(s => STATUS_LABELS[s]),
+      datasets: [{ data: counts, backgroundColor: colors.map(c => c+'99'), borderColor: colors, borderWidth: 1.5, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#9490b0', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#9490b0', font: { size: 10 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  const recent = [...leads].sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+  const rl = document.getElementById('recentLeads');
+  if (recent.length === 0) {
+    rl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Sem leads ainda</div><div class="empty-desc">Adicione seu primeiro lead!</div></div>';
+    return;
+  }
+  rl.innerHTML = recent.map(l => `
+    <div class="recent-item" onclick="openLeadDetail('${l.id}')">
+      <div class="lead-avatar" style="background:${getAvatarColor(l.nome)}22;color:${getAvatarColor(l.nome)}">${getInitials(l.nome)}</div>
+      <div class="recent-info">
+        <div class="name">${l.nome}</div>
+        <div class="detail">${l.empreendimento||' '}   ${timeAgo(l.created_at)}</div>
+      </div>
+      <div class="recent-status"><span class="pill pill-${l.status}">${STATUS_LABELS[l.status]}</span></div>
+    </div>
+  `).join('');
+  renderEmpFunnel();
+}
+
+// -- LEADS TABLE --
+let activeStatusFilter = 'all';
+let activeBrokerFilter = 'todos';
+
+function renderLeadsTable() {
+  // Atualiza filtros de status dinamicamente
+  const filtersEl = document.getElementById('leadsFilters');
+  if (filtersEl) {
+    filtersEl.innerHTML = `<button class="filter-btn ${activeStatusFilter==='all'?'active':''}" onclick="filterByStatus('all',this)">Todos</button>` +
+      APP.stages.map(s => `<button class="filter-btn ${activeStatusFilter===s.id?'active':''}" onclick="filterByStatus('${s.id}',this)">${s.label}</button>`).join('');
+  }
+  renderBrokerFilterBar();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const leads = getLeadsDoUsuario().filter(l => {
+    const matchStatus = activeStatusFilter === 'all' || l.status === activeStatusFilter;
+    const matchBroker = activeBrokerFilter === 'todos' || l.corretor === activeBrokerFilter;
+    const matchSearch = !q || l.nome.toLowerCase().includes(q) || (l.email||'').toLowerCase().includes(q) || (l.empreendimento||'').toLowerCase().includes(q);
+    return matchStatus && matchBroker && matchSearch;
+  });
+
+  const tbody = document.getElementById('leadsTable');
+  if (leads.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum lead encontrado</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = leads.map(l => `
+    <tr>
+      <td>
+        <div class="lead-name">
+          <div class="avatar-sm" style="background:${getAvatarColor(l.nome)}22;color:${getAvatarColor(l.nome)}">${getInitials(l.nome)}</div>
+          <span style="cursor:pointer" onclick="openLeadDetail('${l.id}')">${l.nome}</span>
+        </div>
+      </td>
+      <td>${l.telefone||' '}</td>
+      <td>${l.empreendimento||' '}</td>
+      <td><span class="pill" style="background:rgba(139,92,246,0.1);color:#a78bfa;font-size:10px">${l.origem||' '}</span></td>
+      <td>${l.corretor||' '}</td>
+      <td><span class="pill pill-${l.status}">${STATUS_LABELS[l.status]||l.status}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="icon-btn" onclick="openLeadDetail('${l.id}')" title="Ver detalhes">👁️</button>
+          ${l.telefone ? `<button class="icon-btn whatsapp-btn" onclick="openWhatsApp('${l.telefone}')" title="WhatsApp">💬</button>` : ''}
+          <button class="icon-btn" style="color:#ef4444;border-color:rgba(239,68,68,0.2)" onclick="deleteLead('${l.id}')" title="Excluir">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterLeads() { renderLeadsTable(); }
+function filterByStatus(s, el) {
+  activeStatusFilter = s;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderLeadsTable();
+}
+
+// -- KANBAN FILTRO DE CORRETOR --
+function renderKanbanFilterBar() {
+  const bar = document.getElementById('kanbanFilterBar');
+  if (!bar) return;
+
+  // Corretor não vê a barra de filtro — já vem fixo nos próprios leads
+  if (APP.user?.perfil !== 'gestor') {
+    bar.style.display = 'none';
+    return;
+  }
+
+  const brokers = APP.brokers;
+  const total = APP.leads.length;
+
+  bar.style.display = 'flex';
+  bar.innerHTML = `<span class="kanban-filter-label">Visualizando:</span>
+    <button class="kfbtn ${APP.kanbanBrokerFilter==='todos'?'active':''}" onclick="setKanbanBroker('todos')">
+      👥 Todos os corretores
+      <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${total}</span>
+    </button>
+    ${brokers.map((b,i) => {
+      const count = APP.leads.filter(l => l.corretor === b).length;
+      const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
+      return `<button class="kfbtn ${APP.kanbanBrokerFilter===b?'active':''}" onclick="setKanbanBroker('${b}')">
+        <span class="kfbtn-avatar" style="background:${color}33;color:${color}">${getInitials(b)}</span>
+        ${b}
+        <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${count}</span>
+      </button>`;
+    }).join('')}`;
+}
+
+function setKanbanBroker(broker) {
+  APP.kanbanBrokerFilter = broker;
+  renderKanbanFilterBar();
+  renderKanban();
+}
+
+// -- KANBAN --
+let draggedLead = null;
+function renderKanban() {
+  const statuses = APP.stages.map(s => s.id);
+  const wrap = document.getElementById('kanbanWrap');
+  const colColors = Object.fromEntries(APP.stages.map(s => [s.id, s.color]));
+
+  // Filtra leads pelo corretor selecionado
+  const filteredLeads = getLeadsDoUsuario()
+    .filter(l => APP.kanbanBrokerFilter === 'todos' || l.corretor === APP.kanbanBrokerFilter)
+    .filter(l => APP.kanbanEmpFilter === 'todos' || l.empreendimento === APP.kanbanEmpFilter);
+
+  // Resumo
+  const summary = document.getElementById('kanbanSummary');
+  const totalFilt = filteredLeads.length;
+  const vendas = filteredLeads.filter(l => l.status === 'fechada').length;
+  const ativos = filteredLeads.filter(l => !['fechada','perdido'].includes(l.status)).length;
+  const perdidos = filteredLeads.filter(l => l.status === 'perdido').length;
+  summary.innerHTML = `
+    <div class="kanban-summary-item"><strong>${totalFilt}</strong> leads ${APP.user?.perfil !== 'gestor' ? 'de ' + APP.user?.corretor_ref : APP.kanbanBrokerFilter !== 'todos' ? 'de ' + APP.kanbanBrokerFilter : 'no total'}</div>
+    <div class="kanban-summary-divider"></div>
+    <div class="kanban-summary-item">🟢 <strong>${ativos}</strong> ativos</div>
+    <div class="kanban-summary-divider"></div>
+    <div class="kanban-summary-item">💰 <strong>${vendas}</strong> vendas</div>
+    <div class="kanban-summary-divider"></div>
+    <div class="kanban-summary-item">🔴 <strong>${perdidos}</strong> perdidos</div>
+  `;
+
+  wrap.innerHTML = statuses.map(s => {
+    const leads = filteredLeads.filter(l => l.status === s);
+    const cards = leads.map(l => {
+      const bIdx = APP.brokers.indexOf(l.corretor);
+      const bColor = bIdx >= 0 ? AVATAR_COLORS[bIdx % AVATAR_COLORS.length] : '#8b5cf6';
+      // S  mostra badge de corretor na visão "Todos"
+      const brokerBadge = APP.kanbanBrokerFilter === 'todos' && l.corretor
+        ? `<span class="kanban-card-broker" style="border-color:${bColor}44;background:${bColor}18;color:${bColor}">
+            <span class="kanban-card-broker-dot" style="background:${bColor}33;color:${bColor}">${getInitials(l.corretor)}</span>
+            ${l.corretor}
+          </span>`
+        : '';
+      return `
+        <div class="kanban-card" draggable="true" data-id="${l.id}" onclick="openLeadDetail('${l.id}')">
+          <div class="kanban-card-name">${l.nome}</div>
+          <div class="kanban-card-detail">🏢 ${l.empreendimento||' '}</div>
+          <div class="kanban-card-detail">📍 ${l.cidade||' '}</div>
+          <div class="kanban-card-actions">
+            ${brokerBadge}
+            <select class="kanban-move-select" onchange="moveLeadFromSelect(event,'${l.id}')" onclick="event.stopPropagation()" style="font-size:10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:2px 4px;max-width:90px">
+              <option value="">Mover...</option>
+              ${APP.stages.filter(s => s.id !== l.status).map(s => `<option value="${s.id}">${s.label}</option>`).join('')}
+            </select>
+            ${l.telefone ? `<button class="icon-btn whatsapp-btn btn-sm" onclick="event.stopPropagation();openWhatsApp('${l.telefone}')" style="font-size:11px;width:24px;height:24px;margin-left:auto">💬</button>` : '<span style="margin-left:auto"></span>'}
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px">${l.origem||' '}   ${timeAgo(l.created_at)}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="kanban-col" data-status="${s}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="dropLead(event,'${s}')">
+        <div class="kanban-col-head">
+          <span class="col-title" style="color:${colColors[s]}">${STATUS_LABELS[s]}</span>
+          <span class="col-count">${leads.length}</span>
+        </div>
+        <div style="height:3px;border-radius:99px;background:${colColors[s]};margin:0 10px 8px;opacity:0.5"></div>
+        <div class="kanban-cards">${cards||'<div style="padding:12px 8px;text-align:center;font-size:11px;color:var(--text-muted)">Arraste aqui</div>'}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Drag events
+  wrap.querySelectorAll('.kanban-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      draggedLead = card.dataset.id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      wrap.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+    });
+  });
+}
+
+async function moveLeadToStatus(leadId, newStatus) {
+  const lead = APP.leads.find(l => l.id === leadId);
+  if (lead && lead.status !== newStatus) {
+    const oldLabel = STATUS_LABELS[lead.status] || lead.status;
+    const newLabel = STATUS_LABELS[newStatus] || newStatus;
+    // Calcula tempo na etapa anterior
+    const hist = APP.history[lead.id] || [];
+    const lastMove = [...hist].reverse().find(h => h.type === 'move' || h.type === 'create');
+    let tempoMsg = '';
+    if (lastMove) {
+      const ms = Date.now() - new Date(lastMove.date).getTime();
+      tempoMsg = ' · ficou ' + formatDuration(ms) + ' em "' + oldLabel + '"';
+    }
+    lead.status = newStatus;
+    lead.status_changed_at = new Date().toISOString();
+    addHistory(lead.id, `Movido de "${oldLabel}" → "${newLabel}"${tempoMsg}`, 'move');
+    saveToLocal();
+    renderKanban(); // atualiza local imediatamente
+    updateBadges();
+    toast(`Lead movido para ${newLabel}`, 'success');
+    await updateLeadInSB(lead.id, { status: newStatus }); // salva + recarrega do Supabase
+  }
+}
+
+async function dropLead(e, newStatus) {
+  e.preventDefault();
+  const col = e.currentTarget;
+  col.classList.remove('drag-over');
+  if (!draggedLead) return;
+  await moveLeadToStatus(draggedLead, newStatus);
+  draggedLead = null;
+}
+
+function moveLeadFromSelect(e, leadId) {
+  e.stopPropagation();
+  const newStatus = e.target.value;
+  if (newStatus) moveLeadToStatus(leadId, newStatus);
+  e.target.value = '';
+}
+
+function formatDuration(ms) {
+  const min = Math.floor(ms / 60000);
+  const h = Math.floor(min / 60);
+  const d = Math.floor(h / 24);
+  if (d > 0) return d + (d === 1 ? ' dia' : ' dias');
+  if (h > 0) return h + (h === 1 ? ' hora' : ' horas');
+  if (min > 0) return min + ' min';
+  return 'menos de 1 min';
+}
+
+// -- LEAD DETAIL --
+function openLeadDetail(id) {
+  const lead = APP.leads.find(l => l.id === id);
+  if (!lead) return;
+  APP.currentLead = id;
+
+  document.getElementById('modalName').textContent = lead.nome;
+  document.getElementById('modalSub').textContent = `${lead.empreendimento||' '}   ${lead.cidade||' '}`;
+
+  const av = document.getElementById('modalAvatar');
+  av.textContent = getInitials(lead.nome);
+  av.style.background = getAvatarColor(lead.nome) + '33';
+  av.style.color = getAvatarColor(lead.nome);
+
+  document.getElementById('modalActions').innerHTML = `
+    ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
+    <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
+    <span class="pill pill-${lead.status}" style="padding:6px 14px;font-size:12px">${STATUS_LABELS[lead.status]}</span>
+    <select onchange="changeLeadStatus('${lead.id}',this.value)" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;color:var(--text-secondary);font-size:12px">
+      <option value="">Alterar status...</option>
+      ${APP.stages.map(s => `<option value="${s.id}">${s.label}</option>`).join('')}
+    </select>
+  `;
+
+    document.getElementById('modalGrid').innerHTML = `
+    <div class="info-row"><div class="info-label">Telefone</div><div class="info-value">${lead.telefone||'—'}</div></div>
+    <div class="info-row"><div class="info-label">E-mail</div><div class="info-value">${lead.email||'—'}</div></div>
+    <div class="info-row"><div class="info-label">Origem</div><div class="info-value">${lead.origem||'—'}</div></div>
+    <div class="info-row">
+      <div class="info-label">Corretor Responsável</div>
+      <div class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span id="corretorLabel_${lead.id}">${lead.corretor||'—'}</span>
+        <select onchange="changeLeadCorretor('${lead.id}',this.value)" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 8px;color:var(--text-secondary);font-size:11px;cursor:pointer">
+          <option value="">Mudar corretor...</option>
+          ${APP.brokers.map(b=>`<option value="${b}" ${lead.corretor===b?'selected':''}>${b}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="info-row"><div class="info-label">Cidade</div><div class="info-value">${lead.cidade||'—'}</div></div>
+    <div class="info-row"><div class="info-label">Cadastrado em</div><div class="info-value">${formatDate(lead.created_at)}</div></div>
+    <div class="info-row" style="grid-column:1/-1"><div class="info-label">Observações</div><div class="info-value">${lead.observacoes||'—'}</div></div>
+  `;
+
+  const hist = APP.history[id] || [];
+  document.getElementById('modalTimeline').innerHTML = hist.length ? hist.map(h => `
+    <div class="timeline-item">
+      <div class="timeline-dot">${{create:'🌱',contact:'💬',call:'📞',visit:'🏠',update:'✏️',move:'🔄',note:'📝'}[h.type]||' '}</div>
+      <div class="timeline-content">
+        <div class="timeline-text">${h.text}</div>
+        <div class="timeline-date">${formatDate(h.date)}</div>
+      </div>
+    </div>
+  `).join('') : '<div style="color:var(--text-muted);font-size:13px">Sem hist rico ainda.</div>';
+
+  document.getElementById('noteText').value = '';
+  openModal('leadModal');
+}
+
+async function changeLeadStatus(id, newStatus) {
+  if (!newStatus) return;
+  const lead = APP.leads.find(l => l.id === id);
+  if (lead) {
+    const oldLabel = STATUS_LABELS[lead.status] || lead.status;
+    const newLabel = STATUS_LABELS[newStatus] || newStatus;
+    const hist = APP.history[id] || [];
+    const lastMove = [...hist].reverse().find(h => h.type === 'move' || h.type === 'create');
+    let tempoMsg = '';
+    if (lastMove) {
+      const ms = Date.now() - new Date(lastMove.date).getTime();
+      tempoMsg = ' · ficou ' + formatDuration(ms) + ' em "' + oldLabel + '"';
+    }
+    lead.status = newStatus;
+    addHistory(id, `Movido de "${oldLabel}" → "${newLabel}"${tempoMsg}`, 'move');
+    saveToLocal();
+    refreshAll();
+    openLeadDetail(id);
+    toast(`Status atualizado para ${newLabel}`, 'success');
+    await updateLeadInSB(id, { status: newStatus }); // salva + recarrega do Supabase
+  }
+}
+
+function addNote() {
+  const text = document.getElementById('noteText').value.trim();
+  if (!text || !APP.currentLead) return;
+  addHistory(APP.currentLead, text, 'note');
+  saveToLocal();
+  openLeadDetail(APP.currentLead);
+  toast('Anota  o salva','success');
+}
+
+function addHistory(leadId, text, type) {
+  if (!APP.history[leadId]) APP.history[leadId] = [];
+  APP.history[leadId].push({ text, type, date: new Date().toISOString() });
+  if (APP.supabase && APP.sbConnected) {
+    APP.supabase.from('historico').insert([{ lead_id: leadId, texto: text, tipo: type }]).then(({error}) => {
+      if(error) console.error(error);
+    });
+  }
+}
+
+// -- ASSISTENTE --
+function showAssistant() {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  const overdue = APP.tasks.filter(t => !t.concluida && new Date(t.data_hora) < now);
+
+  const textEl = document.getElementById('assistantText');
+  const alertsEl = document.getElementById('assistantAlerts');
+
+  alertsEl.innerHTML = '';
+  if (overdue.length === 0) {
+    alertsEl.innerHTML = '<div style="color:#34d399;font-size:13px;padding:4px 0">✅ Nenhuma tarefa atrasada. Boa produtividade!</div>';
+  } else {
+    overdue.forEach(t => {
+      const diff = Math.round((now - new Date(t.data_hora)) / 60000);
+      const diffText = diff < 60 ? `${diff}min atrás` : `${Math.floor(diff/60)}h atrás`;
+      const corretor = t.corretor || 'Corretor';
+      alertsEl.innerHTML += `
+        <div class="asst-alert">
+          <div class="asst-alert-dot"></div>
+          <div class="asst-alert-text">
+            <b>${corretor}</b> tem tarefa atrasada com <b>${t.lead_rel||'lead'}</b><br>
+            "${t.titulo}"   <span style="color:#f87171">${diffText}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  const totalTasks = APP.tasks.filter(t => !t.concluida).length;
+  const msg = overdue.length > 0
+    ? `${greeting}! 👋 Você tem <span class="hl">${totalTasks} tarefa${totalTasks!==1?'s':''} pendente${totalTasks!==1?'s':''}</span> e <span class="danger">${overdue.length} atrasada${overdue.length!==1?'s':''}</span> hoje. Confira abaixo:`
+    : `${greeting}! ✅ Tudo em dia! Você tem <span class="hl">${totalTasks} tarefa${totalTasks!==1?'s':''}</span> pendente${totalTasks!==1?'s':''} para hoje. <span class="ok">Nenhuma atrasada</span>. Bom trabalho! 🎉`;
+
+  textEl.innerHTML = '';
+  let i = 0;
+  const chars = [];
+  let inTag = false, tagBuf = '';
+  for (const ch of msg) {
+    if (ch === '<') { inTag = true; tagBuf = '<'; }
+    else if (ch === '>' && inTag) { inTag = false; tagBuf += '>'; chars.push(tagBuf); tagBuf = ''; }
+    else if (inTag) { tagBuf += ch; }
+    else { chars.push(ch); }
+  }
+
+  const cursor = '<span class="cursor"></span>';
+  function typeNext() {
+    if (i < chars.length) {
+      textEl.innerHTML = chars.slice(0, i+1).join('') + cursor;
+      i++;
+      setTimeout(typeNext, chars[i-1].startsWith('<') ? 0 : 22);
+    } else {
+      textEl.innerHTML = chars.join('');
+    }
+  }
+  typeNext();
+  document.getElementById('assistantModal').classList.add('open');
+}
+
+function closeAssistant() {
+  document.getElementById('assistantModal').classList.remove('open');
+}
+
+// -- ALERTS PANEL --
+function renderAlertsPanel() {
+  const now = new Date();
+  const tarefas = getTasksDoUsuario();
+  const overdue = tarefas.filter(t => !t.concluida && new Date(t.data_hora) < now);
+  const panel = document.getElementById('alertsPanel');
+  if (!panel) return;
+
+  if (overdue.length === 0) {
+    panel.style.borderColor = 'rgba(16,185,129,0.2)';
+    panel.innerHTML = `
+      <div class="alerts-panel-head">
+        <div class="alerts-panel-title" style="color:#34d399">⏰ Pendências do Dia</div>
+      </div>
+      <div class="alerts-ok">✅ Nenhuma tarefa atrasada. Equipe em dia!</div>`;
+    return;
+  }
+
+  panel.style.borderColor = 'rgba(239,68,68,0.2)';
+  panel.innerHTML = `
+    <div class="alerts-panel-head">
+      <div class="alerts-panel-title">⏰ Tarefas Atrasadas
+        <span class="alerts-panel-badge">${overdue.length}</span>
+      </div>
+    </div>
+    ${overdue.map(t => {
+      const diff = Math.round((now - new Date(t.data_hora)) / 60000);
+      const diffText = diff < 60 ? `${diff}min atrás` : diff < 1440 ? `${Math.floor(diff/60)}h atrás` : `${Math.floor(diff/1440)}d atrás`;
+      return `
+        <div class="alert-row">
+          <div class="alert-row-emoji">⏰</div>
+          <div class="alert-row-info">
+            <div class="alert-row-title">${t.corretor||' '}   ${t.titulo}</div>
+            <div class="alert-row-sub">Lead: ${t.lead_rel||' '}   Prioridade: ${t.prioridade}</div>
+          </div>
+          <div class="alert-row-ago">${diffText}</div>
+          <button class="alert-done-btn" onclick="completeFromPanel('${t.id}')" title="Marcar como concluída">✅</button>
+        </div>`;
+    }).join('')}`;
+}
+
+async function completeFromPanel(id) {
+  const task = APP.tasks.find(t => t.id === id);
+  if (task) {
+    task.concluida = true;
+    saveToLocal();
+    updateBadges();
+    renderAlertsPanel();
+    toast('Tarefa concluída! 🎉','success');
+    if (APP.supabase && APP.sbConnected) {
+      const { error } = await APP.supabase.from('tarefas').update({ concluida: true }).eq('id', id);
+      if (error) console.error('Erro ao atualizar tarefa no Supabase:', error);
+    }
+  }
+}
+
+// -- BROKER FILTER (Leads) --
+function renderBrokerFilterBar() {
+  const bar = document.getElementById('brokerFilterBar');
+  if (!bar) return;
+
+  // Corretor não vê o filtro de corretor na tela de leads
+  if (APP.user?.perfil !== 'gestor') {
+    bar.style.display = 'none';
+    activeBrokerFilter = APP.user?.corretor_ref || 'todos';
+    return;
+  }
+
+  bar.style.display = 'flex';
+  const brokers = ['todos', ...APP.brokers];
+  bar.innerHTML = `<span class="broker-filter-label">Corretor:</span>` +
+    brokers.map(b => `
+      <button class="bfbtn ${activeBrokerFilter===b?'active':''}" onclick="setBrokerFilter('${b}')">
+        ${b === 'todos' ? 'Todos' : b}
+      </button>`).join('');
+}
+
+function setBrokerFilter(broker) {
+  activeBrokerFilter = broker;
+  renderBrokerFilterBar();
+  renderLeadsTable();
+}
+
+// -- SAVE LEAD --
+function saveLead() {
+  const nome = document.getElementById('f_nome').value.trim();
+  if (!nome) { toast('Nome é obrigatório','error'); return; }
+
+  const lead = {
+    id: Date.now().toString(),
+    nome,
+    telefone: document.getElementById('f_telefone').value,
+    email: document.getElementById('f_email').value,
+    origem: document.getElementById('f_origem').value,
+    empreendimento: document.getElementById('f_empreendimento').value,
+    cidade: document.getElementById('f_cidade').value,
+    observacoes: document.getElementById('f_obs').value,
+    corretor: document.getElementById('f_corretor').value,
+    status: document.getElementById('f_status').value,
+    created_at: new Date().toISOString()
+  };
+
+  if (APP.sbConnected) {
+    // Supabase conectado: salva no banco e recarrega (não adiciona local com id errado)
+    addHistory(lead.id, 'Lead cadastrado no sistema', 'create');
+    saveLeadToSB(lead); // já faz reload após insert
+    saveToLocal();
+  } else {
+    // Fallback local
+    APP.leads.unshift(lead);
+    addHistory(lead.id, 'Lead cadastrado no sistema', 'create');
+    saveToLocal();
+    refreshAll();
+  }
+  closeModal('addLeadModal');
+  toast('Lead cadastrado com sucesso!', 'success');
+
+  ['f_nome','f_telefone','f_email','f_origem','f_empreendimento','f_cidade','f_obs','f_corretor'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_status').value = 'novo';
+}
+
+async function deleteLead(id) {
+  if (!confirm('Excluir este lead?')) return;
+  APP.leads = APP.leads.filter(l => l.id !== id);
+  saveToLocal();
+  refreshAll();
+  toast('Lead excluído', 'success');
+  if (APP.supabase && APP.sbConnected) {
+    console.log('DELETE iniciado:', id);
+    const { error } = await APP.supabase.from('leads').delete().eq('id', id);
+    if (error) { console.error('DELETE erro:', error); }
+    else { console.log('DELETE sucesso:', id); await loadLeadsFromSB(); }
+  }
+}
+
+// -- AGENDA --
+function renderAgenda() {
+  const tasks = getTasksDoUsuario().sort((a,b) => new Date(a.data_hora)-new Date(b.data_hora));
+  const now = new Date();
+
+  const list = document.getElementById('taskList');
+  if (tasks.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">Sem tarefas pendentes</div><div class="empty-desc">Adicione follow-ups e lembretes!</div></div>';
+  } else {
+    list.innerHTML = tasks.map(t => {
+      const isOverdue = !t.concluida && new Date(t.data_hora) < now;
+      return `
+        <div class="task-item ${isOverdue?'overdue':''}">
+          <div class="task-check ${t.concluida?'done':''}" onclick="toggleTask('${t.id}')">${t.concluida?'✓':''}</div>
+          <div class="task-priority priority-${t.prioridade}"></div>
+          <div class="task-info" style="flex:1">
+            <div class="task-title" style="${t.concluida?'text-decoration:line-through;opacity:0.5':''}">${t.titulo}</div>
+            <div class="task-detail">
+              ${t.lead_rel ? `🔗 ${t.lead_rel}   ` : ''}
+              ${isOverdue ? '🔴 ' : '🕐 '}${formatDateTime(t.data_hora)}
+              ${isOverdue ? '<span style="color:#f87171;font-size:11px">   Atrasado</span>' : ''}
+            </div>
+          </div>
+          <button class="icon-btn btn-sm" style="color:#f87171;border-color:rgba(239,68,68,0.2);flex-shrink:0" onclick="deleteTask('${t.id}')">🗑️</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const upcoming = APP.leads.filter(l => l.status === 'visita' || l.status === 'followup').slice(0, 5);
+  const upList = document.getElementById('upcomingList');
+  upList.innerHTML = upcoming.length ? upcoming.map(l => `
+    <div class="recent-item" onclick="openLeadDetail('${l.id}')">
+      <div class="lead-avatar" style="background:${getAvatarColor(l.nome)}22;color:${getAvatarColor(l.nome)};width:32px;height:32px;font-size:11px">${getInitials(l.nome)}</div>
+      <div class="recent-info">
+        <div class="name" style="font-size:13px">${l.nome}</div>
+        <div class="detail">${STATUS_LABELS[l.status]}</div>
+      </div>
+      ${l.telefone ? `<button class="icon-btn whatsapp-btn btn-sm" onclick="event.stopPropagation();openWhatsApp('${l.telefone}')">💬</button>` : ''}
+    </div>
+  `).join('') : '<div style="color:var(--text-muted);font-size:13px;padding:8px">Sem contatos pendentes.</div>';
+}
+
+async function saveTask() {
+  const titulo = document.getElementById('t_titulo').value.trim();
+  if (!titulo) { toast('Título é obrigatório','error'); return; }
+  const task = {
+    id: Date.now().toString(),
+    titulo,
+    lead_rel: document.getElementById('t_lead').value,
+    corretor: APP.user?.perfil === 'gestor'
+      ? document.getElementById('t_corretor').value
+      : APP.user?.corretor_ref,
+    data_hora: document.getElementById('t_data').value || new Date().toISOString(),
+    prioridade: document.getElementById('t_prioridade').value,
+    notas: document.getElementById('t_notas').value,
+    concluida: false
+  };
+  APP.tasks.unshift(task);
+  renderAgenda();
+  if (APP.supabase && APP.sbConnected) {
+    const { id, ...taskForSB } = task;
+    const { data, error } = await APP.supabase.from('tarefas').insert([taskForSB]).select();
+    if (error) {
+      console.error('Erro ao salvar tarefa no Supabase:', error);
+      toast('Tarefa salva apenas neste dispositivo (erro ao sincronizar)','error');
+    } else if (data && data[0]) {
+      task.id = data[0].id; // usa o id real gerado pelo Supabase
+    }
+  }
+  saveToLocal();
+  updateBadges();
+  renderAgenda();
+  closeModal('addTaskModal');
+  toast('Tarefa criada!','success');
+  ['t_titulo','t_lead','t_notas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('t_data').value = '';
+  document.getElementById('t_corretor').value = '';
+}
+
+async function toggleTask(id) {
+  const task = APP.tasks.find(t => t.id === id);
+  if (task) {
+    task.concluida = !task.concluida;
+    saveToLocal();
+    updateBadges();
+    renderAgenda();
+    if (task.concluida) toast('Tarefa concluída! 🎉','success');
+    if (APP.supabase && APP.sbConnected) {
+      const { error } = await APP.supabase.from('tarefas').update({ concluida: task.concluida }).eq('id', id);
+      if (error) console.error('Erro ao atualizar tarefa no Supabase:', error);
+    }
+  }
+}
+
+function deleteTask(id) {
+  APP.tasks = APP.tasks.filter(t => t.id !== id);
+  if (APP.supabase && APP.sbConnected) APP.supabase.from('tarefas').delete().eq('id', id).then(() => {});
+  saveToLocal();
+  updateBadges();
+  renderAgenda();
+}
+
+// -- TEAM --
+function renderTeam() {
+  const brokers = APP.brokers;
+  const grid = document.getElementById('teamGrid');
+
+  const stats = brokers.map(b => ({
+    name: b,
+    leads: APP.leads.filter(l => l.corretor === b).length,
+    atendimentos: APP.leads.filter(l => l.corretor === b && l.status !== 'novo').length,
+    vendas: APP.leads.filter(l => l.corretor === b && l.status === 'fechada').length,
+  })).sort((a,b) => b.vendas - a.vendas || b.atendimentos - a.atendimentos);
+
+  const maxLeads = Math.max(...stats.map(s => s.leads), 1);
+
+  grid.innerHTML = stats.map((s, i) => `
+    <div class="team-card" style="position:relative">
+      ${i < 3 ? `<div style="position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px">${i===0?'🥇':i===1?'🥈':'🥉'}</div>` : ''}
+      <div class="team-avatar" style="background:${AVATAR_COLORS[i%7]}22;color:${AVATAR_COLORS[i%7]}">${getInitials(s.name)}</div>
+      <div class="team-name">${s.name}</div>
+      <div class="team-role">Corretor de Imóveis</div>
+      <div class="team-stats">
+        <div class="team-stat"><div class="team-stat-val">${s.leads}</div><div class="team-stat-label">Leads</div></div>
+        <div class="team-stat"><div class="team-stat-val">${s.atendimentos}</div><div class="team-stat-label">Atend.</div></div>
+        <div class="team-stat" style="background:rgba(139,92,246,0.08);border-color:rgba(139,92,246,0.2)">
+          <div class="team-stat-val" style="color:var(--purple-light)">${s.vendas}</div>
+          <div class="team-stat-label">Vendas</div>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(s.leads/maxLeads*100)}%"></div></div>
+    </div>
+  `).join('') || '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Sem corretores cadastrados</div></div>';
+}
+
+// -- CONFIG --
+function renderConfig() {
+  updateSbStatus();
+  renderBrokerList();
+  renderEmpList();
+  renderEmpSelect();
+  if (APP.user?.perfil === 'gestor') {
+    document.getElementById('sectionUsuarios').style.display = 'block';
+    renderUsuariosList();
+  }
+}
+
+function renderBrokerSelects() {
+  const isGestor = APP.user?.perfil === 'gestor';
+  ['f_corretor','t_corretor'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    if (!isGestor) {
+      // Corretor: campo fixo no próprio nome, sem opção de mudar
+      sel.innerHTML = `<option value="${APP.user.corretor_ref}" selected>${APP.user.corretor_ref}</option>`;
+      sel.disabled = true;
+      sel.style.opacity = '0.6';
+    } else {
+      const cur = sel.value;
+      sel.disabled = false;
+      sel.style.opacity = '1';
+      sel.innerHTML = '<option value="">Selecione...</option>' + APP.brokers.map(b => `<option value="${b}">${b}</option>`).join('');
+      sel.value = cur;
+    }
+  });
+}
+
+function renderBrokerList() {
+  const el = document.getElementById('brokerList');
+  if (!el) return;
+  el.innerHTML = APP.brokers.map(b => `
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-surface);border:1px solid var(--border);border-radius:99px;padding:5px 12px 5px 8px;font-size:13px">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--purple-dim);color:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${getInitials(b)}</div>
+      ${b}
+      <button onclick="removeBroker('${b}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px">×</button>
+    </div>
+  `).join('');
+}
+
+async function addBroker() {
+  const name = document.getElementById('newBroker').value.trim();
+  if (!name) return;
+  if (APP.brokers.includes(name)) { toast('Corretor já cadastrado','error'); return; }
+  APP.brokers.push(name);
+  document.getElementById('newBroker').value = '';
+  saveToLocal();
+  renderBrokerList();
+  renderBrokerSelects();
+  toast(`${name} adicionado à equipe!`,'success');
+  if (APP.supabase && APP.sbConnected) {
+    const { error } = await APP.supabase.from('corretores').insert([{ nome: name }]);
+    if (error) console.error('Erro ao salvar corretor no Supabase:', error);
+  }
+}
+
+async function removeBroker(name) {
+  APP.brokers = APP.brokers.filter(b => b !== name);
+  saveToLocal();
+  renderBrokerList();
+  renderBrokerSelects();
+  if (APP.supabase && APP.sbConnected) {
+    const { error } = await APP.supabase.from('corretores').delete().eq('nome', name);
+    if (error) console.error('Erro ao remover corretor no Supabase:', error);
+  }
+}
+
+// -- EMPREENDIMENTOS --
+function renderEmpList() {
+  const el = document.getElementById('empList');
+  if (!el) return;
+  el.innerHTML = APP.empreendimentos.length
+    ? APP.empreendimentos.map(e => `
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-surface);border:1px solid var(--border);border-radius:99px;padding:5px 12px 5px 10px;font-size:13px">
+      🏢 ${e}
+      <button onclick="removeEmpreendimento('${e.replace(/'/g, "\\'")}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px">×</button>
+    </div>`).join('')
+    : '<div style="color:var(--text-muted);font-size:13px">Nenhum empreendimento cadastrado.</div>';
+}
+
+function renderEmpSelect() {
+  const sel = document.getElementById('f_empreendimento');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecione...</option>' +
+    APP.empreendimentos.map(e => `<option value="${e}" ${cur===e?'selected':''}>${e}</option>`).join('');
+}
+
+function renderKanbanEmpFilterBar() {
+  const bar = document.getElementById('kanbanEmpFilterBar');
+  if (!bar) return;
+  const emps = APP.empreendimentos;
+  if (emps.length === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  const leadsBase = getLeadsDoUsuario();
+  bar.innerHTML = `<span class="kanban-filter-label">Produto:</span>
+    <button class="kfbtn ${APP.kanbanEmpFilter==='todos'?'active':''}" onclick="setKanbanEmp('todos')">
+      🏢 Todos
+      <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${leadsBase.length}</span>
+    </button>
+    ${emps.map(e => {
+      const count = leadsBase.filter(l => l.empreendimento === e).length;
+      return `<button class="kfbtn ${APP.kanbanEmpFilter===e?'active':''}" onclick="setKanbanEmp('${e.replace(/'/g, "\\'")}')">
+        ${e}
+        <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${count}</span>
+      </button>`;
+    }).join('')}`;
+}
+
+function setKanbanEmp(emp) {
+  APP.kanbanEmpFilter = emp;
+  renderKanbanEmpFilterBar();
+  renderKanban();
+}
+
+async function addEmpreendimento() {
+  const name = document.getElementById('newEmp').value.trim();
+  if (!name) return;
+  if (APP.empreendimentos.includes(name)) { toast('Empreendimento já cadastrado','error'); return; }
+  APP.empreendimentos.push(name);
+  document.getElementById('newEmp').value = '';
+  saveToLocal();
+  renderEmpList();
+  renderEmpSelect();
+  renderKanbanEmpFilterBar();
+  toast(`${name} adicionado!`, 'success');
+  if (APP.supabase && APP.sbConnected) {
+    const { error } = await APP.supabase.from('empreendimentos').insert([{ nome: name }]);
+    if (error) console.error('Erro ao salvar empreendimento no Supabase:', error);
+  }
+}
+
+async function removeEmpreendimento(name) {
+  APP.empreendimentos = APP.empreendimentos.filter(e => e !== name);
+  saveToLocal();
+  renderEmpList();
+  renderEmpSelect();
+  renderKanbanEmpFilterBar();
+  if (APP.supabase && APP.sbConnected) {
+    const { error } = await APP.supabase.from('empreendimentos').delete().eq('nome', name);
+    if (error) console.error('Erro ao remover empreendimento no Supabase:', error);
+  }
+}
+
+async function loadEmpFromSB() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  try {
+    const { data, error } = await APP.supabase.from('empreendimentos').select('*').order('nome', { ascending: true });
+    if (error) { console.error('loadEmpFromSB erro:', error); return; }
+    if (data && data.length > 0) {
+      APP.empreendimentos = data.map(e => e.nome);
+      saveToLocal();
+    } else if (APP.empreendimentos.length > 0) {
+      for (const nome of APP.empreendimentos) {
+        await APP.supabase.from('empreendimentos').insert([{ nome }]);
+      }
+    }
+    renderEmpList();
+    renderEmpSelect();
+    renderKanbanEmpFilterBar();
+  } catch(e) {
+    console.error('loadEmpFromSB catch:', e);
+  }
+}
+
+
+// -- EDITAR LEAD --
+function abrirEdicaoLead(id) {
+  const lead = APP.leads.find(l => l.id === id);
+  if (!lead) return;
+  APP.currentLead = id;
+
+  // Preenche campos
+  document.getElementById('e_nome').value = lead.nome || '';
+  document.getElementById('e_telefone').value = lead.telefone || '';
+  document.getElementById('e_email').value = lead.email || '';
+  document.getElementById('e_cidade').value = lead.cidade || '';
+  document.getElementById('e_observacoes').value = lead.observacoes || '';
+
+  // Origem
+  const orig = document.getElementById('e_origem');
+  orig.value = lead.origem || '';
+
+  // Empreendimento — inclui o valor atual mesmo se não estiver na lista
+  const empSel = document.getElementById('e_empreendimento');
+  const emps = APP.empreendimentos;
+  const curEmp = lead.empreendimento || '';
+  const empOpts = [...new Set([...emps, ...(curEmp && !emps.includes(curEmp) ? [curEmp] : [])])];
+  empSel.innerHTML = '<option value="">Selecione...</option>' +
+    empOpts.map(e => `<option value="${e}" ${curEmp === e ? 'selected' : ''}>${e}</option>`).join('');
+
+  // Status
+  const statusSel = document.getElementById('e_status');
+  statusSel.innerHTML = APP.stages.map(s => `<option value="${s.id}" ${lead.status === s.id ? 'selected' : ''}>${s.label}</option>`).join('');
+
+  // Corretor — só gestor pode mudar
+  const corretorField = document.getElementById('editCorretorField');
+  const corretorSel = document.getElementById('e_corretor');
+  if (APP.user?.perfil === 'gestor') {
+    corretorField.style.display = 'block';
+    corretorSel.innerHTML = '<option value="">Selecione...</option>' +
+      APP.brokers.map(b => `<option value="${b}" ${lead.corretor === b ? 'selected' : ''}>${b}</option>`).join('');
+  } else {
+    corretorField.style.display = 'none';
+  }
+
+  closeModal('leadModal');
+  openModal('editLeadModal');
+}
+
+async function salvarEdicaoLead() {
+  const id = APP.currentLead;
+  const lead = APP.leads.find(l => l.id === id);
+  if (!lead) return;
+
+  const nome = document.getElementById('e_nome').value.trim();
+  if (!nome) { toast('Nome é obrigatório', 'error'); return; }
+
+  const updates = {
+    nome,
+    telefone: document.getElementById('e_telefone').value,
+    email: document.getElementById('e_email').value,
+    origem: document.getElementById('e_origem').value,
+    empreendimento: document.getElementById('e_empreendimento').value,
+    cidade: document.getElementById('e_cidade').value,
+    observacoes: document.getElementById('e_observacoes').value,
+    status: document.getElementById('e_status').value,
+  };
+  if (APP.user?.perfil === 'gestor') {
+    updates.corretor = document.getElementById('e_corretor').value;
+  }
+
+  // Atualiza localmente
+  Object.assign(lead, updates);
+  addHistory(id, `Lead editado: dados atualizados`, 'edit');
+  saveToLocal();
+  refreshAll();
+  closeModal('editLeadModal');
+  toast('Lead atualizado!', 'success');
+
+  // Sincroniza com Supabase
+  await updateLeadInSB(id, updates);
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'addLeadModal') {
+    const sel = document.getElementById('f_status');
+    if (sel) sel.innerHTML = APP.stages.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+  }
+  if (id === 'addTaskModal') {
+    const field = document.getElementById('taskCorretorField');
+    if (field) field.style.display = APP.user?.perfil === 'gestor' ? 'block' : 'none';
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+});
+
+// -- WHATSAPP --
+function openWhatsApp(phone) {
+  const num = phone.replace(/\D/g,'');
+  const full = num.startsWith('55') ? num : '55' + num;
+  window.open(`https://wa.me/${full}`, '_blank');
+}
+
+// -- TOAST --
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  el.innerHTML = `<span>${icons[type]||''}</span> ${msg}`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// -- UTILS --
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  return parts.length >= 2 ? (parts[0][0]+parts[parts.length-1][0]).toUpperCase() : parts[0].substring(0,2).toUpperCase();
+}
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let c of (name||'')) hash = c.charCodeAt(0) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff/60000);
+  if (m < 60) return m <= 0 ? 'agora' : `${m}min atrás`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h}h atrás`;
+  return `${Math.floor(h/24)}d atrás`;
+}
+function formatDate(dateStr) {
+  if (!dateStr) return ' ';
+  return new Date(dateStr).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function formatDateTime(dateStr) {
+  if (!dateStr) return ' ';
+  return new Date(dateStr).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+
+
+// ── ETAPAS — SUPABASE ──────────────────────────────────────────────────
+
+async function loadStagesFromSB() {
+  if (!APP.supabase || !APP.sbConnected) return false;
+  console.log('loadStagesFromSB: iniciando SELECT');
+  try {
+    const { data, error } = await APP.supabase
+      .from('etapas')
+      .select('*')
+      .order('ordem', { ascending: true });
+    if (error) { console.error('loadStagesFromSB erro:', error); return false; }
+    if (data && data.length > 0) {
+      APP.stages = data.map(row => ({
+        id:    row.id,
+        label: row.nome,
+        color: row.cor || '#8b5cf6',
+        ordem: row.ordem
+      }));
+      syncStatusMaps();
+      console.log('loadStagesFromSB: OK —', APP.stages.length, 'etapas carregadas');
+      return true;
+    }
+    console.log('loadStagesFromSB: tabela vazia — verificar migração');
+    return false;
+  } catch(e) {
+    console.error('loadStagesFromSB catch:', e);
+    return false;
+  }
+}
+
+async function createStageInSB(stage) {
+  if (!APP.supabase || !APP.sbConnected) return null;
+  console.log('createStageInSB: iniciando INSERT', stage.id);
+  try {
+    const { data, error } = await APP.supabase
+      .from('etapas')
+      .insert([{ id: stage.id, nome: stage.label, cor: stage.color, ordem: stage.ordem || 0 }])
+      .select()
+      .single();
+    if (error) { console.error('createStageInSB erro:', error); return null; }
+    console.log('createStageInSB: OK —', data.id);
+    return data;
+  } catch(e) {
+    console.error('createStageInSB catch:', e);
+    return null;
+  }
+}
+
+async function updateStageInSB(id, fields) {
+  if (!APP.supabase || !APP.sbConnected) return;
+  console.log('updateStageInSB: iniciando UPDATE', id, fields);
+  try {
+    const { error } = await APP.supabase
+      .from('etapas')
+      .update(fields)
+      .eq('id', id);
+    if (error) { console.error('updateStageInSB erro:', error); return; }
+    console.log('updateStageInSB: OK —', id);
+  } catch(e) {
+    console.error('updateStageInSB catch:', e);
+  }
+}
+
+async function deleteStageInSB(id) {
+  if (!APP.supabase || !APP.sbConnected) return;
+  console.log('deleteStageInSB: iniciando DELETE', id);
+  try {
+    const { error } = await APP.supabase
+      .from('etapas')
+      .delete()
+      .eq('id', id);
+    if (error) { console.error('deleteStageInSB erro:', error); return; }
+    console.log('deleteStageInSB: OK —', id);
+  } catch(e) {
+    console.error('deleteStageInSB catch:', e);
+  }
+}
+
+// Migração única: se tabela vazia e há stages no localStorage, insere no Supabase
+async function migrateLocalStagesToSB() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  if (localStorage.getItem('3ps_stages_migrated')) return;
+  const local = localStorage.getItem('3ps_stages');
+  const source = local ? JSON.parse(local) : DEFAULT_STAGES.map(s => ({...s}));
+  console.log('migrateLocalStagesToSB: migrando', source.length, 'etapas para o Supabase');
+  for (let i = 0; i < source.length; i++) {
+    const s = source[i];
+    await createStageInSB({ id: s.id, label: s.label, color: s.color, ordem: i });
+  }
+  localStorage.setItem('3ps_stages_migrated', '1');
+  console.log('migrateLocalStagesToSB: migracao concluida');
+}
+
+// ── ETAPAS — MODAL ─────────────────────────────────────────────────────
+
+
+// ── MUDAR CORRETOR DO LEAD ──
+async function changeLeadCorretor(id, newCorretor) {
+  if (!newCorretor) return;
+  const lead = APP.leads.find(l => l.id === id);
+  if (lead) {
+    const old = lead.corretor || 'Nenhum';
+    lead.corretor = newCorretor;
+    addHistory(id, `Corretor alterado: ${old} → ${newCorretor}`, 'update');
+    saveToLocal();
+    refreshAll();
+    openLeadDetail(id);
+    toast(`Corretor alterado para ${newCorretor}`, 'success');
+    await updateLeadInSB(id, { corretor: newCorretor }); // salva + recarrega do Supabase
+  }
+}
+
+// ── MODAL DE ETAPAS ──
+let stageDragSrc = null;
+
+function openStagesModal() {
+  openModal('stagesModal');
+  renderStagesModal();
+}
+
+function renderStagesModal() {
+  const list = document.getElementById('stagesList');
+  if (!list) return;
+  list.innerHTML = APP.stages.map((s, i) => `
+    <div class="stage-item" draggable="true" data-idx="${i}"
+      ondragstart="stageDragSrc=this;this.classList.add('dragging-stage')"
+      ondragend="this.classList.remove('dragging-stage')"
+      ondragover="event.preventDefault()"
+      ondrop="dropStageItem(event,${i})">
+      <span class="stage-drag-handle" title="Arrastar para reordenar">⠿</span>
+      <div class="stage-color-dot" style="background:${s.color}" onclick="toggleColorPicker(${i})" title="Mudar cor"></div>
+      <input class="stage-name-input" value="${s.label}" oninput="APP.stages[${i}].label=this.value;debouncedNameUpdate(${i})" placeholder="Nome da etapa">
+      ${APP.stages.length > 1 ? `<button class="stage-delete-btn" onclick="removeStage(${i})" title="Excluir etapa">×</button>` : ''}
+    </div>
+    <div id="cp_${i}" style="display:none">
+      <div class="color-picker-row">
+        ${STAGE_PALETTE.map(cor => `<div class="color-opt ${s.color===cor?'selected':''}" style="background:${cor}" onclick="pickStageColor(${i},'${cor}')"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleColorPicker(idx) {
+  const el = document.getElementById('cp_' + idx);
+  const isOpen = el.style.display !== 'none';
+  document.querySelectorAll('[id^="cp_"]').forEach(e => e.style.display = 'none');
+  if (!isOpen) el.style.display = 'block';
+}
+
+async function pickStageColor(idx, color) {
+  const stage = APP.stages[idx];
+  stage.color = color;
+  document.getElementById('cp_' + idx).style.display = 'none';
+  renderStagesModal();
+  if (APP.sbConnected && stage.id) {
+    await updateStageInSB(stage.id, { cor: color });
+    syncStatusMaps();
+    renderKanban();
+  }
+}
+
+function dropStageItem(event, targetIdx) {
+  if (!stageDragSrc) return;
+  const srcIdx = parseInt(stageDragSrc.dataset.idx);
+  if (srcIdx === targetIdx) return;
+  const moved = APP.stages.splice(srcIdx, 1)[0];
+  APP.stages.splice(targetIdx, 0, moved);
+  stageDragSrc = null;
+  renderStagesModal();
+}
+
+
+// Debounce para atualizar nome da etapa enquanto o usuario digita
+let _stageNameTimer = null;
+function debouncedNameUpdate(idx) {
+  clearTimeout(_stageNameTimer);
+  _stageNameTimer = setTimeout(async () => {
+    const stage = APP.stages[idx];
+    if (!stage || !APP.sbConnected) return;
+    await updateStageInSB(stage.id, { nome: stage.label });
+    syncStatusMaps();
+  }, 800); // aguarda 800ms após parar de digitar
+}
+
+async function addNewStage() {
+  const color = STAGE_PALETTE[APP.stages.length % STAGE_PALETTE.length];
+  const tempId = 'etapa_' + Date.now();
+  const newStage = { id: tempId, label: 'Nova Etapa', color, ordem: APP.stages.length };
+  APP.stages.push(newStage);
+  renderStagesModal();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.stage-name-input');
+    const last = inputs[inputs.length - 1];
+    if (last) { last.focus(); last.select(); }
+  }, 50);
+  if (APP.sbConnected) {
+    const saved = await createStageInSB(newStage);
+    // Atualiza id local para o id definitivo do banco (evita leads órfãos)
+    if (saved && saved.id !== tempId) {
+      const idx = APP.stages.findIndex(s => s.id === tempId);
+      if (idx >= 0) APP.stages[idx].id = saved.id;
+    }
+    syncStatusMaps();
+  }
+}
+
+async function removeStage(idx) {
+  const stage = APP.stages[idx];
+  const count = APP.leads.filter(l => l.status === stage.id).length;
+  if (count > 0) {
+    if (!confirm(`A etapa "${stage.label}" tem ${count} lead(s). Eles serao movidos para a primeira etapa. Continuar?`)) return;
+    const firstId = APP.stages.filter((_, i) => i !== idx)[0]?.id || 'novo';
+    APP.leads.forEach(l => { if (l.status === stage.id) l.status = firstId; });
+    saveToLocal();
+  }
+  const stageId = stage.id;
+  APP.stages.splice(idx, 1);
+  renderStagesModal();
+  if (APP.sbConnected && stageId) {
+    await deleteStageInSB(stageId);
+  }
+}
+
+async function saveStages() {
+  APP.stages.forEach(s => { if (!s.label.trim()) s.label = 'Sem nome'; });
+  syncStatusMaps();
+  closeModal('stagesModal');
+  renderKanban();
+  renderLeadsTable();
+  toast('Etapas salvas! ✅', 'success');
+
+  if (APP.sbConnected) {
+    // Atualiza nome, cor e ordem de cada etapa no Supabase
+    const updates = APP.stages.map((s, i) =>
+      updateStageInSB(s.id, { nome: s.label, cor: s.color, ordem: i })
+    );
+    await Promise.all(updates);
+    console.log('saveStages: todas as etapas atualizadas no Supabase');
+  } else {
+    // Fallback: salva no localStorage quando offline
+    localStorage.setItem('3ps_stages', JSON.stringify(APP.stages));
+  }
+}
+
+// -- KEYBOARD --
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+});
+</script>
+
+<!-- MODAL ETAPAS -->
+<div class="modal-overlay" id="stagesModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-name">✏️ Etapas do Pipeline</div>
+        <div class="modal-sub">Edite nomes, cores e ordem das etapas</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('stagesModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="stagesList"></div>
+      <button onclick="addNewStage()" style="width:100%;margin-top:4px;padding:9px;background:transparent;border:1px dashed var(--border);border-radius:var(--radius-sm);color:var(--text-muted);font-size:13px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">+ Nova etapa</button>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="closeModal('stagesModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveStages()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
