@@ -81,6 +81,7 @@ a{text-decoration:none;color:inherit}
 .login-demo span{color:var(--purple-light);cursor:pointer}
 .login-demo span:hover{text-decoration:underline}
 .login-error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:16px;display:none}
+.login-success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#4ade80;margin-bottom:16px;display:none}
 
 #setupBanner{display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:#fbbf24;line-height:1.5}
 
@@ -445,6 +446,28 @@ svg.icon-lg{width:20px;height:20px}
       <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="btn-login" id="btnLogin" onclick="doLogin()">Entrar no sistema</button>
+  </div>
+</div>
+
+<!-- REDEFINIR SENHA -->
+<div id="resetPasswordScreen" style="display:none;position:fixed;inset:0;z-index:1001;align-items:center;justify-content:center;background:var(--bg-base);background-image:radial-gradient(ellipse 60% 50% at 50% -10%,rgba(139,92,246,0.2) 0%,transparent 70%)">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">3P</div>
+      <div class="login-logo-text">3Ps <span>CRM</span></div>
+    </div>
+    <div class="login-subtitle">Crie uma nova senha para acessar o CRM.</div>
+    <div class="login-error" id="resetPasswordError"></div>
+    <div class="login-success" id="resetPasswordSuccess"></div>
+    <div class="field">
+      <label>Nova senha</label>
+      <input type="password" id="newPassword" placeholder="Mínimo de 6 caracteres">
+    </div>
+    <div class="field">
+      <label>Confirmar nova senha</label>
+      <input type="password" id="confirmNewPassword" placeholder="Digite novamente" onkeydown="if(event.key==='Enter')updateRecoveredPassword()">
+    </div>
+    <button class="btn-login" id="btnUpdatePassword" onclick="updateRecoveredPassword()">Salvar nova senha</button>
   </div>
 </div>
 
@@ -1356,6 +1379,79 @@ async function doLogout() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPass').value = '';
+}
+
+function showResetPasswordError(msg) {
+  const el = document.getElementById('resetPasswordError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('resetPasswordSuccess').style.display = 'none';
+}
+
+function showResetPasswordScreen() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('resetPasswordScreen').style.display = 'flex';
+  setTimeout(() => document.getElementById('newPassword').focus(), 50);
+}
+
+async function updateRecoveredPassword() {
+  const password = document.getElementById('newPassword').value;
+  const confirmation = document.getElementById('confirmNewPassword').value;
+  const btn = document.getElementById('btnUpdatePassword');
+
+  if (password.length < 6) {
+    showResetPasswordError('A senha precisa ter pelo menos 6 caracteres.');
+    return;
+  }
+  if (password !== confirmation) {
+    showResetPasswordError('As senhas não coincidem.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  try {
+    const client = getSBClient();
+    const { error } = await client.auth.updateUser({ password });
+    if (error) throw error;
+
+    const success = document.getElementById('resetPasswordSuccess');
+    success.textContent = 'Senha alterada com sucesso! Você já pode entrar no CRM.';
+    success.style.display = 'block';
+    document.getElementById('resetPasswordError').style.display = 'none';
+    await client.auth.signOut();
+
+    setTimeout(() => {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      document.getElementById('resetPasswordScreen').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPass').value = '';
+    }, 1800);
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    showResetPasswordError(error.message || 'Não foi possível alterar a senha. Solicite um novo link.');
+    btn.disabled = false;
+    btn.textContent = 'Salvar nova senha';
+  }
+}
+
+function initPasswordRecovery() {
+  const recoveryInUrl = window.location.hash.includes('type=recovery') ||
+    new URLSearchParams(window.location.search).get('type') === 'recovery';
+  const client = getSBClient();
+
+  client.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') showResetPasswordScreen();
+  });
+
+  if (recoveryInUrl) {
+    client.auth.getSession().then(({ data, error }) => {
+      if (!error && data.session) showResetPasswordScreen();
+      else if (error) showLoginError('Link de recuperação inválido ou expirado. Solicite um novo.');
+    });
+  }
 }
 
 // -- GESTÃO DE USUÁRIOS --
@@ -3625,8 +3721,10 @@ async function saveStages() {
 // -- KEYBOARD --
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none' && document.getElementById('resetPasswordScreen').style.display === 'none') doLogin();
 });
+
+initPasswordRecovery();
 </script>
 
 <!-- MODAL ETAPAS -->
