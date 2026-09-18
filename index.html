@@ -1438,18 +1438,27 @@ async function updateRecoveredPassword() {
 }
 
 function initPasswordRecovery() {
+  const urlParams = new URLSearchParams(window.location.search);
   const recoveryInUrl = window.location.hash.includes('type=recovery') ||
-    new URLSearchParams(window.location.search).get('type') === 'recovery';
+    window.location.hash.includes('access_token=') ||
+    urlParams.get('type') === 'recovery' ||
+    urlParams.get('recovery') === '1' ||
+    urlParams.has('code');
   const client = getSBClient();
 
-  client.auth.onAuthStateChange((event) => {
-    if (event === 'PASSWORD_RECOVERY') showResetPasswordScreen();
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY' || (recoveryInUrl && event === 'SIGNED_IN' && session)) {
+      showResetPasswordScreen();
+    }
   });
 
   if (recoveryInUrl) {
+    // O marcador explicito evita depender do momento exato em que o evento
+    // PASSWORD_RECOVERY e disparado pelo cliente do Supabase.
+    showResetPasswordScreen();
     client.auth.getSession().then(({ data, error }) => {
       if (!error && data.session) showResetPasswordScreen();
-      else if (error) showLoginError('Link de recuperação inválido ou expirado. Solicite um novo.');
+      else if (error) showResetPasswordError('Link de recuperação inválido ou expirado. Solicite um novo.');
     });
   }
 }
