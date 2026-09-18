@@ -1,8 +1,8 @@
-const CACHE_NAME = '3ps-crm-v1';
+const CACHE_NAME = '3ps-crm-v2';
 const ASSETS = [
-  '/3PS-CRM-IMOBILIARIO/',
-  '/3PS-CRM-IMOBILIARIO/index.html',
-  '/3PS-CRM-IMOBILIARIO/manifest.json'
+  '/PROJETO-CRM/',
+  '/PROJETO-CRM/index.html',
+  '/PROJETO-CRM/manifest.json'
 ];
 
 // Instala e faz cache dos arquivos principais
