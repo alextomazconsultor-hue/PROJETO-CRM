@@ -2482,6 +2482,16 @@ function agentChatKeydown(event) {
   }
 }
 
+async function agentFunctionErrorMessage(error) {
+  try {
+    if (error?.context && typeof error.context.clone === 'function') {
+      const payload = await error.context.clone().json();
+      if (payload?.error) return payload.error;
+    }
+  } catch (_) {}
+  return error?.message || 'erro de conexão';
+}
+
 async function agentSendChat() {
   const input = document.getElementById('agentChatMessage');
   const button = document.getElementById('agentChatSend');
@@ -2500,7 +2510,8 @@ async function agentSendChat() {
     await agentLoadChat();
   } catch (error) {
     document.getElementById('agentThinking')?.remove();
-    log.insertAdjacentHTML('beforeend', `<div class="agent-chat-message assistant" style="color:#f87171">Não consegui responder: ${agentEscape(error.message || 'erro de conexão')}</div>`);
+    const detail = await agentFunctionErrorMessage(error);
+    log.insertAdjacentHTML('beforeend', `<div class="agent-chat-message assistant" style="color:#f87171">Não consegui responder: ${agentEscape(detail)}</div>`);
   } finally {
     input.disabled = false;
     button.disabled = false;
@@ -2522,7 +2533,7 @@ async function agentConfirmChatAction(messageId, button) {
   } catch (error) {
     button.disabled = false;
     button.textContent = '✅ Confirmar ação';
-    toast('Erro ao executar: ' + (error.message || 'tente novamente'), 'error');
+    toast('Erro ao executar: ' + await agentFunctionErrorMessage(error), 'error');
   }
 }
 
