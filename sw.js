@@ -1,4 +1,4 @@
-const CACHE_NAME = '3ps-crm-v2';
+const CACHE_NAME = '3ps-crm-v3';
 const ASSETS = [
   '/PROJETO-CRM/',
   '/PROJETO-CRM/index.html',
