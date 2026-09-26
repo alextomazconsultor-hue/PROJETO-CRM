@@ -43,7 +43,7 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
           <div class="field"><label>WhatsApp</label><input id="clienteTelefone" placeholder="(47) 99999-9999"></div>
           <div class="field"><label>Empreendimento</label><input id="empreendimento" list="empList" placeholder="Nome do empreendimento"><datalist id="empList"></datalist></div>
           <div class="field"><label>Unidade</label><input id="unidade" placeholder="Ex.: 1204 A"></div>
-          <div class="field"><label>Valor do imóvel</label><input type="number" id="valorTotal" min="0" placeholder="500000" oninput="atualizarStatus()"></div>
+          <div class="field"><label>Valor do imóvel</label><input type="text" inputmode="decimal" id="valorTotal" placeholder="500.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
           <div class="field"><label>% mínimo até as chaves</label><input type="number" id="percMinimo" value="30" min="0" max="100" step="0.1" oninput="atualizarStatus()"><span class="hint">Há tolerância de até 0,2 ponto percentual.</span></div>
         </div>
       </div>
@@ -54,8 +54,8 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
       <div class="card">
         <div class="card-title">Condições de pagamento</div>
         <div class="grid2">
-          <div class="field"><label>Entrada</label><input type="number" id="entradaValor" min="0" placeholder="50000" oninput="atualizarStatus()"></div>
-          <div class="field"><label>Valor da parcela</label><input type="number" id="parcelaValor" min="0" placeholder="3000" oninput="atualizarStatus()"></div>
+          <div class="field"><label>Entrada</label><input type="text" inputmode="decimal" id="entradaValor" placeholder="50.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
+          <div class="field"><label>Valor da parcela</label><input type="text" inputmode="decimal" id="parcelaValor" placeholder="3.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
           <div class="field"><label>Número de parcelas</label><input type="number" id="parcelaNum" min="0" placeholder="36" oninput="atualizarStatus()"><span class="hint">O CRM usa exatamente a quantidade digitada.</span></div>
           <div class="field"><label>Pós-chaves</label><label class="toggle"><input type="checkbox" id="posChavesCheck" onchange="togglePos();atualizarStatus()"> Parcelar o saldo restante</label></div>
         </div>
@@ -116,7 +116,6 @@ const SB_KEY='sb_publishable_Doo0O0wNZMju0-IKWwRn5g_COKCcjar';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const PUBLIC_BASE=SB_URL+'/functions/v1/public-proposal?token=';
 const TOLERANCIA_PP=0.2;
-const ROUND=500;
 const qs=new URLSearchParams(location.search);
 if(qs.get('embed')==='1')document.body.classList.add('embed');
 
@@ -126,7 +125,27 @@ const int=id=>parseInt($(id)?.value)||0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const pct=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
-const isRound=v=>Number(v)===0||Math.abs(Number(v)/ROUND-Math.round(Number(v)/ROUND))<0.000001;
+function parseBRL(value){
+  let s=String(value??'').trim().replace(/^R\$\s*/i,'').replace(/\s/g,'');
+  if(!s)return 0;
+  if(s.includes(',')){
+    s=s.replace(/\./g,'').replace(',','.');
+  }else{
+    const dots=(s.match(/\./g)||[]).length;
+    if(dots>1 || /^\d{1,3}\.\d{3}$/.test(s)) s=s.replace(/\./g,'');
+  }
+  s=s.replace(/[^0-9.-]/g,'');
+  return Number.parseFloat(s)||0;
+}
+const brl=id=>parseBRL($(id)?.value);
+function formatBRLValue(value){
+  return Number(value||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function formatMoneyInput(el){
+  if(!el||!String(el.value).trim())return;
+  el.value=formatBRLValue(parseBRL(el.value));
+  atualizarStatus();
+}
 const normalizePhone=v=>{let x=String(v||'').replace(/\D/g,'');if(x.length===10||x.length===11)x='55'+x;return x};
 
 let user=null,profile=null,leads=[],empreendimentos=[],simulacoes=[],currentId=null,currentToken=null,lastCalc=null,refCount=0;
@@ -160,11 +179,11 @@ function aplicarLead(){const l=leads.find(x=>x.id===$('leadSelect').value);if(!l
 function addReforco(data={}){
   const id=++refCount;
   const row=document.createElement('div');row.className='reinforcement';row.id='ref-'+id;
-  row.innerHTML='<div class="field"><label>Reforço '+id+'</label><input type="number" id="rv-'+id+'" min="0" value="'+(data.valor||'')+'" placeholder="Valor do reforço" oninput="atualizarStatus()"></div><button class="remove" onclick="removerReforco('+id+')">×</button>';
+  row.innerHTML='<div class="field"><label>Reforço '+id+'</label><input type="text" inputmode="decimal" id="rv-'+id+'" value="'+(data.valor?formatBRLValue(data.valor):'')+'" placeholder="22.200,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div><button class="remove" onclick="removerReforco('+id+')">×</button>';
   $('reforcos').appendChild(row)
 }
 function removerReforco(id){$('ref-'+id)?.remove();atualizarStatus()}
-function getRefs(){return [...document.querySelectorAll('.reinforcement')].map(el=>{const id=el.id.split('-')[1];return parseFloat($('rv-'+id).value)||0}).filter(v=>v>0)}
+function getRefs(){return [...document.querySelectorAll('.reinforcement')].map(el=>{const id=el.id.split('-')[1];return parseBRL($('rv-'+id).value)}).filter(v=>v>0)}
 
 function validarBasico(){
   const req=[['clienteNome','cliente'],['empreendimento','empreendimento'],['valorTotal','valor do imóvel'],['parcelaNum','número de parcelas']];
@@ -176,14 +195,19 @@ function validarBasico(){
 function buildPostPlan(saldo){
   if(!$('posChavesCheck').checked||saldo<=0)return{enabled:false,valid:true,events:[],summary:'Saldo pago nas chaves'};
   const qtd=Math.max(int('posChavesNum'),1);
-  const valor=saldo/qtd;
-  if(!isRound(valor))return{enabled:true,valid:false,events:[],summary:'O saldo não divide em parcelas redondas'};
-  const events=Array.from({length:qtd},(_,idx)=>({tipo:'poschaves',mes:idx+1,label:'Pós-chaves '+(idx+1)+'/'+qtd,valor,competencia:'Pós-chaves',acumulado:0,percentual:'—'}));
-  return{enabled:true,valid:true,events,summary:qtd+'x '+money(valor)}
+  const totalCentavos=Math.round(saldo*100);
+  const baseCentavos=Math.floor(totalCentavos/qtd);
+  const resto=totalCentavos-(baseCentavos*qtd);
+  if(baseCentavos<=0)return{enabled:true,valid:false,events:[],summary:'Quantidade de parcelas maior que o saldo disponível'};
+  const valores=Array.from({length:qtd},(_,idx)=>(baseCentavos+(idx<resto?1:0))/100);
+  const events=valores.map((valor,idx)=>({tipo:'poschaves',mes:idx+1,label:'Pós-chaves '+(idx+1)+'/'+qtd,valor,competencia:'Pós-chaves',acumulado:0,percentual:'—'}));
+  const grupos={};valores.forEach(v=>{const k=v.toFixed(2);grupos[k]=(grupos[k]||0)+1});
+  const summary=Object.entries(grupos).map(([v,q])=>q+'x '+money(Number(v))).join(' + ');
+  return{enabled:true,valid:true,events,summary}
 }
 
 function calcular(){
-  const total=num('valorTotal'),entrada=num('entradaValor'),mensal=num('parcelaValor'),qtd=int('parcelaNum'),refs=getRefs(),meta=num('percMinimo');
+  const total=brl('valorTotal'),entrada=brl('entradaValor'),mensal=brl('parcelaValor'),qtd=int('parcelaNum'),refs=getRefs(),meta=num('percMinimo');
   const totalRefs=refs.reduce((s,v)=>s+v,0);
   const totalPre=entrada+(mensal*qtd)+totalRefs;
   const percPre=total?totalPre/total*100:0;
@@ -193,10 +217,8 @@ function calcular(){
   const faltaExata=Math.max(total*meta/100-totalPre,0);
   const faltaAceite=Math.max(total*limiteAceite/100-totalPre,0);
   const diferencaDentroTolerancia=metaOk&&percPre<meta;
-  const allValues=[entrada,mensal,...refs].filter(v=>v>0);
-  const redondos=allValues.every(isRound);
   const post=buildPostPlan(saldo);
-  const ready=metaOk&&excesso===0&&redondos&&post.valid;
+  const ready=metaOk&&excesso===0&&post.valid;
 
   let acum=0,fluxo=[];
   if(entrada>0){acum+=entrada;fluxo.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato',acumulado:acum,percentual:pct(acum/total*100)})}
@@ -209,7 +231,7 @@ function calcular(){
     acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd+refs.length+1,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(100)})
   }
 
-  return{total,entrada,mensal,qtd,refs,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,redondos,post,ready,fluxo}
+  return{total,entrada,mensal,qtd,refs,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
 }
 
 function atualizarStatus(){
@@ -237,8 +259,7 @@ function fecharFluxo(){
   const c=calcular();lastCalc=c;atualizarStatus();
   if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima.');return}
   if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
-  if(!c.redondos){alert('Há valor quebrado no fluxo. Ajuste para valores redondos em múltiplos de R$ 500.');return}
-  if(!c.post.valid){alert('O pós-chaves não fecha em parcelas redondas. Ajuste a quantidade.');return}
+  if(!c.post.valid){alert('Não foi possível dividir o saldo pós-chaves com essa quantidade de parcelas.');return}
   renderResultado(c)
 }
 
@@ -296,7 +317,7 @@ function setv(id,v){if($(id))$(id).value=v??''}
 
 function abrirSalva(id){
   if(!id)return;const s=simulacoes.find(x=>x.id===id);if(!s)return;currentId=s.id;currentToken=s.share_token;const f=s.dados?.form||{};
-  setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',f.valorTotal||s.valor_total);setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor||'');setv('parcelaValor',f.parcelaValor||'');setv('parcelaNum',f.parcelaNum||'');
+  setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',formatBRLValue(parseBRL(f.valorTotal||s.valor_total)));setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor?formatBRLValue(parseBRL(f.entradaValor)):'');setv('parcelaValor',f.parcelaValor?formatBRLValue(parseBRL(f.parcelaValor)):'');setv('parcelaNum',f.parcelaNum||'');
   $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);$('reforcos').innerHTML='';refCount=0;(f.refs||[]).forEach(v=>addReforco({valor:v}));togglePos();$('copyLinkBtn').disabled=s.status!=='enviada';$('publicLinkInfo').textContent=s.status==='enviada'?'Link público disponível.':'';atualizarStatus();const c=calcular();if(c.ready)renderResultado(c);else goStep(2);$('saveState').textContent='Editando '+s.cliente_nome
 }
 
