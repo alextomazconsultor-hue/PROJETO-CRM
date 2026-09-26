@@ -822,6 +822,10 @@ CREATE TABLE historico (
           Agenda & Follow-up
           <span class="nav-badge" id="tasksCount">0</span>
         </div>
+        <div class="nav-item" onclick="showPage('simulador',this)">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="17" y2="16"/></svg>
+          Simulador de Fluxo
+        </div>
         <div class="nav-item" onclick="showAssistant()" style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.1));border:1px solid rgba(124,58,237,0.4);margin-top:4px">
           <span style="font-size:16px">🤖</span>
           Agente IA
@@ -999,6 +1003,11 @@ CREATE TABLE historico (
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- SIMULADOR DE FLUXO -->
+      <div class="page" id="page-simulador" style="height:calc(100vh - 108px)">
+        <iframe id="simuladorFrame" title="Simulador de Fluxo" src="simulador.html?embed=1" style="width:100%;height:100%;border:0;border-radius:12px;background:var(--bg-base)"></iframe>
       </div>
 
       <!-- EQUIPE -->
@@ -1818,7 +1827,7 @@ function showPage(name, el) {
   if(el) el.classList.add('active');
   document.getElementById('pageTitle').textContent = {
     dashboard:'Dashboard', leads:'Leads', kanban:'Pipeline Kanban',
-    agenda:'Agenda & Follow-up', equipe:'Equipe', config:'Configurações'
+    agenda:'Agenda & Follow-up', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
   }[name] || name;
 
   const lb = document.getElementById('addLeadBtn');
@@ -1834,6 +1843,10 @@ function showPage(name, el) {
   if(name==='leads') renderLeadsTable();
   if(name==='kanban') { renderKanbanFilterBar(); renderKanbanEmpFilterBar(); renderKanban(); }
   if(name==='agenda') renderAgenda();
+  if(name==='simulador') {
+    const frame = document.getElementById('simuladorFrame');
+    if (frame && !frame.src.includes('simulador.html')) frame.src = 'simulador.html?embed=1';
+  }
   if(name==='equipe') renderTeam();
   if(name==='config') renderConfig();
 
@@ -2263,6 +2276,7 @@ function openLeadDetail(id) {
   document.getElementById('modalActions').innerHTML = `
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
     <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
+    <button class="btn btn-secondary btn-sm" onclick="abrirSimuladorLead('${lead.id}')" style="gap:5px;border-color:rgba(139,92,246,.45);color:var(--purple-light)">🧮 Criar fluxo</button>
     <span class="pill pill-${lead.status}" style="padding:6px 14px;font-size:12px">${STATUS_LABELS[lead.status]}</span>
     <select onchange="changeLeadStatus('${lead.id}',this.value)" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;color:var(--text-secondary);font-size:12px">
       <option value="">Alterar status...</option>
@@ -2302,6 +2316,14 @@ function openLeadDetail(id) {
 
   document.getElementById('noteText').value = '';
   openModal('leadModal');
+}
+
+function abrirSimuladorLead(id) {
+  closeModal('leadModal');
+  const nav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick')?.includes("showPage('simulador'"));
+  showPage('simulador', nav || null);
+  const frame = document.getElementById('simuladorFrame');
+  if (frame) frame.src = 'simulador.html?embed=1&lead=' + encodeURIComponent(id);
 }
 
 async function changeLeadStatus(id, newStatus) {
