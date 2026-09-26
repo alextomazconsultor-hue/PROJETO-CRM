@@ -7,8 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0a0a0f;--surface:#111118;--card:#16161f;--card2:#1c1c28;--border:rgba(120,80,220,.18);--border2:rgba(140,90,255,.36);--purple:#8b5cf6;--purple2:#a78bfa;--text:#f0eeff;--muted:#9490b0;--dim:#5a5575;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--gold:#c39a6b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:900px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:24px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow-box{background:linear-gradient(135deg,rgba(139,92,246,.13),rgba(139,92,246,.04));border:1px solid var(--border2);border-radius:14px;padding:18px;margin-top:12px}.flow-title{font-size:12px;color:var(--muted);margin-bottom:8px}.flow-main{font-size:20px;font-weight:800;line-height:1.45}.flow-sub{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.55}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}details{border-top:1px solid var(--border);margin-top:16px;padding-top:12px}summary{cursor:pointer;color:var(--muted);font-size:11px}.advanced{margin-top:12px}.mini-summary{margin-top:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:11px;line-height:1.55}.recent-row{margin-bottom:14px}
-@media(max-width:620px){.shell{padding:12px}.grid2,.summary{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}.flow-main{font-size:17px}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:880px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn{padding:5px 9px;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer}.mini-btn:hover{color:var(--purple2);border-color:var(--border2)}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.status-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.metric strong{font-size:21px}.missing{margin-top:10px;padding:16px;border-radius:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28)}.missing small{display:block;color:#fcd34d;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.missing strong{font-size:27px;color:#fcd34d}.missing.ok{background:rgba(16,185,129,.09);border-color:rgba(16,185,129,.28)}.missing.ok small,.missing.ok strong{color:#6ee7b7}.reinforcements{margin-top:10px}.reinforcement{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px}.reinforcement .remove{background:none;border:none;color:#f87171;cursor:pointer;padding:10px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:22px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.flow-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}.flow-line:last-child{border-bottom:0}.flow-line span{color:var(--muted)}.flow-line b{text-align:right}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}.recent-row{margin-bottom:14px}
+@media(max-width:620px){.shell{padding:12px}.grid2,.status-grid,.summary{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}}
 body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 </style>
 </head>
@@ -16,7 +16,7 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 <div class="shell">
   <div class="top">
     <button class="back" onclick="location.href='index.html'">← CRM</button>
-    <div class="title"><h1>Simulador de Fluxo</h1><p>Simples para o corretor. Inteligente por trás.</p></div>
+    <div class="title"><h1>Simulador de Fluxo</h1><p>Monte o fluxo e veja quanto falta para fechar.</p></div>
     <div class="status" id="saveState">Nova simulação</div>
   </div>
 
@@ -30,8 +30,8 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 
     <div class="steps">
       <div class="step active" id="step1" onclick="goStep(1)">1 · Imóvel</div>
-      <div class="step" id="step2" onclick="goStep(2)">2 · Condições</div>
-      <div class="step" id="step3" onclick="goStep(3)">3 · Resultado</div>
+      <div class="step" id="step2" onclick="goStep(2)">2 · Pagamento</div>
+      <div class="step" id="step3" onclick="goStep(3)">3 · Fechamento</div>
     </div>
 
     <section class="section active" id="sec1">
@@ -43,9 +43,8 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
           <div class="field"><label>WhatsApp</label><input id="clienteTelefone" placeholder="(47) 99999-9999"></div>
           <div class="field"><label>Empreendimento</label><input id="empreendimento" list="empList" placeholder="Nome do empreendimento"><datalist id="empList"></datalist></div>
           <div class="field"><label>Unidade</label><input id="unidade" placeholder="Ex.: 1204 A"></div>
-          <div class="field"><label>Valor do imóvel</label><input type="number" id="valorTotal" min="0" placeholder="500000"></div>
-          <div class="field"><label>Data das chaves</label><input type="date" id="dataChaves"></div>
-          <div class="field"><label>Meta até as chaves</label><input type="number" id="percMinimo" value="40" min="0" max="100"><span class="hint">Ex.: 30%, 40%, 50%.</span></div>
+          <div class="field"><label>Valor do imóvel</label><input type="number" id="valorTotal" min="0" placeholder="500000" oninput="atualizarStatus()"></div>
+          <div class="field"><label>% mínimo até as chaves</label><input type="number" id="percMinimo" value="30" min="0" max="100" step="0.1" oninput="atualizarStatus()"><span class="hint">Há tolerância de até 0,2 ponto percentual.</span></div>
         </div>
       </div>
       <div class="nav"><button class="btn primary" onclick="goStep(2)">Próximo →</button></div>
@@ -53,45 +52,49 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 
     <section class="section" id="sec2">
       <div class="card">
-        <div class="card-title">O que o cliente consegue pagar</div>
+        <div class="card-title">Condições de pagamento</div>
         <div class="grid2">
-          <div class="field"><label>Entrada</label><input type="number" id="entradaValor" min="0" placeholder="50000"></div>
-          <div class="field"><label>Parcela mensal</label><input type="number" id="parcelaValor" min="0" placeholder="3000"><span class="hint">O sistema usa esse valor até as chaves.</span></div>
-          <div class="field"><label>Reforços</label><select id="refIntervalo"><option value="12" selected>Anuais</option><option value="6">Semestrais</option></select></div>
-          <div class="field"><label>Pós-chaves</label><label class="toggle"><input type="checkbox" id="posChavesCheck" onchange="togglePos()"> Parcelar o saldo depois da entrega</label></div>
+          <div class="field"><label>Entrada</label><input type="number" id="entradaValor" min="0" placeholder="50000" oninput="atualizarStatus()"></div>
+          <div class="field"><label>Valor da parcela</label><input type="number" id="parcelaValor" min="0" placeholder="3000" oninput="atualizarStatus()"></div>
+          <div class="field"><label>Número de parcelas</label><input type="number" id="parcelaNum" min="0" placeholder="36" oninput="atualizarStatus()"><span class="hint">O CRM usa exatamente a quantidade digitada.</span></div>
+          <div class="field"><label>Pós-chaves</label><label class="toggle"><input type="checkbox" id="posChavesCheck" onchange="togglePos();atualizarStatus()"> Parcelar o saldo restante</label></div>
         </div>
 
         <div id="posBox" class="grid2 hidden" style="margin-top:12px">
-          <div class="field"><label>Quantidade de parcelas pós-chaves</label><input type="number" id="posChavesNum" value="24" min="1"></div>
+          <div class="field"><label>Nº de parcelas pós-chaves</label><input type="number" id="posChavesNum" value="24" min="1" oninput="atualizarStatus()"></div>
         </div>
 
-        <div id="quickInfo" class="mini-summary">Preencha a data das chaves para o CRM calcular automaticamente a quantidade de parcelas mensais.</div>
+        <div class="reinforcements">
+          <button class="mini-btn" onclick="addReforco()">+ adicionar reforço</button>
+          <div id="reforcos"></div>
+        </div>
 
-        <details>
-          <summary>Ajustes avançados (opcional)</summary>
-          <div class="advanced grid2">
-            <div class="field"><label>Nº de parcelas até as chaves</label><input type="number" id="parcelaNumManual" min="0" placeholder="Automático"><span class="hint">Deixe vazio para usar todos os meses até a entrega.</span></div>
-            <div class="field"><label>Nº de reforços</label><input type="number" id="refQtdManual" min="0" placeholder="Automático"><span class="hint">Deixe vazio para o CRM distribuir automaticamente.</span></div>
+        <div class="status-box">
+          <div class="status-grid">
+            <div class="metric"><small>Percentual atual</small><strong id="statusPerc">0,0%</strong></div>
+            <div class="metric"><small>Saldo nas chaves</small><strong class="goldtxt" id="statusSaldoPerc">100,0%</strong></div>
           </div>
-        </details>
+          <div class="missing" id="missingBox">
+            <small id="missingLabel">Falta para fechar</small>
+            <strong id="missingValue">R$ 0,00</strong>
+            <div class="hint" id="missingHint" style="margin-top:5px"></div>
+          </div>
+        </div>
       </div>
-      <div class="nav"><button class="btn ghost" onclick="goStep(1)">← Voltar</button><button class="btn primary" onclick="calcular(true)">Calcular fluxo →</button></div>
+
+      <div class="nav"><button class="btn ghost" onclick="goStep(1)">← Voltar</button><button class="btn primary" onclick="fecharFluxo()">Fechar fluxo →</button></div>
     </section>
 
     <section class="section" id="sec3">
       <div class="card">
-        <div class="card-title">Resultado</div>
+        <div class="card-title">Fluxo fechado</div>
         <div class="summary">
-          <div class="big"><small>Pago até as chaves</small><strong id="rPre">—</strong><div class="hint" id="rPreValue">—</div></div>
+          <div class="big"><small>Até as chaves</small><strong class="oktxt" id="rPerc">—</strong><div class="hint" id="rPreValue">—</div></div>
           <div class="big"><small>Saldo nas chaves</small><strong class="goldtxt" id="rSaldoPerc">—</strong><div class="hint" id="rSaldoValue">—</div></div>
+          <div class="big"><small>Meta mínima</small><strong id="rMeta">—</strong><div class="hint">tolerância -0,2 p.p.</div></div>
         </div>
 
-        <div class="flow-box">
-          <div class="flow-title">Fluxo sugerido</div>
-          <div class="flow-main" id="flowMain">—</div>
-          <div class="flow-sub" id="flowSub">—</div>
-        </div>
-
+        <div class="flow" id="flowResumo"></div>
         <div id="resultAlerts"></div>
 
         <div class="actions">
@@ -112,38 +115,24 @@ const SB_URL='https://qrfehznrjfaokbuqiroc.supabase.co';
 const SB_KEY='sb_publishable_Doo0O0wNZMju0-IKWwRn5g_COKCcjar';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const PUBLIC_BASE=SB_URL+'/functions/v1/public-proposal?token=';
+const TOLERANCIA_PP=0.2;
+const ROUND=500;
 const qs=new URLSearchParams(location.search);
 if(qs.get('embed')==='1')document.body.classList.add('embed');
 
 const $=id=>document.getElementById(id);
-const num=id=>parseFloat($(id).value)||0;
-const int=id=>parseInt($(id).value)||0;
+const num=id=>parseFloat($(id)?.value)||0;
+const int=id=>parseInt($(id)?.value)||0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const dateBR=s=>{if(!s)return '—';const [y,m,d]=String(s).slice(0,10).split('-');return d+'/'+m+'/'+y};
-const ROUND=500;
+const pct=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const isRound=v=>Number(v)===0||Math.abs(Number(v)/ROUND-Math.round(Number(v)/ROUND))<0.000001;
+const normalizePhone=v=>{let x=String(v||'').replace(/\D/g,'');if(x.length===10||x.length===11)x='55'+x;return x};
 
-let user=null,profile=null,leads=[],empreendimentos=[],simulacoes=[],currentId=null,currentToken=null,lastCalc=null;
+let user=null,profile=null,leads=[],empreendimentos=[],simulacoes=[],currentId=null,currentToken=null,lastCalc=null,refCount=0;
 
-function monthDiff(a,b){
-  if(!a||!b)return 0;
-  const x=new Date(a+'T12:00:00'),y=new Date(b+'T12:00:00');
-  return Math.max(0,(y.getFullYear()-x.getFullYear())*12+y.getMonth()-x.getMonth())
-}
-function competencia(m){
-  const d=new Date();d.setHours(12,0,0,0);d.setDate(1);d.setMonth(d.getMonth()+m);
-  return String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()
-}
-function roundUp(v){return Math.ceil((Number(v)+0.00001)/ROUND)*ROUND}
-function isRound(v){return Math.abs(Number(v)/ROUND-Math.round(Number(v)/ROUND))<0.000001}
-function normalizePhone(v){let x=String(v||'').replace(/\D/g,'');if(x.length===10||x.length===11)x='55'+x;return x}
 function toast(t){$('saveState').textContent=t;setTimeout(()=>$('saveState').textContent=currentId?'Simulação salva':'Nova simulação',2400)}
-
-function goStep(n){
-  [1,2,3].forEach(k=>{$('sec'+k).classList.toggle('active',k===n);$('step'+k).className='step'+(k===n?' active':k<n?' done':'')});
-  window.scrollTo({top:0,behavior:'smooth'});
-  if(n===2)updateQuickInfo()
-}
+function goStep(n){[1,2,3].forEach(k=>{$('sec'+k).classList.toggle('active',k===n);$('step'+k).className='step'+(k===n?' active':k<n?' done':'')});window.scrollTo({top:0,behavior:'smooth'});if(n===2)atualizarStatus()}
 function togglePos(){$('posBox').classList.toggle('hidden',!$('posChavesCheck').checked)}
 
 async function init(){
@@ -153,231 +142,167 @@ async function init(){
   const {data:p,error}=await sb.from('usuarios').select('*').eq('id',user.id).single();
   if(error||!p){alert('Perfil do CRM não encontrado.');location.href='index.html';return}
   profile=p;
-
   const [lr,er,sr]=await Promise.all([
     sb.from('leads').select('id,nome,telefone,empreendimento,corretor').order('nome'),
     sb.from('empreendimentos').select('nome').order('nome'),
     sb.from('simulacoes_pagamento').select('*').order('created_at',{ascending:false}).limit(30)
   ]);
   leads=lr.data||[];empreendimentos=er.data||[];simulacoes=sr.data||[];
-
   $('leadSelect').innerHTML='<option value="">Cliente avulso</option>'+leads.map(l=>'<option value="'+l.id+'">'+esc(l.nome)+' · '+esc(l.empreendimento||'sem empreendimento')+'</option>').join('');
   $('empList').innerHTML=empreendimentos.map(e=>'<option value="'+esc(e.nome)+'"></option>').join('');
   renderSaved();
-
-  const leadId=qs.get('lead');
-  if(leadId&&leads.some(l=>l.id===leadId)){$('leadSelect').value=leadId;aplicarLead()}
-
-  $('loading').classList.add('hidden');$('app').classList.remove('hidden')
+  const leadId=qs.get('lead');if(leadId&&leads.some(l=>l.id===leadId)){$('leadSelect').value=leadId;aplicarLead()}
+  $('loading').classList.add('hidden');$('app').classList.remove('hidden');atualizarStatus()
 }
+function renderSaved(){$('savedSelect').innerHTML='<option value="">Abrir uma simulação salva...</option>'+simulacoes.map(s=>'<option value="'+s.id+'">'+esc(s.cliente_nome)+' · '+esc(s.empreendimento)+' · '+money(s.valor_total)+'</option>').join('')}
+function aplicarLead(){const l=leads.find(x=>x.id===$('leadSelect').value);if(!l)return;$('clienteNome').value=l.nome||'';$('clienteTelefone').value=l.telefone||'';$('empreendimento').value=l.empreendimento||''}
 
-function renderSaved(){
-  $('savedSelect').innerHTML='<option value="">Abrir uma simulação salva...</option>'+simulacoes.map(s=>'<option value="'+s.id+'">'+esc(s.cliente_nome)+' · '+esc(s.empreendimento)+' · '+money(s.valor_total)+'</option>').join('')
+function addReforco(data={}){
+  const id=++refCount;
+  const row=document.createElement('div');row.className='reinforcement';row.id='ref-'+id;
+  row.innerHTML='<div class="field"><label>Reforço '+id+'</label><input type="number" id="rv-'+id+'" min="0" value="'+(data.valor||'')+'" placeholder="Valor do reforço" oninput="atualizarStatus()"></div><button class="remove" onclick="removerReforco('+id+')">×</button>';
+  $('reforcos').appendChild(row)
 }
-
-function aplicarLead(){
-  const l=leads.find(x=>x.id===$('leadSelect').value);if(!l)return;
-  $('clienteNome').value=l.nome||'';$('clienteTelefone').value=l.telefone||'';$('empreendimento').value=l.empreendimento||''
-}
+function removerReforco(id){$('ref-'+id)?.remove();atualizarStatus()}
+function getRefs(){return [...document.querySelectorAll('.reinforcement')].map(el=>{const id=el.id.split('-')[1];return parseFloat($('rv-'+id).value)||0}).filter(v=>v>0)}
 
 function validarBasico(){
-  const req=[['clienteNome','cliente'],['empreendimento','empreendimento'],['valorTotal','valor do imóvel'],['dataChaves','data das chaves']];
+  const req=[['clienteNome','cliente'],['empreendimento','empreendimento'],['valorTotal','valor do imóvel'],['parcelaNum','número de parcelas']];
   for(const [id,label] of req){if(!$(id).value){alert('Informe '+label+'.');return false}}
+  if(num('percMinimo')<=0){alert('Informe a porcentagem mínima até as chaves.');return false}
   return true
 }
 
-function updateQuickInfo(){
-  const months=monthDiff(new Date().toISOString().slice(0,10),$('dataChaves').value);
-  const manual=int('parcelaNumManual');
-  const qtd=manual>0?Math.min(manual,months):months;
-  $('quickInfo').textContent=months>0
-    ?'O CRM vai considerar '+qtd+' parcela(s) mensais até '+dateBR($('dataChaves').value)+'.'
-    :'Informe uma data futura para as chaves.'
-}
-
-function reinforcementMonths(months){
-  const interval=int('refIntervalo')||12;
-  const all=[];
-  for(let m=interval;m<=months;m+=interval)all.push(m);
-  if(!all.length&&months>1)all.push(Math.max(1,months-1));
-  const manual=int('refQtdManual');
-  const max=manual>0?Math.min(manual,all.length):Math.min(all.length,4);
-  return all.slice(0,max)
-}
-
-function buildPostPlan(saldo,mesChaves){
+function buildPostPlan(saldo){
   if(!$('posChavesCheck').checked||saldo<=0)return{enabled:false,valid:true,events:[],summary:'Saldo pago nas chaves'};
   const qtd=Math.max(int('posChavesNum'),1);
-  if(!isRound(saldo))return{enabled:true,valid:false,events:[],summary:'Saldo não fecha em valores redondos'};
-  const ideal=saldo/qtd,low=Math.floor(ideal/ROUND)*ROUND,high=low+ROUND;
-  if(low<=0)return{enabled:true,valid:false,events:[],summary:'Quantidade de parcelas muito alta'};
-  const highCount=Math.round((saldo-low*qtd)/ROUND);
-  if(highCount<0||highCount>qtd)return{enabled:true,valid:false,events:[],summary:'Não foi possível dividir em valores redondos'};
-  const vals=Array(qtd-highCount).fill(low).concat(Array(highCount).fill(high));
-  const events=vals.map((valor,idx)=>({tipo:'poschaves',mes:mesChaves+1+idx,label:'Pós-chaves '+(idx+1)+'/'+qtd,valor,competencia:competencia(mesChaves+1+idx)}));
-  const summary=highCount===0?qtd+'x '+money(low):(qtd-highCount)+'x '+money(low)+' + '+highCount+'x '+money(high);
-  return{enabled:true,valid:true,events,summary}
+  const valor=saldo/qtd;
+  if(!isRound(valor))return{enabled:true,valid:false,events:[],summary:'O saldo não divide em parcelas redondas'};
+  const events=Array.from({length:qtd},(_,idx)=>({tipo:'poschaves',mes:idx+1,label:'Pós-chaves '+(idx+1)+'/'+qtd,valor,competencia:'Pós-chaves',acumulado:0,percentual:'—'}));
+  return{enabled:true,valid:true,events,summary:qtd+'x '+money(valor)}
 }
 
-function calcular(show=true){
-  if(!validarBasico())return null;
-  const total=num('valorTotal'),entrada=num('entradaValor'),mensal=num('parcelaValor'),meta=num('percMinimo');
-  const mesChaves=monthDiff(new Date().toISOString().slice(0,10),$('dataChaves').value);
-  if(mesChaves<=0){alert('A data das chaves precisa estar no futuro.');return null}
-
-  const manualMonths=int('parcelaNumManual');
-  const qtdMensais=manualMonths>0?Math.min(manualMonths,mesChaves):mesChaves;
-  const base=entrada+(mensal*qtdMensais);
-  const target=total*meta/100;
-  const refMonths=reinforcementMonths(mesChaves);
-  const gap=Math.max(target-base,0);
-
-  let refValor=0;
-  if(gap>0&&refMonths.length)refValor=roundUp(gap/refMonths.length);
-
-  const totalRefs=refValor*refMonths.length;
-  const totalPre=base+totalRefs;
+function calcular(){
+  const total=num('valorTotal'),entrada=num('entradaValor'),mensal=num('parcelaValor'),qtd=int('parcelaNum'),refs=getRefs(),meta=num('percMinimo');
+  const totalRefs=refs.reduce((s,v)=>s+v,0);
+  const totalPre=entrada+(mensal*qtd)+totalRefs;
   const percPre=total?totalPre/total*100:0;
-  const saldo=Math.max(total-totalPre,0);
-  const saldoPerc=total?saldo/total*100:0;
-  const excesso=Math.max(totalPre-total,0);
-  const post=buildPostPlan(saldo,mesChaves);
-
-  const valoresPrincipais=[total,entrada,mensal,refValor,saldo].filter(v=>v>0);
-  const redondos=valoresPrincipais.every(isRound);
-  const metaOk=percPre+0.0001>=meta;
-  const ready=redondos&&metaOk&&excesso===0&&post.valid;
+  const saldo=Math.max(total-totalPre,0),saldoPerc=total?saldo/total*100:0,excesso=Math.max(totalPre-total,0);
+  const limiteAceite=Math.max(meta-TOLERANCIA_PP,0);
+  const metaOk=percPre+0.000001>=limiteAceite;
+  const faltaExata=Math.max(total*meta/100-totalPre,0);
+  const faltaAceite=Math.max(total*limiteAceite/100-totalPre,0);
+  const diferencaDentroTolerancia=metaOk&&percPre<meta;
+  const allValues=[entrada,mensal,...refs].filter(v=>v>0);
+  const redondos=allValues.every(isRound);
+  const post=buildPostPlan(saldo);
+  const ready=metaOk&&excesso===0&&redondos&&post.valid;
 
   let acum=0,fluxo=[];
-  if(entrada>0){acum+=entrada;fluxo.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato',acumulado:acum,percentual:(acum/total*100).toFixed(1)+'%'})}
-  for(let x=1;x<=qtdMensais;x++){if(mensal>0){acum+=mensal;fluxo.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtdMensais,valor:mensal,competencia:competencia(x),acumulado:acum,percentual:(acum/total*100).toFixed(1)+'%'})}}
-  refMonths.forEach((m,idx)=>{if(refValor>0){acum+=refValor;fluxo.push({tipo:'reforco',mes:m,label:(idx+1)+'º reforço',valor:refValor,competencia:competencia(m),acumulado:acum,percentual:(acum/total*100).toFixed(1)+'%'})});
-  fluxo.sort((a,b)=>a.mes-b.mes);
-
+  if(entrada>0){acum+=entrada;fluxo.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato',acumulado:acum,percentual:pct(acum/total*100)})}
+  for(let x=1;x<=qtd;x++){if(mensal>0){acum+=mensal;fluxo.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x,acumulado:acum,percentual:pct(acum/total*100)})}}
+  refs.forEach((valor,idx)=>{acum+=valor;fluxo.push({tipo:'reforco',mes:qtd+idx+1,label:'Reforço '+(idx+1),valor,competencia:'Reforço',acumulado:acum,percentual:pct(acum/total*100)})});
   if(post.enabled){
-    fluxo.push({tipo:'chaves',mes:mesChaves,label:'Entrega das chaves · saldo '+saldoPerc.toFixed(1)+'%',valor:0,displayValor:money(saldo)+' de saldo',competencia:dateBR($('dataChaves').value),acumulado:acum,percentual:(acum/total*100).toFixed(1)+'%'});
-    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,acumulado:acum,percentual:(acum/total*100).toFixed(1)+'%'})})
+    fluxo.push({tipo:'chaves',mes:qtd+refs.length+1,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
+    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,acumulado:acum,percentual:pct(acum/total*100)})})
   }else{
-    acum+=saldo;fluxo.push({tipo:'chaves',mes:mesChaves,label:'Saldo nas chaves · '+saldoPerc.toFixed(1)+'%',valor:saldo,competencia:dateBR($('dataChaves').value),acumulado:acum,percentual:(acum/total*100).toFixed(1)+'%'})
+    acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd+refs.length+1,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(100)})
   }
 
-  lastCalc={total,entrada,mensal,meta,mesChaves,qtdMensais,refMonths,refValor,totalPre,percPre,saldo,saldoPerc,excesso,redondos,metaOk,post,ready,fluxo};
-  if(show)renderResultado(lastCalc);
-  return lastCalc
+  return{total,entrada,mensal,qtd,refs,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,redondos,post,ready,fluxo}
+}
+
+function atualizarStatus(){
+  const c=calcular();lastCalc=c;
+  $('statusPerc').textContent=pct(c.percPre);$('statusPerc').className=c.metaOk?'oktxt':'badtxt';
+  $('statusSaldoPerc').textContent=pct(c.saldoPerc);
+  const box=$('missingBox');
+  if(c.metaOk){
+    box.className='missing ok';
+    $('missingLabel').textContent=c.diferencaDentroTolerancia?'Fechado dentro da tolerância':'Percentual fechado';
+    $('missingValue').textContent=c.diferencaDentroTolerancia?pct(c.percPre):pct(c.percPre);
+    $('missingHint').textContent=c.diferencaDentroTolerancia
+      ?'Meta '+pct(c.meta)+' · diferença de '+money(c.faltaExata)+' aceita pela tolerância de 0,2 p.p.'
+      :'Meta mínima de '+pct(c.meta)+' atingida.';
+  }else{
+    box.className='missing';
+    $('missingLabel').textContent='Falta para fechar '+pct(c.meta);
+    $('missingValue').textContent=money(c.faltaAceite);
+    $('missingHint').textContent='Com a tolerância, o mínimo aceito é '+pct(c.limiteAceite)+'.';
+  }
+}
+
+function fecharFluxo(){
+  if(!validarBasico())return;
+  const c=calcular();lastCalc=c;atualizarStatus();
+  if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima.');return}
+  if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
+  if(!c.redondos){alert('Há valor quebrado no fluxo. Ajuste para valores redondos em múltiplos de R$ 500.');return}
+  if(!c.post.valid){alert('O pós-chaves não fecha em parcelas redondas. Ajuste a quantidade.');return}
+  renderResultado(c)
 }
 
 function renderResultado(c){
-  $('rPre').textContent=c.percPre.toFixed(1)+'%';
-  $('rPre').className=c.metaOk?'oktxt':'badtxt';
-  $('rPreValue').textContent=money(c.totalPre)+' até a entrega';
-  $('rSaldoPerc').textContent=c.saldoPerc.toFixed(1)+'%';
-  $('rSaldoValue').textContent=money(c.saldo)+' de saldo';
+  $('rPerc').textContent=pct(c.percPre);$('rPreValue').textContent=money(c.totalPre)+' antes das chaves';
+  $('rSaldoPerc').textContent=pct(c.saldoPerc);$('rSaldoValue').textContent=money(c.saldo)+' de saldo';
+  $('rMeta').textContent=pct(c.meta);
 
-  const parts=[];
-  if(c.entrada>0)parts.push('Entrada '+money(c.entrada));
-  if(c.mensal>0&&c.qtdMensais>0)parts.push(c.qtdMensais+'x '+money(c.mensal));
-  if(c.refValor>0&&c.refMonths.length)parts.push(c.refMonths.length+' reforço'+(c.refMonths.length>1?'s':'')+' de '+money(c.refValor));
-  $('flowMain').textContent=parts.length?parts.join(' + '):'Sem pagamentos antes das chaves';
-  $('flowSub').textContent=c.post.enabled
-    ?'Depois das chaves: '+c.post.summary+'.'
-    :'Saldo nas chaves: '+money(c.saldo)+' ('+c.saldoPerc.toFixed(1)+'%).';
+  const lines=[];
+  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)]);
+  if(c.mensal>0&&c.qtd>0)lines.push([c.qtd+' parcelas',c.qtd+'x '+money(c.mensal)]);
+  c.refs.forEach((v,idx)=>lines.push(['Reforço '+(idx+1),money(v)]));
+  lines.push(['Até as chaves',pct(c.percPre)+' · '+money(c.totalPre)]);
+  lines.push(['Saldo nas chaves',pct(c.saldoPerc)+' · '+money(c.saldo)]);
+  if(c.post.enabled)lines.push(['Pós-chaves',c.post.summary]);
+  $('flowResumo').innerHTML=lines.map(x=>'<div class="flow-line"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>').join('');
 
-  let alerts='';
-  if(c.ready){
-    alerts+='<div class="alert ok">✓ Fluxo pronto para enviar. Valores redondos e meta de '+c.meta.toFixed(0)+'% atendida.</div>';
-  }else{
-    if(!c.metaOk)alerts+='<div class="alert warn">Para atingir '+c.meta.toFixed(0)+'% até as chaves, o CRM ainda precisa ajustar as condições.</div>';
-    if(!c.redondos)alerts+='<div class="alert bad">Os valores ainda não estão todos redondos em múltiplos de R$ 500. Este fluxo não será apresentado como pronto.</div>';
-    if(c.excesso>0)alerts+='<div class="alert bad">O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.</div>';
-    if(c.post.enabled&&!c.post.valid)alerts+='<div class="alert bad">O pós-chaves não fecha em parcelas redondas. Altere a quantidade de parcelas.</div>';
-  }
-  $('resultAlerts').innerHTML=alerts;
-  $('sendBtn').disabled=!c.ready;
-  goStep(3)
+  $('resultAlerts').innerHTML=c.diferencaDentroTolerancia
+    ?'<div class="alert ok">✓ Meta considerada atendida: '+pct(c.percPre)+' para uma meta de '+pct(c.meta)+'. A diferença está dentro da tolerância de 0,2 ponto percentual.</div>'
+    :'<div class="alert ok">✓ Percentual mínimo atendido. Fluxo pronto para salvar e enviar.</div>';
+  $('sendBtn').disabled=!c.ready;goStep(3)
 }
 
-function formData(){
-  return{
-    leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,
-    valorTotal:$('valorTotal').value,dataChaves:$('dataChaves').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,
-    refIntervalo:$('refIntervalo').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,parcelaNumManual:$('parcelaNumManual').value,refQtdManual:$('refQtdManual').value
-  }
-}
-
+function formData(){return{leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refs:getRefs()}}
 function payload(c){
   const corretor=(leads.find(l=>l.id===$('leadSelect').value)?.corretor)||(profile.corretor_ref||profile.nome);
-  return{
-    lead_id:$('leadSelect').value||null,created_by:user.id,corretor,
-    cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,
-    valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:$('dataChaves').value,validade_dias:7,perc_minimo:c.meta,
-    total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,
-    dados:{tipoApto:'',metragem:'',cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,fluxoPronto:c.ready,roundStep:ROUND,form:formData()},
-    updated_at:new Date().toISOString()
-  }
+  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
 }
 
 async function salvarRascunho(silent=false){
-  const c=calcular(false);if(!c)return null;
+  const c=calcular();if(!c.ready){fecharFluxo();return null}
   const p=payload(c);let res;
   if(currentId)res=await sb.from('simulacoes_pagamento').update({...p,publicada:false,status:'rascunho'}).eq('id',currentId).select().single();
   else res=await sb.from('simulacoes_pagamento').insert([{...p,publicada:false,status:'rascunho'}]).select().single();
   if(res.error){alert('Erro ao salvar: '+res.error.message);return null}
-  const wasNew=!currentId;currentId=res.data.id;currentToken=res.data.share_token;
-  if(wasNew&&p.lead_id)await sb.from('historico').insert([{lead_id:p.lead_id,texto:'Simulação de pagamento criada · '+p.empreendimento+' · '+money(p.valor_total),tipo:'note'}]);
-  if(!silent)toast('✓ Rascunho salvo');
-  await reloadSaved();return res.data
+  const novo=!currentId;currentId=res.data.id;currentToken=res.data.share_token;
+  if(novo&&p.lead_id)await sb.from('historico').insert([{lead_id:p.lead_id,texto:'Simulação de pagamento criada · '+p.empreendimento+' · '+money(p.valor_total),tipo:'note'}]);
+  if(!silent)toast('✓ Rascunho salvo');await reloadSaved();return res.data
 }
 
 async function publicarEEnviar(){
-  const c=calcular(false);if(!c)return;
-  if(!c.ready){alert('O fluxo ainda não está pronto para envio. Ajuste até todos os valores ficarem redondos.');renderResultado(c);return}
+  const c=calcular();if(!c.ready){fecharFluxo();return}
   const saved=await salvarRascunho(true);if(!saved)return;
   const {data,error}=await sb.from('simulacoes_pagamento').update({publicada:true,status:'enviada',updated_at:new Date().toISOString()}).eq('id',currentId).select().single();
   if(error){alert('Erro ao publicar: '+error.message);return}
   currentToken=data.share_token;$('copyLinkBtn').disabled=false;
-  const link=PUBLIC_BASE+encodeURIComponent(currentToken);$('publicLinkInfo').textContent='Link: '+link;
-  await navigator.clipboard.writeText(link).catch(()=>{});
+  const link=PUBLIC_BASE+encodeURIComponent(currentToken);$('publicLinkInfo').textContent='Link: '+link;await navigator.clipboard.writeText(link).catch(()=>{});
   if($('leadSelect').value)await sb.from('historico').insert([{lead_id:$('leadSelect').value,texto:'Proposta de pagamento publicada e preparada para envio ao cliente.',tipo:'contact'}]);
-  const nome=$('clienteNome').value.split(' ')[0]||'';
-  const msg='Olá, '+nome+'! Preparei a simulação do fluxo de pagamento do '+$('empreendimento').value+'. Você pode visualizar a proposta completa aqui: '+link;
-  const tel=normalizePhone($('clienteTelefone').value);
-  toast('✓ Proposta publicada');
-  if(tel)window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(msg),'_blank');
-  else alert('Link copiado. O cliente não possui WhatsApp cadastrado.');
-  await reloadSaved()
+  const nome=$('clienteNome').value.split(' ')[0]||'';const msg='Olá, '+nome+'! Preparei a simulação do fluxo de pagamento do '+$('empreendimento').value+'. Você pode visualizar a proposta completa aqui: '+link;const tel=normalizePhone($('clienteTelefone').value);
+  toast('✓ Proposta publicada');if(tel)window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(msg),'_blank');else alert('Link copiado. O cliente não possui WhatsApp cadastrado.');await reloadSaved()
 }
-
-async function copiarLink(){
-  if(!currentToken)return;
-  const link=PUBLIC_BASE+encodeURIComponent(currentToken);
-  await navigator.clipboard.writeText(link);toast('✓ Link copiado')
-}
-
-async function reloadSaved(){
-  const {data}=await sb.from('simulacoes_pagamento').select('*').order('created_at',{ascending:false}).limit(30);
-  simulacoes=data||[];renderSaved()
-}
-
+async function copiarLink(){if(!currentToken)return;const link=PUBLIC_BASE+encodeURIComponent(currentToken);await navigator.clipboard.writeText(link);toast('✓ Link copiado')}
+async function reloadSaved(){const {data}=await sb.from('simulacoes_pagamento').select('*').order('created_at',{ascending:false}).limit(30);simulacoes=data||[];renderSaved()}
 function setv(id,v){if($(id))$(id).value=v??''}
+
 function abrirSalva(id){
-  if(!id)return;
-  const s=simulacoes.find(x=>x.id===id);if(!s)return;
-  currentId=s.id;currentToken=s.share_token;
-  const f=s.dados?.form||{};
-  setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);
-  setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',f.valorTotal||s.valor_total);setv('dataChaves',f.dataChaves||s.data_chaves);
-  setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor||'');setv('parcelaValor',f.parcelaValor||'');setv('refIntervalo',f.refIntervalo||12);
-  $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);setv('parcelaNumManual',f.parcelaNumManual||'');setv('refQtdManual',f.refQtdManual||'');
-  togglePos();$('copyLinkBtn').disabled=s.status!=='enviada';$('publicLinkInfo').textContent=s.status==='enviada'?'Link público disponível.':'';
-  calcular(true);$('saveState').textContent='Editando '+s.cliente_nome
+  if(!id)return;const s=simulacoes.find(x=>x.id===id);if(!s)return;currentId=s.id;currentToken=s.share_token;const f=s.dados?.form||{};
+  setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',f.valorTotal||s.valor_total);setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor||'');setv('parcelaValor',f.parcelaValor||'');setv('parcelaNum',f.parcelaNum||'');
+  $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);$('reforcos').innerHTML='';refCount=0;(f.refs||[]).forEach(v=>addReforco({valor:v}));togglePos();$('copyLinkBtn').disabled=s.status!=='enviada';$('publicLinkInfo').textContent=s.status==='enviada'?'Link público disponível.':'';atualizarStatus();const c=calcular();if(c.ready)renderResultado(c);else goStep(2);$('saveState').textContent='Editando '+s.cliente_nome
 }
 
 function novaSimulacao(){
-  currentId=null;currentToken=null;lastCalc=null;
-  ['clienteNome','clienteTelefone','empreendimento','unidade','valorTotal','dataChaves','entradaValor','parcelaValor','parcelaNumManual','refQtdManual'].forEach(id=>$(id).value='');
-  $('leadSelect').value='';$('percMinimo').value=40;$('refIntervalo').value=12;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('savedSelect').value='';$('copyLinkBtn').disabled=true;$('publicLinkInfo').textContent='';togglePos();goStep(1);$('saveState').textContent='Nova simulação'
+  currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('copyLinkBtn').disabled=true;$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação'
 }
-
 init();
 </script>
 </body>
