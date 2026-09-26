@@ -8,8 +8,8 @@
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <style>
 :root{--bg:#0a0a0f;--surface:#111118;--card:#16161f;--card2:#1c1c28;--border:rgba(120,80,220,.18);--border2:rgba(140,90,255,.36);--purple:#8b5cf6;--purple2:#a78bfa;--text:#f0eeff;--muted:#9490b0;--dim:#5a5575;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--gold:#c39a6b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:880px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn{padding:5px 9px;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer}.mini-btn:hover{color:var(--purple2);border-color:var(--border2)}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.status-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.metric strong{font-size:21px}.missing{margin-top:10px;padding:16px;border-radius:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28)}.missing small{display:block;color:#fcd34d;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.missing strong{font-size:27px;color:#fcd34d}.missing.ok{background:rgba(16,185,129,.09);border-color:rgba(16,185,129,.28)}.missing.ok small,.missing.ok strong{color:#6ee7b7}.reinforcements{margin-top:10px}.reinforcement{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px}.reinforcement .remove{background:none;border:none;color:#f87171;cursor:pointer;padding:10px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:22px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.flow-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}.flow-line:last-child{border-bottom:0}.flow-line span{color:var(--muted)}.flow-line b{text-align:right}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}.recent-row{margin-bottom:14px}
-@media(max-width:620px){.shell{padding:12px}.grid2,.status-grid,.summary{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:880px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn{padding:5px 9px;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer}.mini-btn:hover{color:var(--purple2);border-color:var(--border2)}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.status-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.metric strong{font-size:21px}.missing{margin-top:10px;padding:16px;border-radius:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28)}.missing small{display:block;color:#fcd34d;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.missing strong{font-size:27px;color:#fcd34d}.missing.ok{background:rgba(16,185,129,.09);border-color:rgba(16,185,129,.28)}.missing.ok small,.missing.ok strong{color:#6ee7b7}.reinforcements{margin-top:10px}.reinforcement{display:grid;grid-template-columns:1.15fr .85fr .75fr auto;gap:8px;align-items:end;margin:8px 0;padding:10px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px}.reinforcement .remove{background:none;border:none;color:#f87171;cursor:pointer;padding:10px}.client-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.client-info{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}.client-info small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.client-info b{font-size:14px}.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:22px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.flow-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}.flow-line:last-child{border-bottom:0}.flow-line span{color:var(--muted)}.flow-line b{text-align:right}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}.recent-row{margin-bottom:14px}
+@media(max-width:620px){.shell{padding:12px}.grid2,.status-grid,.summary,.client-head{grid-template-columns:1fr}.reinforcement{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}}
 body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 @media print{body{background:#fff;color:#111}.top,.steps,.recent-row,.actions,.nav,#loading{display:none!important}.shell{max-width:none;padding:0}.section{display:none!important}#sec3{display:block!important}.card{background:#fff;color:#111;border:1px solid #ddd}.big,.flow{background:#fff;color:#111;border-color:#ddd}.hint,.flow-line span,.card-title{color:#666}.oktxt{color:#0a7a52}.goldtxt{color:#8a673f}.alert.ok{color:#176244;background:#effaf5;border-color:#bfe8d4}}
 </style>
@@ -90,15 +90,19 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 
     <section class="section" id="sec3">
       <div class="card">
-        <div class="card-title">Fluxo fechado</div>
+        <div class="card-title">Proposta de pagamento</div>
+
+        <div class="client-head">
+          <div class="client-info"><small>Unidade</small><b id="rUnidade">—</b></div>
+          <div class="client-info"><small>Valor do imóvel</small><b id="rValorImovel">—</b></div>
+        </div>
+
         <div class="summary">
-          <div class="big"><small>Até as chaves</small><strong class="oktxt" id="rPerc">—</strong><div class="hint" id="rPreValue">—</div></div>
+          <div class="big"><small>Pago até as chaves</small><strong class="oktxt" id="rPerc">—</strong><div class="hint" id="rPreValue">—</div></div>
           <div class="big"><small>Saldo nas chaves</small><strong class="goldtxt" id="rSaldoPerc">—</strong><div class="hint" id="rSaldoValue">—</div></div>
-          <div class="big"><small>Meta mínima</small><strong id="rMeta">—</strong><div class="hint">tolerância -0,2 p.p.</div></div>
         </div>
 
         <div class="flow" id="flowResumo"></div>
-        <div id="resultAlerts"></div>
 
         <div class="actions">
           <button class="btn primary" onclick="salvarRascunho()">💾 Salvar no CRM</button>
@@ -178,14 +182,48 @@ async function init(){
 function renderSaved(){$('savedSelect').innerHTML='<option value="">Abrir uma simulação salva...</option>'+simulacoes.map(s=>'<option value="'+s.id+'">'+esc(s.cliente_nome)+' · '+esc(s.empreendimento)+' · '+money(s.valor_total)+'</option>').join('')}
 function aplicarLead(){const l=leads.find(x=>x.id===$('leadSelect').value);if(!l)return;$('clienteNome').value=l.nome||'';$('clienteTelefone').value=l.telefone||'';$('clienteEmail').value=l.email||'';$('empreendimento').value=l.empreendimento||''}
 
+function toggleRefOutro(id){
+  const sel=$('rp-'+id),box=$('ri-'+id);
+  if(!sel||!box)return;
+  box.parentElement.classList.toggle('hidden',sel.value!=='outro');
+  atualizarStatus();
+}
 function addReforco(data={}){
   const id=++refCount;
+  const periodo=data.periodo||'anual';
+  const intervalo=data.intervalo||'';
   const row=document.createElement('div');row.className='reinforcement';row.id='ref-'+id;
-  row.innerHTML='<div class="field"><label>Reforço '+id+'</label><input type="text" inputmode="decimal" id="rv-'+id+'" value="'+(data.valor?formatBRLValue(data.valor):'')+'" placeholder="22.200,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div><button class="remove" onclick="removerReforco('+id+')">×</button>';
-  $('reforcos').appendChild(row)
+  row.innerHTML=
+    '<div class="field"><label>Valor do reforço</label><input type="text" inputmode="decimal" id="rv-'+id+'" value="'+(data.valor?formatBRLValue(data.valor):'')+'" placeholder="22.200,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>'+
+    '<div class="field"><label>Periodicidade</label><select id="rp-'+id+'" onchange="toggleRefOutro('+id+')"><option value="semestral" '+(periodo==='semestral'?'selected':'')+'>Semestral</option><option value="anual" '+(periodo==='anual'?'selected':'')+'>Anual</option><option value="outro" '+(periodo==='outro'?'selected':'')+'>Outro</option></select></div>'+
+    '<div class="field '+(periodo==='outro'?'':'hidden')+'"><label>A cada (meses)</label><input type="number" id="ri-'+id+'" min="1" value="'+intervalo+'" placeholder="Ex.: 8" oninput="atualizarStatus()"></div>'+
+    '<button class="remove" onclick="removerReforco('+id+')">×</button>';
+  $('reforcos').appendChild(row);
+  atualizarStatus();
 }
 function removerReforco(id){$('ref-'+id)?.remove();atualizarStatus()}
-function getRefs(){return [...document.querySelectorAll('.reinforcement')].map(el=>{const id=el.id.split('-')[1];return parseBRL($('rv-'+id).value)}).filter(v=>v>0)}
+function getRefPlans(){
+  return [...document.querySelectorAll('.reinforcement')].map(el=>{
+    const id=el.id.split('-')[1],periodo=$('rp-'+id)?.value||'anual';
+    const intervalo=periodo==='semestral'?6:periodo==='anual'?12:parseInt($('ri-'+id)?.value)||0;
+    return{valor:parseBRL($('rv-'+id)?.value),periodo,intervalo};
+  }).filter(p=>p.valor>0)
+}
+function periodoLabel(p){return p.periodo==='semestral'?'semestral':p.periodo==='anual'?'anual':'a cada '+p.intervalo+' meses'}
+function gerarReforcos(qtd,plans){
+  const ultimoMesPermitido=Math.max(qtd-4,0);
+  const events=[],summaries=[];
+  let invalid=false;
+  plans.forEach((p,pi)=>{
+    if(!p.intervalo||p.intervalo<1){invalid=true;return}
+    const meses=[];
+    for(let m=p.intervalo;m<=ultimoMesPermitido;m+=p.intervalo)meses.push(m);
+    if(!meses.length){invalid=true;return}
+    meses.forEach((m,idx)=>events.push({tipo:'reforco',mes:m,label:'Reforço '+(idx+1)+'/'+meses.length,valor:p.valor,competencia:'Mês '+m,planIndex:pi}));
+    summaries.push({valor:p.valor,periodo:p.periodo,intervalo:p.intervalo,qtd:meses.length,meses});
+  });
+  return{events,summaries,invalid,ultimoMesPermitido}
+}
 
 function validarBasico(){
   const req=[['clienteNome','cliente'],['empreendimento','empreendimento'],['valorTotal','valor do imóvel'],['parcelaNum','número de parcelas']];
@@ -209,8 +247,9 @@ function buildPostPlan(saldo){
 }
 
 function calcular(){
-  const total=brl('valorTotal'),entrada=brl('entradaValor'),mensal=brl('parcelaValor'),qtd=int('parcelaNum'),refs=getRefs(),meta=num('percMinimo');
-  const totalRefs=refs.reduce((s,v)=>s+v,0);
+  const total=brl('valorTotal'),entrada=brl('entradaValor'),mensal=brl('parcelaValor'),qtd=int('parcelaNum'),plans=getRefPlans(),meta=num('percMinimo');
+  const refData=gerarReforcos(qtd,plans);
+  const totalRefs=refData.events.reduce((s,e)=>s+e.valor,0);
   const totalPre=entrada+(mensal*qtd)+totalRefs;
   const percPre=total?totalPre/total*100:0;
   const saldo=Math.max(total-totalPre,0),saldoPerc=total?saldo/total*100:0,excesso=Math.max(totalPre-total,0);
@@ -220,20 +259,24 @@ function calcular(){
   const faltaAceite=Math.max(total*limiteAceite/100-totalPre,0);
   const diferencaDentroTolerancia=metaOk&&percPre<meta;
   const post=buildPostPlan(saldo);
-  const ready=metaOk&&excesso===0&&post.valid;
+  const ready=metaOk&&excesso===0&&post.valid&&!refData.invalid;
 
-  let acum=0,fluxo=[];
-  if(entrada>0){acum+=entrada;fluxo.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato',acumulado:acum,percentual:pct(acum/total*100)})}
-  for(let x=1;x<=qtd;x++){if(mensal>0){acum+=mensal;fluxo.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x,acumulado:acum,percentual:pct(acum/total*100)})}}
-  refs.forEach((valor,idx)=>{acum+=valor;fluxo.push({tipo:'reforco',mes:qtd+idx+1,label:'Reforço '+(idx+1),valor,competencia:'Reforço',acumulado:acum,percentual:pct(acum/total*100)})});
+  let events=[];
+  if(entrada>0)events.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato'});
+  for(let x=1;x<=qtd;x++)if(mensal>0)events.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x});
+  events.push(...refData.events);
+  events.sort((a,b)=>a.mes-b.mes||(a.tipo==='reforco'?1:-1));
+
+  let acum=0;
+  const fluxo=events.map(e=>{acum+=e.valor;return{...e,acumulado:acum,percentual:pct(total?acum/total*100:0)}});
   if(post.enabled){
-    fluxo.push({tipo:'chaves',mes:qtd+refs.length+1,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
-    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,acumulado:acum,percentual:pct(acum/total*100)})})
+    fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
+    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,mes:qtd+e.mes,acumulado:acum,percentual:pct(total?acum/total*100:0)})})
   }else{
-    acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd+refs.length+1,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(100)})
+    acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
   }
 
-  return{total,entrada,mensal,qtd,refs,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
+  return{total,entrada,mensal,qtd,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
 }
 
 function atualizarStatus(){
@@ -241,6 +284,13 @@ function atualizarStatus(){
   $('statusPerc').textContent=pct(c.percPre);$('statusPerc').className=c.metaOk?'oktxt':'badtxt';
   $('statusSaldoPerc').textContent=pct(c.saldoPerc);
   const box=$('missingBox');
+  if(c.refData.invalid){
+    box.className='missing';
+    $('missingLabel').textContent='Ajuste os reforços';
+    $('missingValue').textContent='Período inválido';
+    $('missingHint').textContent='Nenhum reforço pode cair nas chaves nem nos 3 meses anteriores. Com '+c.qtd+' parcelas, o último reforço permitido é até o mês '+Math.max(c.qtd-4,0)+'.';
+    return;
+  }
   if(c.metaOk){
     box.className='missing ok';
     $('missingLabel').textContent=c.diferencaDentroTolerancia?'Fechado dentro da tolerância':'Percentual fechado';
@@ -259,6 +309,7 @@ function atualizarStatus(){
 function fecharFluxo(){
   if(!validarBasico())return;
   const c=calcular();lastCalc=c;atualizarStatus();
+  if(c.refData.invalid){alert('Ajuste os reforços. Nenhum reforço pode cair nas chaves nem nos 3 meses anteriores.');return}
   if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima.');return}
   if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
   if(!c.post.valid){alert('Não foi possível dividir o saldo pós-chaves com essa quantidade de parcelas.');return}
@@ -266,29 +317,29 @@ function fecharFluxo(){
 }
 
 function renderResultado(c){
-  $('rPerc').textContent=pct(c.percPre);$('rPreValue').textContent=money(c.totalPre)+' antes das chaves';
-  $('rSaldoPerc').textContent=pct(c.saldoPerc);$('rSaldoValue').textContent=money(c.saldo)+' de saldo';
-  $('rMeta').textContent=pct(c.meta);
+  $('rUnidade').textContent=$('unidade').value.trim()||'—';
+  $('rValorImovel').textContent=money(c.total);
+  $('rPerc').textContent=pct(c.percPre);
+  $('rPreValue').textContent=money(c.totalPre)+' pagos até as chaves';
+  $('rSaldoPerc').textContent=pct(c.saldoPerc);
+  $('rSaldoValue').textContent=money(c.saldo)+' de saldo';
 
   const lines=[];
   if(c.entrada>0)lines.push(['Entrada',money(c.entrada)]);
-  if(c.mensal>0&&c.qtd>0)lines.push([c.qtd+' parcelas',c.qtd+'x '+money(c.mensal)]);
-  c.refs.forEach((v,idx)=>lines.push(['Reforço '+(idx+1),money(v)]));
-  lines.push(['Até as chaves',pct(c.percPre)+' · '+money(c.totalPre)]);
-  lines.push(['Saldo nas chaves',pct(c.saldoPerc)+' · '+money(c.saldo)]);
+  if(c.mensal>0&&c.qtd>0)lines.push(['Parcelamento',c.qtd+'x '+money(c.mensal)]);
+  c.refData.summaries.forEach((r,idx)=>lines.push(['Reforços'+(c.refData.summaries.length>1?' '+(idx+1):''),r.qtd+'x '+money(r.valor)+' · '+periodoLabel(r)]));
+  lines.push(['Total pago até as chaves',money(c.totalPre)+' · '+pct(c.percPre)]);
+  lines.push(['Saldo nas chaves',money(c.saldo)+' · '+pct(c.saldoPerc)]);
   if(c.post.enabled)lines.push(['Pós-chaves',c.post.summary]);
   $('flowResumo').innerHTML=lines.map(x=>'<div class="flow-line"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>').join('');
-
-  $('resultAlerts').innerHTML=c.diferencaDentroTolerancia
-    ?'<div class="alert ok">✓ Meta considerada atendida: '+pct(c.percPre)+' para uma meta de '+pct(c.meta)+'. A diferença está dentro da tolerância de 0,2 ponto percentual.</div>'
-    :'<div class="alert ok">✓ Percentual mínimo atendido. Fluxo pronto para salvar e enviar.</div>';
-  $('emailBtn').disabled=!c.ready;goStep(3)
+  $('emailBtn').disabled=!c.ready;
+  goStep(3)
 }
 
-function formData(){return{leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refs:getRefs()}}
+function formData(){return{leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refPlans:getRefPlans()}}
 function payload(c){
   const corretor=(leads.find(l=>l.id===$('leadSelect').value)?.corretor)||(profile.corretor_ref||profile.nome);
-  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
+  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,reforcosPlanos:c.refData.summaries,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
 }
 
 async function salvarRascunho(silent=false){
@@ -354,7 +405,11 @@ function setv(id,v){if($(id))$(id).value=v??''}
 function abrirSalva(id){
   if(!id)return;const s=simulacoes.find(x=>x.id===id);if(!s)return;currentId=s.id;currentToken=s.share_token;const f=s.dados?.form||{};
   setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('clienteEmail',f.clienteEmail||leads.find(l=>l.id===(f.leadId||s.lead_id))?.email||'');setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',formatBRLValue(parseBRL(f.valorTotal||s.valor_total)));setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor?formatBRLValue(parseBRL(f.entradaValor)):'');setv('parcelaValor',f.parcelaValor?formatBRLValue(parseBRL(f.parcelaValor)):'');setv('parcelaNum',f.parcelaNum||'');
-  $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);$('reforcos').innerHTML='';refCount=0;(f.refs||[]).forEach(v=>addReforco({valor:v}));togglePos();$('publicLinkInfo').textContent=s.status==='enviada'?'Proposta já publicada.':'';atualizarStatus();const c=calcular();if(c.ready)renderResultado(c);else goStep(2);$('saveState').textContent='Editando '+s.cliente_nome
+  $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);$('reforcos').innerHTML='';refCount=0;
+  const oldRefs=Array.isArray(f.refs)?f.refs:[];const plans=Array.isArray(f.refPlans)?f.refPlans:[];
+  if(plans.length)plans.forEach(p=>addReforco(p));
+  else oldRefs.forEach(v=>addReforco({valor:v,periodo:'outro',intervalo:Math.max((parseInt(f.parcelaNum)||12)-4,1)}));
+  togglePos();$('publicLinkInfo').textContent=s.status==='enviada'?'Proposta já publicada.':'';atualizarStatus();const c=calcular();if(c.ready)renderResultado(c);else goStep(2);$('saveState').textContent='Editando '+s.cliente_nome
 }
 
 function novaSimulacao(){
