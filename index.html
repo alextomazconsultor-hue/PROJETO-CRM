@@ -434,9 +434,22 @@ svg.icon-lg{width:20px;height:20px}
 .sb-reconnect-banner{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);padding:10px 16px;margin-bottom:16px;font-size:12px;color:#f87171;display:flex;align-items:center;gap:10px}
 .sb-reconnect-banner button{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:background .2s;white-space:nowrap}
 .sb-reconnect-banner button:hover{background:rgba(239,68,68,0.25)}
+
+/* Tema claro opcional do CRM */
+html.light{--bg-base:#f5f6fa;--bg-surface:#ffffff;--bg-card:#ffffff;--bg-card2:#f0f2f8;--bg-hover:#e9ecf5;--border:rgba(68,58,122,.16);--border-bright:rgba(95,71,169,.35);--purple:#6844bd;--purple-light:#6743b5;--purple-dim:rgba(104,68,189,.09);--purple-glow:rgba(104,68,189,.15);--text-primary:#1e2132;--text-secondary:#4c5268;--text-muted:#687087;--shadow:0 4px 24px rgba(24,29,50,.08)}
+html.light .assistant-card{background:#fff;box-shadow:0 20px 60px rgba(24,29,50,.15)}
+html.light .login-error,html.light .disconnected-indicator,html.light .alerts-panel-title,html.light .alert-row-ago,html.light .sb-reconnect-banner,html.light .sb-reconnect-banner button{color:#b42334}
+html.light .login-success,html.light .connected-indicator{color:#087448}
+html.light #setupBanner,html.light .pill-followup{color:#805806}
+html.light .pill-novo{color:#1857a8}html.light .pill-visita,html.light .pill-fechada,html.light .whatsapp-btn,html.light .whatsapp-big{color:#087448}
+html.light .pill-proposta{color:#a52463}html.light .pill-perdido,html.light .btn-danger{color:#b42334}
+html.light .pill-atendimento{color:#6743b5}
+.theme-toggle{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+@media(max-width:768px){.theme-toggle .theme-label{display:none}.theme-toggle{padding:8px 10px}}
 </style>
 </head>
 <body>
+<script>if(localStorage.getItem('3ps_crm_tema')==='claro')document.documentElement.classList.add('light');</script>
 
 <!-- LOGIN -->
 <div id="loginScreen">
@@ -897,6 +910,7 @@ CREATE TABLE historico (
       <div class="topbar-title" id="pageTitle">Dashboard</div>
       <div class="topbar-spacer"></div>
       <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm theme-toggle" type="button" id="crmThemeToggle" onclick="alternarTemaCRM()" aria-label="Ativar fundo branco" aria-pressed="false" title="Alternar fundo branco ou escuro"><span id="crmThemeIcon">☀</span><span class="theme-label" id="crmThemeLabel">Fundo branco</span></button>
         <div class="search-bar" style="display:none" id="searchBar">
           <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="searchInput" placeholder="Buscar nome, imóvel ou 4 últimos dígitos..." oninput="filterLeads()">
@@ -1756,6 +1770,7 @@ async function enterApp() {
   document.getElementById('app').classList.add('visible');
   document.getElementById('userName').textContent = APP.user.nome;
   document.getElementById('userInitials').textContent = APP.user.initials;
+  atualizarBotaoTemaCRM();
 
   if (new URLSearchParams(location.search).get('return') === 'simulador') {
     location.replace('simulador.html');
@@ -1926,6 +1941,21 @@ function showPage(name, el) {
   if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
+
+function atualizarBotaoTemaCRM(){
+  const claro=document.documentElement.classList.contains('light');
+  const btn=document.getElementById('crmThemeToggle');
+  if(!btn)return;
+  document.getElementById('crmThemeIcon').textContent=claro?'☾':'☀';
+  document.getElementById('crmThemeLabel').textContent=claro?'Fundo escuro':'Fundo branco';
+  btn.setAttribute('aria-label',claro?'Ativar fundo escuro':'Ativar fundo branco');
+  btn.setAttribute('aria-pressed',String(claro));
+}
+function alternarTemaCRM(){
+  const claro=document.documentElement.classList.toggle('light');
+  localStorage.setItem('3ps_crm_tema',claro?'claro':'escuro');
+  atualizarBotaoTemaCRM();
+}
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
