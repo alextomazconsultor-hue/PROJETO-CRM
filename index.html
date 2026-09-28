@@ -1928,12 +1928,12 @@ function openExportPDF() {
   const acessiveis = getLeadsDoUsuario();
   const options = (values, label) => '<option value="">'+label+'</option>' +
     [...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'))
-      .map(x => '<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+      .map(x => '<option value="'+agentEscape(x)+'">'+agentEscape(x)+'</option>').join('');
   const corretores = isGestorOrAdmin() ? acessiveis.map(l=>l.corretor) : [APP.user?.corretor_ref];
   document.getElementById('pdfCorretor').innerHTML=options(corretores,'Todos os corretores');
   const etapas = [...new Set(acessiveis.map(l=>l.status).filter(Boolean))];
   document.getElementById('pdfEtapa').innerHTML='<option value="">Todas as etapas</option>'+
-    etapas.map(id=>'<option value="'+esc(id)+'">'+esc(STATUS_LABELS[id]||id)+'</option>').join('');
+    etapas.map(id=>'<option value="'+agentEscape(id)+'">'+agentEscape(STATUS_LABELS[id]||id)+'</option>').join('');
   document.getElementById('pdfEmpreendimento').innerHTML=options(acessiveis.map(l=>l.empreendimento),'Todos os empreendimentos');
   document.getElementById('pdfOrigem').innerHTML=options(acessiveis.map(l=>l.origem),'Todas as origens');
   document.getElementById('pdfCorretor').value=isGestorOrAdmin()&&activeBrokerFilter!=='todos'?activeBrokerFilter:'';
