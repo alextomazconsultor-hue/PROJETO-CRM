@@ -2058,50 +2058,18 @@ function exportLeadsPDFLocal(leads,f){
 }
 
 function exportLeadsPDF(){
-  const f=filtrosExportPDF();
-  if(f.inicio&&f.fim&&f.inicio>f.fim){toast('Confira o período selecionado.','error');return}
-  const leads=filtrarLeadsPDF(getLeadsDoUsuario(),f);
-  if(!leads.length){toast('Nenhum lead encontrado para esses filtros.','error');return}
-  if(!window.jspdf?.jsPDF || !window.jspdf.jsPDF.API?.autoTable){
+  try {
+    const f=filtrosExportPDF();
+    if(f.inicio&&f.fim&&f.inicio>f.fim){toast('Confira o período selecionado.','error');return}
+    const leads=filtrarLeadsPDF(getLeadsDoUsuario(),f);
+    if(!leads.length){toast('Nenhum lead encontrado para esses filtros.','error');return}
     exportLeadsPDFLocal(leads,f);
     closeModal('exportPdfModal');
-    toast(leads.length+' leads exportados em PDF!','success');
-    return;
+    toast(leads.length+' lead'+(leads.length===1?'':'s')+' exportado'+(leads.length===1?'':'s')+' em PDF!','success');
+  } catch(error) {
+    console.error('Erro ao baixar PDF:',error);
+    toast('Erro ao baixar PDF: '+(error.message||'tente novamente'),'error');
   }
-  const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  if(typeof doc.autoTable!=='function'){toast('Não foi possível montar a tabela do PDF. Atualize a página.','error');return}
-  const resumo=[
-    f.corretor||'Todos os corretores',
-    f.etapas.length?f.etapas.map(id=>STATUS_LABELS[id]||id).join(', '):'Todas as etapas',
-    f.empreendimento||'Todos os empreendimentos',
-    f.origem||'Todas as origens',
-    (f.inicio||f.fim)?'Cadastro: '+(f.inicio?f.inicio.split('-').reverse().join('/'):'início')+' a '+(f.fim?f.fim.split('-').reverse().join('/'):'hoje'):'Todas as datas'
-  ];
-  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(28,39,67);doc.text('Leads do CRM 3Ps',12,16);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,101,121);
-  const resumoLinhas=doc.splitTextToSize(resumo.join('  |  '),270);
-  doc.text(resumoLinhas,12,23);
-  const body=leads.map(l=>[
-    l.nome||'-',l.telefone||'-',l.email||'-',l.empreendimento||'-',
-    STATUS_LABELS[l.status]||l.status||'-',l.corretor||'-'
-  ]);
-  doc.autoTable({
-    head:[['Nome','Telefone','E-mail','Empreendimento','Etapa','Corretor']],
-    body,
-    startY:23+resumoLinhas.length*4+4,margin:{left:12,right:12,top:14,bottom:14},
-    theme:'striped',styles:{font:'helvetica',fontSize:8,cellPadding:2.2,overflow:'linebreak'},
-    headStyles:{fillColor:[43,59,93],textColor:255},
-    columnStyles:{0:{cellWidth:50},1:{cellWidth:35},2:{cellWidth:57},3:{cellWidth:48},4:{cellWidth:51},5:{cellWidth:32}},
-    didDrawPage:()=>{
-      doc.setFontSize(8);doc.setTextColor(112,122,140);
-      doc.text('CRM 3Ps  |  '+leads.length+' leads',12,202);
-      doc.text('Página '+doc.internal.getCurrentPageInfo().pageNumber,285,202,{align:'right'});
-    }
-  });
-  const data=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  doc.save('3ps-leads-filtrados-'+data+'.pdf');
-  closeModal('exportPdfModal');
-  toast(leads.length+' lead'+(leads.length===1?'':'s')+' exportado'+(leads.length===1?'':'s')+' em PDF!','success');
 }
 
 // -- EXPORTAR CSV --
