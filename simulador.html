@@ -27,6 +27,24 @@ body.light .toolbar{background:#fff}
 .toolbar .mini-btn{padding:9px 11px;font-size:12px}
 .toolbar .danger{color:var(--bad)}
 @media print{.toolbar{display:none!important}}
+
+@media(max-width:620px){
+  .shell{padding:12px 12px 30px}
+  .top{flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .top .title{flex:1;min-width:180px}
+  .top .back{min-height:42px}
+  .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .toolbar .mini-btn{min-height:42px;white-space:normal}
+  .steps{gap:5px}.step{padding:10px 5px;font-size:11px}
+  input,select{min-height:44px;font-size:16px}
+  .card{padding:16px}
+  .nav{display:grid;grid-template-columns:1fr 1fr}
+  .nav .btn:only-child{grid-column:1/-1}
+  .nav .btn{min-height:44px}
+  .actions .btn{flex:1 1 140px;min-height:44px}
+  .reinforcement{grid-template-columns:1fr 1fr}
+  .reinforcement .field:first-child{grid-column:1/-1}
+}
 </style>
 </head>
 <body>
@@ -184,7 +202,7 @@ function togglePos(){$('posBox').classList.toggle('hidden',!$('posChavesCheck').
 
 async function init(){
   const {data:{session}}=await sb.auth.getSession();
-  if(!session){location.href='index.html';return}
+  if(!session){location.href='index.html?return=simulador';return}
   user=session.user;
   const {data:p,error}=await sb.from('usuarios').select('*').eq('id',user.id).single();
   if(error||!p){alert('Perfil do CRM não encontrado.');location.href='index.html';return}
