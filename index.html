@@ -566,7 +566,7 @@ svg.icon-lg{width:20px;height:20px}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-field"><label class="form-label" for="pdfCorretor">Corretor</label><select class="form-input" id="pdfCorretor" onchange="updateExportPDFCount()"></select></div>
-        <div class="form-field"><span class="form-label">Etapas do funil</span><div id="pdfEtapa" role="group" aria-label="Etapas do funil" style="max-height:160px;overflow:auto;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-surface)"></div><small style="color:var(--text-muted)">Marque quantas etapas quiser. Sem marcas, inclui todas.</small></div>
+        <div class="form-field"><label class="form-label" for="pdfEtapa">Etapa do funil</label><select class="form-input" id="pdfEtapa" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfEmpreendimento">Empreendimento</label><select class="form-input" id="pdfEmpreendimento" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfOrigem">Origem</label><select class="form-input" id="pdfOrigem" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfInicio">Cadastrados de</label><input class="form-input" type="date" id="pdfInicio" onchange="updateExportPDFCount()"></div>
@@ -1969,29 +1969,40 @@ function updateBadges() {
 }
 
 // -- EXPORTAR LEADS EM PDF --
-function openExportPDF() {
-  const acessiveis = getLeadsDoUsuario();
-  const options = (values, label) => '<option value="">'+label+'</option>' +
-    [...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'))
-      .map(x => '<option value="'+agentEscape(x)+'">'+agentEscape(x)+'</option>').join('');
-  const corretores = isGestorOrAdmin() ? acessiveis.map(l=>l.corretor) : [APP.user?.corretor_ref];
-  document.getElementById('pdfCorretor').innerHTML=options(corretores,'Todos os corretores');
-  const etapas = [...new Set(acessiveis.map(l=>l.status).filter(Boolean))];
-  document.getElementById('pdfEtapa').innerHTML=etapas.map(id=>'<label style="display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer;color:var(--text-primary)"><input type="checkbox" value="'+agentEscape(id)+'" onchange="updateExportPDFCount()" style="width:17px;height:17px;accent-color:var(--purple)"><span>'+agentEscape(STATUS_LABELS[id]||id)+'</span></label>').join('');
-  document.getElementById('pdfEmpreendimento').innerHTML=options(acessiveis.map(l=>l.empreendimento),'Todos os empreendimentos');
-  document.getElementById('pdfOrigem').innerHTML=options(acessiveis.map(l=>l.origem),'Todas as origens');
-  document.getElementById('pdfCorretor').value=isGestorOrAdmin()&&activeBrokerFilter!=='todos'?activeBrokerFilter:'';
-  for(const box of document.querySelectorAll('#pdfEtapa input[type="checkbox"]')) box.checked=activeStatusFilter!=='all'&&box.value===activeStatusFilter;
-  document.getElementById('pdfBusca').value=document.getElementById('searchInput')?.value||'';
-  document.getElementById('pdfInicio').value='';
-  document.getElementById('pdfFim').value='';
-  updateExportPDFCount();
+let pdfExportLeads=[];
+async function openExportPDF() {
   openModal('exportPdfModal');
+  document.getElementById('pdfExportCount').textContent='Carregando leads para exportação...';
+  document.getElementById('pdfExportSubmit').disabled=true;
+  try {
+    if(APP.supabase && APP.sbConnected){
+      const todos=[];
+      for(let from=0;;from+=1000){
+        const {data,error}=await APP.supabase.from('leads').select('*').order('created_at',{ascending:false}).range(from,from+999);
+        if(error)throw error;
+        todos.push(...(data||[]));
+        if(!data||data.length<1000)break;
+      }
+      pdfExportLeads=isGestorOrAdmin()?todos:todos.filter(l=>l.corretor===APP.user?.corretor_ref);
+    }else pdfExportLeads=getLeadsDoUsuario();
+  }catch(error){
+    console.error('Erro ao carregar leads da exportação:',error);
+    pdfExportLeads=getLeadsDoUsuario();
+    toast('Não foi possível atualizar a lista; usando os leads já carregados.','error');
+  }
+  const options=(values,label)=>'<option value="">'+label+'</option>'+[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(x=>'<option value="'+agentEscape(x)+'">'+agentEscape(x)+'</option>').join('');
+  document.getElementById('pdfCorretor').innerHTML=options(pdfExportLeads.map(l=>l.corretor),'Todos os corretores');
+  const etapas=[...new Set(pdfExportLeads.map(l=>l.status).filter(Boolean))];
+  document.getElementById('pdfEtapa').innerHTML='<option value="">Todas as etapas</option>'+etapas.map(id=>'<option value="'+agentEscape(id)+'">'+agentEscape(STATUS_LABELS[id]||id)+'</option>').join('');
+  document.getElementById('pdfEmpreendimento').innerHTML=options(pdfExportLeads.map(l=>l.empreendimento),'Todos os empreendimentos');
+  document.getElementById('pdfOrigem').innerHTML=options(pdfExportLeads.map(l=>l.origem),'Todas as origens');
+  ['pdfCorretor','pdfEtapa','pdfEmpreendimento','pdfOrigem','pdfInicio','pdfFim','pdfBusca'].forEach(id=>document.getElementById(id).value='');
+  updateExportPDFCount();
 }
 function filtrosExportPDF(){
   return {
     corretor:document.getElementById('pdfCorretor').value,
-    etapas:[...document.querySelectorAll('#pdfEtapa input[type="checkbox"]:checked')].map(o=>o.value),
+    etapa:document.getElementById('pdfEtapa').value,
     empreendimento:document.getElementById('pdfEmpreendimento').value,
     origem:document.getElementById('pdfOrigem').value,
     inicio:document.getElementById('pdfInicio').value,
@@ -2005,7 +2016,7 @@ function filtrarLeadsPDF(leads,f) {
   const digits=f.busca.replace(/\D/g,'');
   return leads.filter(l=>{
     if(f.corretor&&l.corretor!==f.corretor)return false;
-    if(f.etapas.length&&!f.etapas.includes(l.status))return false;
+    if(f.etapa&&l.status!==f.etapa)return false;
     if(f.empreendimento&&l.empreendimento!==f.empreendimento)return false;
     if(f.origem&&l.origem!==f.origem)return false;
     if(inicio||fim){
@@ -2019,10 +2030,8 @@ function filtrarLeadsPDF(leads,f) {
 }
 function updateExportPDFCount(){
   const f=filtrosExportPDF(),invalid=f.inicio&&f.fim&&f.inicio>f.fim;
-  const count=invalid?0:filtrarLeadsPDF(getLeadsDoUsuario(),f).length;
-  document.getElementById('pdfExportCount').textContent=invalid
-    ? 'A data inicial deve ser anterior à data final.'
-    : count+' lead'+(count===1?'':'s')+' encontrado'+(count===1?'':'s')+' para exportar.';
+  const count=invalid?0:filtrarLeadsPDF(pdfExportLeads,f).length;
+  document.getElementById('pdfExportCount').textContent=invalid?'A data inicial deve ser anterior à data final.':count+' lead'+(count===1?'':'s')+' encontrado'+(count===1?'':'s')+' para exportar.';
   document.getElementById('pdfExportSubmit').disabled=!!invalid||count===0;
 }
 // Gerador local de PDF para quando os scripts externos não carregarem.
@@ -2036,7 +2045,7 @@ function exportLeadsPDFLocal(leads,f){
     const chunk=leads.slice(offset,offset+32),commands=[];
     const draw=(x,y,value,size=9)=>commands.push('BT /F1 '+size+' Tf '+x+' '+y+' Td ('+escPdf(value)+') Tj ET');
     draw(22,565,'Leads do CRM 3Ps',15);
-    draw(22,547,'Filtros: '+truncate(f.corretor||'Todos os corretores',130)+' | '+truncate(f.etapas.length?f.etapas.map(e=>STATUS_LABELS[e]||e).join(', '):'Todas as etapas',210)+' | '+truncate(f.empreendimento||'Todos os empreendimentos',150),9);
+    draw(22,547,'Filtros: '+truncate(f.corretor||'Todos os corretores',130)+' | '+truncate(f.etapa?(STATUS_LABELS[f.etapa]||f.etapa):'Todas as etapas',210)+' | '+truncate(f.empreendimento||'Todos os empreendimentos',150),9);
     draw(22,530,'Total: '+leads.length+' leads  |  Pagina '+(pages.length+1),9);
     cols.forEach(([name,x])=>draw(x,506,name,9));
     chunk.forEach((l,i)=>{
@@ -2070,7 +2079,7 @@ function exportLeadsPDF(){
   try {
     const f=filtrosExportPDF();
     if(f.inicio&&f.fim&&f.inicio>f.fim){toast('Confira o período selecionado.','error');return}
-    const leads=filtrarLeadsPDF(getLeadsDoUsuario(),f);
+    const leads=filtrarLeadsPDF(pdfExportLeads,f);
     if(!leads.length){toast('Nenhum lead encontrado para esses filtros.','error');return}
     exportLeadsPDFLocal(leads,f);
     closeModal('exportPdfModal');
