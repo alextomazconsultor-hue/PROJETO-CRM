@@ -12,6 +12,21 @@
 @media(max-width:620px){.shell{padding:12px}.grid2,.status-grid,.summary,.client-head{grid-template-columns:1fr}.reinforcement{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}}
 body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 @media print{body{background:#fff;color:#111}.top,.steps,.recent-row,.actions,.nav,#loading{display:none!important}.shell{max-width:none;padding:0}.section{display:none!important}#sec3{display:block!important}.card{background:#fff;color:#111;border:1px solid #ddd}.big,.flow{background:#fff;color:#111;border-color:#ddd}.hint,.flow-line span,.card-title{color:#666}.oktxt{color:#0a7a52}.goldtxt{color:#8a673f}.alert.ok{color:#176244;background:#effaf5;border-color:#bfe8d4}}
+
+/* Tema claro do construtor */
+body.light{--bg:#f5f6fa;--surface:#fff;--card:#fff;--card2:#f0f1f7;--border:#d9dce8;--border2:#a795dd;--text:#202238;--muted:#51576c;--dim:#676d82;--purple2:#6942b8;--gold:#866136}
+body.light select option{background:#fff;color:#202238}
+body.light .flow-line{border-color:#e8e9f0}
+body.light .reinforcement{background:#f8f8fc}
+body.light .missing small,body.light .missing strong,body.light .alert.warn{color:#87620b}
+body.light .missing.ok small,body.light .missing.ok strong,body.light .alert.ok{color:#126b49}
+body.light .alert.bad,body.light .badtxt{color:#b42334}
+body.light .step.active{background:#f0eaff}
+body.light .toolbar{background:#fff}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .mini-btn{padding:9px 11px;font-size:12px}
+.toolbar .danger{color:var(--bad)}
+@media print{.toolbar{display:none!important}}
 </style>
 </head>
 <body>
@@ -24,6 +39,12 @@ body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 
   <div id="loading" class="loading">Carregando CRM...</div>
   <div id="app" class="hidden">
+    <div class="toolbar">
+      <button class="mini-btn" type="button" onclick="novaSimulacao()">＋ Novo fluxo</button>
+      <button class="mini-btn" type="button" onclick="recomecarFluxo()">↺ Recomeçar</button>
+      <button class="mini-btn danger" type="button" id="deleteSimulation" onclick="apagarFluxoSalvo()" disabled>Apagar fluxo salvo</button>
+      <button class="mini-btn" type="button" id="themeToggle" onclick="alternarTema()" aria-pressed="false">☀ Fundo branco</button>
+    </div>
     <div class="recent-row">
       <select id="savedSelect" onchange="abrirSalva(this.value)">
         <option value="">Abrir uma simulação salva...</option>
@@ -177,6 +198,7 @@ async function init(){
   $('leadSelect').innerHTML='<option value="">Cliente avulso</option>'+leads.map(l=>'<option value="'+l.id+'">'+esc(l.nome)+' · '+esc(l.empreendimento||'sem empreendimento')+'</option>').join('');
   $('empList').innerHTML=empreendimentos.map(e=>'<option value="'+esc(e.nome)+'"></option>').join('');
   renderSaved();
+  atualizarBotaoTema();atualizarBotaoApagar();
   const leadId=qs.get('lead');if(leadId&&leads.some(l=>l.id===leadId)){$('leadSelect').value=leadId;aplicarLead()}
   $('loading').classList.add('hidden');$('app').classList.remove('hidden');atualizarStatus()
 }
@@ -424,7 +446,7 @@ async function salvarRascunho(silent=false){
   if(currentId)res=await sb.from('simulacoes_pagamento').update({...p,publicada:false,status:'rascunho'}).eq('id',currentId).select().single();
   else res=await sb.from('simulacoes_pagamento').insert([{...p,publicada:false,status:'rascunho'}]).select().single();
   if(res.error){alert('Erro ao salvar: '+res.error.message);return null}
-  const novo=!currentId;currentId=res.data.id;currentToken=res.data.share_token;
+  const novo=!currentId;currentId=res.data.id;currentToken=res.data.share_token;atualizarBotaoApagar();
   if(novo&&p.lead_id)await sb.from('historico').insert([{lead_id:p.lead_id,texto:'Simulação de pagamento criada · '+p.empreendimento+' · '+money(p.valor_total),tipo:'note'}]);
   if(!silent)toast('✓ Rascunho salvo');await reloadSaved();return res.data
 }
@@ -559,12 +581,38 @@ function abrirSalva(id){
   const oldRefs=Array.isArray(f.refs)?f.refs:[];const plans=Array.isArray(f.refPlans)?f.refPlans:[];
   if(plans.length)plans.forEach(p=>addReforco(p));
   else oldRefs.forEach(v=>addReforco({valor:v,periodo:'outro',intervalo:Math.max((parseInt(f.parcelaNum)||12)-4,1)}));
-  togglePos();$('publicLinkInfo').textContent=s.status==='enviada'?'Proposta já publicada.':'';atualizarStatus();const c=calcular();if(c.ready)renderResultado(c);else goStep(2);$('saveState').textContent='Editando '+s.cliente_nome
+  togglePos();$('publicLinkInfo').textContent=s.status==='enviada'?'Proposta já publicada.':'';atualizarStatus();const c=calcular();if(c.ready)renderResultado(c);else goStep(2);$('saveState').textContent='Editando '+s.cliente_nome;atualizarBotaoApagar()
+}
+
+function alternarTema(){
+  const claro=document.body.classList.toggle('light');
+  localStorage.setItem('3ps_fluxo_tema',claro?'claro':'escuro');
+  atualizarBotaoTema();
+}
+function atualizarBotaoTema(){
+  const claro=document.body.classList.contains('light');
+  $('themeToggle').textContent=claro?'☾ Fundo escuro':'☀ Fundo branco';
+  $('themeToggle').setAttribute('aria-pressed',String(claro));
+}
+function atualizarBotaoApagar(){ $('deleteSimulation').disabled=!currentId }
+function recomecarFluxo(){
+  if(!confirm('Recomeçar e limpar os campos deste fluxo? A versão salva continuará disponível na lista.'))return;
+  novaSimulacao();
+}
+async function apagarFluxoSalvo(){
+  if(!currentId)return;
+  if(!confirm('Apagar esta simulação salva definitivamente? Esta ação não apaga o lead.'))return;
+  const {error}=await sb.from('simulacoes_pagamento').delete().eq('id',currentId);
+  if(error){alert('Não foi possível apagar o fluxo: '+error.message);return}
+  novaSimulacao();
+  await reloadSaved();
+  toast('Fluxo salvo apagado');
 }
 
 function novaSimulacao(){
-  currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','clienteEmail','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação'
+  currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','clienteEmail','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação';atualizarBotaoApagar()
 }
+if(localStorage.getItem('3ps_fluxo_tema')==='claro')document.body.classList.add('light');
 init();
 </script>
 </body>
