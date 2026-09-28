@@ -2020,7 +2020,7 @@ function exportLeadsPDF(){
   const data=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
   doc.save('3ps-leads-filtrados-'+data+'.pdf');
   closeModal('exportPdfModal');
-  toast(leads.length+' leads exportados em PDF!','success');
+  toast(leads.length+' lead'+(leads.length===1?'':'s')+' exportado'+(leads.length===1?'':'s')+' em PDF!','success');
 }
 
 // -- EXPORTAR CSV --
