@@ -1368,6 +1368,42 @@ async function updateLeadInSB(id, data) {
   }
 }
 
+// Recupera a sessão salva pelo Supabase ao reabrir o CRM.
+async function restoreLogin() {
+  const params = new URLSearchParams(window.location.search);
+  if (window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token=') ||
+      params.get('type') === 'recovery' || params.get('recovery') === '1' || params.has('code')) return;
+
+  const btn = document.getElementById('btnLogin');
+  btn.textContent = 'Verificando acesso...';
+  btn.disabled = true;
+  try {
+    APP.supabase = getSBClient();
+    const { data: authData, error: authError } = await APP.supabase.auth.getUser();
+    if (authError || !authData?.user) return;
+
+    const { data: perfil, error: perfilErr } = await APP.supabase
+      .from('usuarios').select('*').eq('id', authData.user.id).single();
+    if (perfilErr || !perfil) return;
+
+    APP.user = {
+      id: authData.user.id,
+      email: perfil.email,
+      nome: perfil.nome,
+      perfil: perfil.perfil,
+      corretor_ref: perfil.corretor_ref || perfil.nome,
+      initials: perfil.nome.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase()
+    };
+    APP.sbConnected = true;
+    await enterApp();
+  } catch (e) {
+    console.error('Erro ao recuperar acesso:', e);
+  } finally {
+    btn.textContent = 'Entrar no sistema';
+    btn.disabled = false;
+  }
+}
+
 // -- LOGIN --
 function fillDemo() {
   document.getElementById('loginEmail').value = 'demo@3pscrm.com';
@@ -4029,6 +4065,7 @@ document.addEventListener('keydown', e => {
 });
 
 initPasswordRecovery();
+restoreLogin();
 </script>
 
 <!-- MODAL ETAPAS -->
