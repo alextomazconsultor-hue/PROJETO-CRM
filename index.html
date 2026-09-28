@@ -2018,8 +2018,8 @@ function updateExportPDFCount(){
 }
 // Gerador local de PDF para quando os scripts externos não carregarem.
 function exportLeadsPDFLocal(leads,f){
-  const clean=x=>String(x??'-').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^\\x20-\\x7E]/g,'?');
-  const escPdf=x=>clean(x).replace(/[\\\\()]/g,'\\\\function exportLeadsPDF(){');
+  const clean=x=>String(x??'-').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'?');
+  const escPdf=x=>clean(x).replace(/[\\()]/g,match=>'\\'+match);
   const cols=[['Nome',22,175],['Telefone',201,95],['E-mail',302,175],['Empreendimento',483,126],['Etapa',615,112],['Corretor',733,88]];
   const truncate=(value,width)=>{const v=clean(value);const max=Math.floor(width/4.5);return v.length>max?v.slice(0,max-3)+'...':v};
   const pages=[];
@@ -2034,26 +2034,26 @@ function exportLeadsPDFLocal(leads,f){
       const y=489-i*14;
       [l.nome,l.telefone,l.email,l.empreendimento,STATUS_LABELS[l.status]||l.status,l.corretor].forEach((v,j)=>draw(cols[j][1],y,truncate(v,cols[j][2]),8));
     });
-    pages.push(commands.join('\\n')+'\\n');
+    pages.push(commands.join('\n')+'\n');
   }
   const objects=['','<< /Type /Catalog /Pages 2 0 R >>','','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
   pages.forEach((stream,i)=>{
     const pageId=4+i*2,contentId=pageId+1;
     objects[pageId]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 3 0 R >> >> /Contents '+contentId+' 0 R >>';
-    objects[contentId]='<< /Length '+stream.length+' >>\\nstream\\n'+stream+'endstream';
+    objects[contentId]='<< /Length '+stream.length+' >>\nstream\n'+stream+'endstream';
   });
   objects[2]='<< /Type /Pages /Kids ['+pages.map((_,i)=>(4+i*2)+' 0 R').join(' ')+'] /Count '+pages.length+' >>';
-  let pdf='%PDF-1.4\\n',offsets=[0];
+  let pdf='%PDF-1.4\n',offsets=[0];
   for(let i=1;i<objects.length;i++){
     offsets[i]=pdf.length;
-    pdf+=i+' 0 obj\\n'+objects[i]+'\\nendobj\\n';
+    pdf+=i+' 0 obj\n'+objects[i]+'\nendobj\n';
   }
   const xref=pdf.length;
-  pdf+='xref\\n0 '+objects.length+'\\n0000000000 65535 f \\n';
-  for(let i=1;i<objects.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \\n';
-  pdf+='trailer\\n<< /Size '+objects.length+' /Root 1 0 R >>\\nstartxref\\n'+xref+'\\n%%EOF';
+  pdf+='xref\n0 '+objects.length+'\n0000000000 65535 f \n';
+  for(let i=1;i<objects.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+  pdf+='trailer\n<< /Size '+objects.length+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
   const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));
-  const link=document.createElement('a');link.href=url;link.download='3ps-leads-filtrados-'+new Date().toLocaleDateString('pt-BR').replace(/\\//g,'-')+'.pdf';
+  const link=document.createElement('a');link.href=url;link.download='3ps-leads-filtrados-'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.pdf';
   document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
