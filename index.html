@@ -1998,7 +1998,8 @@ function exportLeadsPDF(){
   ];
   doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(28,39,67);doc.text('Leads do CRM 3Ps',12,16);
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,101,121);
-  doc.text(doc.splitTextToSize(resumo.join('  |  '),270),12,23);
+  const resumoLinhas=doc.splitTextToSize(resumo.join('  |  '),270);
+  doc.text(resumoLinhas,12,23);
   const body=leads.map(l=>[
     l.nome||'-',l.telefone||'-',l.email||'-',l.empreendimento||'-',
     STATUS_LABELS[l.status]||l.status||'-',l.corretor||'-'
@@ -2006,7 +2007,7 @@ function exportLeadsPDF(){
   doc.autoTable({
     head:[['Nome','Telefone','E-mail','Empreendimento','Etapa','Corretor']],
     body,
-    startY:34,margin:{left:12,right:12,top:14,bottom:14},
+    startY:23+resumoLinhas.length*4+4,margin:{left:12,right:12,top:14,bottom:14},
     theme:'striped',styles:{font:'helvetica',fontSize:8,cellPadding:2.2,overflow:'linebreak'},
     headStyles:{fillColor:[43,59,93],textColor:255},
     columnStyles:{0:{cellWidth:50},1:{cellWidth:35},2:{cellWidth:57},3:{cellWidth:48},4:{cellWidth:51},5:{cellWidth:32}},
