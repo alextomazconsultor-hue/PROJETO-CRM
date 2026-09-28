@@ -566,7 +566,7 @@ svg.icon-lg{width:20px;height:20px}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-field"><label class="form-label" for="pdfCorretor">Corretor</label><select class="form-input" id="pdfCorretor" onchange="updateExportPDFCount()"></select></div>
-        <div class="form-field"><label class="form-label" for="pdfEtapa">Etapas do funil</label><select class="form-input" id="pdfEtapa" multiple size="5" onchange="updateExportPDFCount()" style="height:auto;min-height:125px"></select><small style="color:var(--text-muted)">Selecione uma ou mais etapas; sem seleção, inclui todas.</small></div>
+        <div class="form-field"><span class="form-label">Etapas do funil</span><div id="pdfEtapa" role="group" aria-label="Etapas do funil" style="max-height:160px;overflow:auto;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-surface)"></div><small style="color:var(--text-muted)">Marque quantas etapas quiser. Sem marcas, inclui todas.</small></div>
         <div class="form-field"><label class="form-label" for="pdfEmpreendimento">Empreendimento</label><select class="form-input" id="pdfEmpreendimento" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfOrigem">Origem</label><select class="form-input" id="pdfOrigem" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfInicio">Cadastrados de</label><input class="form-input" type="date" id="pdfInicio" onchange="updateExportPDFCount()"></div>
@@ -1968,11 +1968,11 @@ function openExportPDF() {
   const corretores = isGestorOrAdmin() ? acessiveis.map(l=>l.corretor) : [APP.user?.corretor_ref];
   document.getElementById('pdfCorretor').innerHTML=options(corretores,'Todos os corretores');
   const etapas = [...new Set(acessiveis.map(l=>l.status).filter(Boolean))];
-  document.getElementById('pdfEtapa').innerHTML=etapas.map(id=>'<option value="'+agentEscape(id)+'">'+agentEscape(STATUS_LABELS[id]||id)+'</option>').join('');
+  document.getElementById('pdfEtapa').innerHTML=etapas.map(id=>'<label style="display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer;color:var(--text-primary)"><input type="checkbox" value="'+agentEscape(id)+'" onchange="updateExportPDFCount()" style="width:17px;height:17px;accent-color:var(--purple)"><span>'+agentEscape(STATUS_LABELS[id]||id)+'</span></label>').join('');
   document.getElementById('pdfEmpreendimento').innerHTML=options(acessiveis.map(l=>l.empreendimento),'Todos os empreendimentos');
   document.getElementById('pdfOrigem').innerHTML=options(acessiveis.map(l=>l.origem),'Todas as origens');
   document.getElementById('pdfCorretor').value=isGestorOrAdmin()&&activeBrokerFilter!=='todos'?activeBrokerFilter:'';
-  for(const opt of document.getElementById('pdfEtapa').options) opt.selected=activeStatusFilter!=='all'&&opt.value===activeStatusFilter;
+  for(const box of document.querySelectorAll('#pdfEtapa input[type="checkbox"]')) box.checked=activeStatusFilter!=='all'&&box.value===activeStatusFilter;
   document.getElementById('pdfBusca').value=document.getElementById('searchInput')?.value||'';
   document.getElementById('pdfInicio').value='';
   document.getElementById('pdfFim').value='';
@@ -1982,7 +1982,7 @@ function openExportPDF() {
 function filtrosExportPDF(){
   return {
     corretor:document.getElementById('pdfCorretor').value,
-    etapas:[...document.getElementById('pdfEtapa').selectedOptions].map(o=>o.value),
+    etapas:[...document.querySelectorAll('#pdfEtapa input[type="checkbox"]:checked')].map(o=>o.value),
     empreendimento:document.getElementById('pdfEmpreendimento').value,
     origem:document.getElementById('pdfOrigem').value,
     inicio:document.getElementById('pdfInicio').value,
