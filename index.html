@@ -1972,6 +1972,8 @@ function updateBadges() {
 let pdfExportLeads=[];
 async function openExportPDF() {
   openModal('exportPdfModal');
+  const campos=['pdfCorretor','pdfEtapa','pdfEmpreendimento','pdfOrigem','pdfInicio','pdfFim','pdfBusca'];
+  campos.forEach(id=>{const el=document.getElementById(id);el.value='';el.disabled=true});
   document.getElementById('pdfExportCount').textContent='Carregando leads para exportação...';
   document.getElementById('pdfExportSubmit').disabled=true;
   try {
@@ -1990,13 +1992,13 @@ async function openExportPDF() {
     pdfExportLeads=getLeadsDoUsuario();
     toast('Não foi possível atualizar a lista; usando os leads já carregados.','error');
   }
-  const options=(values,label)=>'<option value="">'+label+'</option>'+[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(x=>'<option value="'+agentEscape(x)+'">'+agentEscape(x)+'</option>').join('');
+  const options=(values,label)=>'<option value="">'+label+'</option>'+[...new Set(values.map(v=>String(v||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(x=>'<option value="'+agentEscape(x)+'">'+agentEscape(x)+'</option>').join('');
   document.getElementById('pdfCorretor').innerHTML=options(pdfExportLeads.map(l=>l.corretor),'Todos os corretores');
   const etapas=[...new Set(pdfExportLeads.map(l=>l.status).filter(Boolean))];
   document.getElementById('pdfEtapa').innerHTML='<option value="">Todas as etapas</option>'+etapas.map(id=>'<option value="'+agentEscape(id)+'">'+agentEscape(STATUS_LABELS[id]||id)+'</option>').join('');
   document.getElementById('pdfEmpreendimento').innerHTML=options(pdfExportLeads.map(l=>l.empreendimento),'Todos os empreendimentos');
   document.getElementById('pdfOrigem').innerHTML=options(pdfExportLeads.map(l=>l.origem),'Todas as origens');
-  ['pdfCorretor','pdfEtapa','pdfEmpreendimento','pdfOrigem','pdfInicio','pdfFim','pdfBusca'].forEach(id=>document.getElementById(id).value='');
+  campos.forEach(id=>document.getElementById(id).disabled=false);
   updateExportPDFCount();
 }
 function filtrosExportPDF(){
@@ -2015,7 +2017,7 @@ function filtrarLeadsPDF(leads,f) {
   const fim=f.fim?new Date(f.fim+'T23:59:59.999'):null;
   const digits=f.busca.replace(/\D/g,'');
   return leads.filter(l=>{
-    if(f.corretor&&l.corretor!==f.corretor)return false;
+    if(f.corretor&&String(l.corretor||'').trim().toLocaleLowerCase('pt-BR')!==f.corretor.trim().toLocaleLowerCase('pt-BR'))return false;
     if(f.etapa&&l.status!==f.etapa)return false;
     if(f.empreendimento&&l.empreendimento!==f.empreendimento)return false;
     if(f.origem&&l.origem!==f.origem)return false;
