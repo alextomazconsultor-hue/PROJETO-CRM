@@ -566,7 +566,7 @@ svg.icon-lg{width:20px;height:20px}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-field"><label class="form-label" for="pdfCorretor">Corretor</label><select class="form-input" id="pdfCorretor" onchange="updateExportPDFCount()"></select></div>
-        <div class="form-field"><label class="form-label" for="pdfEtapa">Etapa do funil</label><select class="form-input" id="pdfEtapa" onchange="updateExportPDFCount()"></select></div>
+        <div class="form-field"><label class="form-label" for="pdfEtapa">Etapas do funil</label><select class="form-input" id="pdfEtapa" multiple size="5" onchange="updateExportPDFCount()" style="height:auto;min-height:125px"></select><small style="color:var(--text-muted)">Selecione uma ou mais etapas; sem seleção, inclui todas.</small></div>
         <div class="form-field"><label class="form-label" for="pdfEmpreendimento">Empreendimento</label><select class="form-input" id="pdfEmpreendimento" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfOrigem">Origem</label><select class="form-input" id="pdfOrigem" onchange="updateExportPDFCount()"></select></div>
         <div class="form-field"><label class="form-label" for="pdfInicio">Cadastrados de</label><input class="form-input" type="date" id="pdfInicio" onchange="updateExportPDFCount()"></div>
@@ -1968,12 +1968,11 @@ function openExportPDF() {
   const corretores = isGestorOrAdmin() ? acessiveis.map(l=>l.corretor) : [APP.user?.corretor_ref];
   document.getElementById('pdfCorretor').innerHTML=options(corretores,'Todos os corretores');
   const etapas = [...new Set(acessiveis.map(l=>l.status).filter(Boolean))];
-  document.getElementById('pdfEtapa').innerHTML='<option value="">Todas as etapas</option>'+
-    etapas.map(id=>'<option value="'+agentEscape(id)+'">'+agentEscape(STATUS_LABELS[id]||id)+'</option>').join('');
+  document.getElementById('pdfEtapa').innerHTML=etapas.map(id=>'<option value="'+agentEscape(id)+'">'+agentEscape(STATUS_LABELS[id]||id)+'</option>').join('');
   document.getElementById('pdfEmpreendimento').innerHTML=options(acessiveis.map(l=>l.empreendimento),'Todos os empreendimentos');
   document.getElementById('pdfOrigem').innerHTML=options(acessiveis.map(l=>l.origem),'Todas as origens');
   document.getElementById('pdfCorretor').value=isGestorOrAdmin()&&activeBrokerFilter!=='todos'?activeBrokerFilter:'';
-  document.getElementById('pdfEtapa').value=activeStatusFilter==='all'?'':activeStatusFilter;
+  for(const opt of document.getElementById('pdfEtapa').options) opt.selected=activeStatusFilter!=='all'&&opt.value===activeStatusFilter;
   document.getElementById('pdfBusca').value=document.getElementById('searchInput')?.value||'';
   document.getElementById('pdfInicio').value='';
   document.getElementById('pdfFim').value='';
@@ -1983,7 +1982,7 @@ function openExportPDF() {
 function filtrosExportPDF(){
   return {
     corretor:document.getElementById('pdfCorretor').value,
-    etapa:document.getElementById('pdfEtapa').value,
+    etapas:[...document.getElementById('pdfEtapa').selectedOptions].map(o=>o.value),
     empreendimento:document.getElementById('pdfEmpreendimento').value,
     origem:document.getElementById('pdfOrigem').value,
     inicio:document.getElementById('pdfInicio').value,
@@ -1997,7 +1996,7 @@ function filtrarLeadsPDF(leads,f) {
   const digits=f.busca.replace(/\D/g,'');
   return leads.filter(l=>{
     if(f.corretor&&l.corretor!==f.corretor)return false;
-    if(f.etapa&&l.status!==f.etapa)return false;
+    if(f.etapas.length&&!f.etapas.includes(l.status))return false;
     if(f.empreendimento&&l.empreendimento!==f.empreendimento)return false;
     if(f.origem&&l.origem!==f.origem)return false;
     if(inicio||fim){
@@ -2017,17 +2016,63 @@ function updateExportPDFCount(){
     : count+' lead'+(count===1?'':'s')+' encontrado'+(count===1?'':'s')+' para exportar.';
   document.getElementById('pdfExportSubmit').disabled=!!invalid||count===0;
 }
+// Gerador local de PDF para quando os scripts externos não carregarem.
+function exportLeadsPDFLocal(leads,f){
+  const clean=x=>String(x??'-').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^\\x20-\\x7E]/g,'?');
+  const escPdf=x=>clean(x).replace(/[\\\\()]/g,'\\\\function exportLeadsPDF(){');
+  const cols=[['Nome',22,175],['Telefone',201,95],['E-mail',302,175],['Empreendimento',483,126],['Etapa',615,112],['Corretor',733,88]];
+  const truncate=(value,width)=>{const v=clean(value);const max=Math.floor(width/4.5);return v.length>max?v.slice(0,max-3)+'...':v};
+  const pages=[];
+  for(let offset=0;offset<leads.length;offset+=32){
+    const chunk=leads.slice(offset,offset+32),commands=[];
+    const draw=(x,y,value,size=9)=>commands.push('BT /F1 '+size+' Tf '+x+' '+y+' Td ('+escPdf(value)+') Tj ET');
+    draw(22,565,'Leads do CRM 3Ps',15);
+    draw(22,547,'Filtros: '+truncate(f.corretor||'Todos os corretores',130)+' | '+truncate(f.etapas.length?f.etapas.map(e=>STATUS_LABELS[e]||e).join(', '):'Todas as etapas',210)+' | '+truncate(f.empreendimento||'Todos os empreendimentos',150),9);
+    draw(22,530,'Total: '+leads.length+' leads  |  Pagina '+(pages.length+1),9);
+    cols.forEach(([name,x])=>draw(x,506,name,9));
+    chunk.forEach((l,i)=>{
+      const y=489-i*14;
+      [l.nome,l.telefone,l.email,l.empreendimento,STATUS_LABELS[l.status]||l.status,l.corretor].forEach((v,j)=>draw(cols[j][1],y,truncate(v,cols[j][2]),8));
+    });
+    pages.push(commands.join('\\n')+'\\n');
+  }
+  const objects=['','<< /Type /Catalog /Pages 2 0 R >>','','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+  pages.forEach((stream,i)=>{
+    const pageId=4+i*2,contentId=pageId+1;
+    objects[pageId]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 3 0 R >> >> /Contents '+contentId+' 0 R >>';
+    objects[contentId]='<< /Length '+stream.length+' >>\\nstream\\n'+stream+'endstream';
+  });
+  objects[2]='<< /Type /Pages /Kids ['+pages.map((_,i)=>(4+i*2)+' 0 R').join(' ')+'] /Count '+pages.length+' >>';
+  let pdf='%PDF-1.4\\n',offsets=[0];
+  for(let i=1;i<objects.length;i++){
+    offsets[i]=pdf.length;
+    pdf+=i+' 0 obj\\n'+objects[i]+'\\nendobj\\n';
+  }
+  const xref=pdf.length;
+  pdf+='xref\\n0 '+objects.length+'\\n0000000000 65535 f \\n';
+  for(let i=1;i<objects.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \\n';
+  pdf+='trailer\\n<< /Size '+objects.length+' /Root 1 0 R >>\\nstartxref\\n'+xref+'\\n%%EOF';
+  const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));
+  const link=document.createElement('a');link.href=url;link.download='3ps-leads-filtrados-'+new Date().toLocaleDateString('pt-BR').replace(/\\//g,'-')+'.pdf';
+  document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+
 function exportLeadsPDF(){
   const f=filtrosExportPDF();
   if(f.inicio&&f.fim&&f.inicio>f.fim){toast('Confira o período selecionado.','error');return}
   const leads=filtrarLeadsPDF(getLeadsDoUsuario(),f);
   if(!leads.length){toast('Nenhum lead encontrado para esses filtros.','error');return}
-  if(!window.jspdf?.jsPDF){toast('Não foi possível carregar a exportação em PDF. Atualize a página.','error');return}
+  if(!window.jspdf?.jsPDF || !window.jspdf.jsPDF.API?.autoTable){
+    exportLeadsPDFLocal(leads,f);
+    closeModal('exportPdfModal');
+    toast(leads.length+' leads exportados em PDF!','success');
+    return;
+  }
   const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   if(typeof doc.autoTable!=='function'){toast('Não foi possível montar a tabela do PDF. Atualize a página.','error');return}
   const resumo=[
     f.corretor||'Todos os corretores',
-    f.etapa?(STATUS_LABELS[f.etapa]||f.etapa):'Todas as etapas',
+    f.etapas.length?f.etapas.map(id=>STATUS_LABELS[id]||id).join(', '):'Todas as etapas',
     f.empreendimento||'Todos os empreendimentos',
     f.origem||'Todas as origens',
     (f.inicio||f.fim)?'Cadastro: '+(f.inicio?f.inicio.split('-').reverse().join('/'):'início')+' a '+(f.fim?f.fim.split('-').reverse().join('/'):'hoje'):'Todas as datas'
