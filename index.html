@@ -286,6 +286,17 @@ select.form-input option{background:var(--bg-card)}
 .priority-high{background:var(--danger)}
 .priority-medium{background:var(--warning)}
 .priority-low{background:var(--success)}
+.agenda-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.agenda-toolbar .form-input{min-width:160px}
+.agenda-section{margin-bottom:20px}
+.agenda-section-title{font-size:13px;font-weight:700;color:var(--text-primary);margin:0 0 9px;display:flex;justify-content:space-between}
+.agenda-empty{color:var(--text-muted);font-size:12px;padding:12px 4px}
+.task-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.task-actions .btn{padding:6px 9px;font-size:11px}
+.agenda-lead-row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
+.agenda-lead-row:last-child{border-bottom:0}
+.agenda-lead-row .name{color:var(--text-primary);font-weight:600}
+.agenda-lead-row .detail{color:var(--text-muted);margin-top:2px}
 
 /* EQUIPE */
 .team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
@@ -646,7 +657,7 @@ html.light .pill-atendimento{color:#6743b5}
     <div class="modal-body">
       <div style="display:flex;flex-direction:column;gap:12px">
         <div class="form-field"><label class="form-label">Título da Tarefa</label><input class="form-input" id="t_titulo" placeholder="Ligar para cliente"></div>
-        <div class="form-field"><label class="form-label">Lead Relacionado</label><input class="form-input" id="t_lead" placeholder="Nome do lead (opcional)"></div>
+        <div class="form-field"><label class="form-label">Lead Relacionado</label><input class="form-input" id="t_lead" list="agendaLeadOptions" placeholder="Digite e selecione o nome (opcional)"><datalist id="agendaLeadOptions"></datalist></div>
         <div class="form-field" id="taskCorretorField"><label class="form-label">Corretor Responsável</label>
           <select class="form-input" id="t_corretor"><option value="">Selecione...</option></select>
         </div>
@@ -662,6 +673,21 @@ html.light .pill-atendimento{color:#6743b5}
         <button class="btn btn-secondary" onclick="closeModal('addTaskModal')">Cancelar</button>
         <button class="btn btn-primary" onclick="saveTask()">Criar Tarefa</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTADO DO FOLLOW-UP -->
+<div class="modal-overlay" id="taskResultModal">
+  <div class="modal form-modal" style="max-width:480px">
+    <div class="modal-head"><div><div class="modal-name">Concluir atendimento</div><div class="modal-sub" id="taskResultTitle"></div></div><button class="modal-close" onclick="closeModal('taskResultModal')">×</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <div class="form-field"><label class="form-label">Qual foi o resultado?</label><select class="form-input" id="taskOutcome" onchange="suggestNextTask()"><option value="">Selecione...</option><option>Respondeu</option><option>Não respondeu</option><option>Demonstrou interesse</option><option>Visita agendada</option><option>Visita realizada</option><option>Pediu retorno</option><option>Sem interesse</option><option>Outro</option></select></div>
+      <div class="form-field"><label class="form-label">Observação (opcional)</label><textarea class="form-input" id="taskOutcomeNote" style="min-height:55px"></textarea></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;font-size:13px;font-weight:600">Próxima ação (opcional)</div>
+      <div class="form-field"><label class="form-label">O que fazer?</label><input class="form-input" id="taskNextTitle" placeholder="Ex.: retomar contato"></div>
+      <div class="form-field"><label class="form-label">Quando?</label><input class="form-input" id="taskNextDate" type="datetime-local"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px"><button class="btn btn-secondary" onclick="closeModal('taskResultModal')">Cancelar</button><button class="btn btn-primary" id="taskResultSubmit" onclick="completeTaskWithOutcome()">Salvar resultado</button></div>
     </div>
   </div>
 </div>
@@ -692,6 +718,7 @@ CREATE TABLE tarefas (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   titulo text, lead_rel text, data_hora timestamptz,
   prioridade text, notas text, concluida boolean DEFAULT false,
+  resultado text, concluida_em timestamptz,
   corretor text,
   created_at timestamptz DEFAULT now()
 );
@@ -1031,16 +1058,17 @@ CREATE TABLE historico (
 
       <!-- AGENDA -->
       <div class="page" id="page-agenda">
+        <div class="agenda-toolbar" id="agendaToolbar"><label for="agendaBrokerFilter" style="font-size:12px;color:var(--text-muted)">Corretor</label><select id="agendaBrokerFilter" class="form-input" onchange="renderAgenda()"></select></div>
         <div class="agenda-grid">
           <div>
             <div class="chart-card" style="margin-bottom:20px">
-              <div class="chart-title">Tarefas & Follow-ups</div>
+              <div class="chart-title">Minha agenda e follow-ups</div>
               <div class="task-list" id="taskList"></div>
             </div>
           </div>
           <div>
             <div class="chart-card">
-              <div class="chart-title">Próximos Contatos</div>
+              <div class="chart-title">Leads sem próxima ação <span id="agendaNoActionCount" style="font-size:12px;color:var(--text-muted)"></span></div>
               <div id="upcomingList"></div>
             </div>
           </div>
@@ -1306,7 +1334,9 @@ async function loadTasksFromSB() {
         data_hora: t.data_hora,
         prioridade: t.prioridade,
         notas: t.notas || '',
-        concluida: t.concluida
+        concluida: t.concluida,
+        resultado: t.resultado || '',
+        concluida_em: t.concluida_em || null
       }));
       saveToLocal();
       refreshAll();
@@ -2504,6 +2534,7 @@ function openLeadDetail(id) {
 
   document.getElementById('modalActions').innerHTML = `
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
+    <button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${lead.id}')">📅 Agendar follow-up</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirSimuladorLead('${lead.id}')" style="gap:5px;border-color:rgba(139,92,246,.45);color:var(--purple-light)">🧮 Criar fluxo</button>
     <span class="pill pill-${lead.status}" style="padding:6px 14px;font-size:12px">${STATUS_LABELS[lead.status]}</span>
@@ -2529,6 +2560,7 @@ function openLeadDetail(id) {
     </div>
     <div class="info-row"><div class="info-label">Cidade</div><div class="info-value">${lead.cidade||'—'}</div></div>
     <div class="info-row"><div class="info-label">Cadastrado em</div><div class="info-value">${formatDate(lead.created_at)}</div></div>
+    <div class="info-row"><div class="info-label">Próxima ação</div><div class="info-value">${agendaTasksForLead(lead).sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora)).slice(0,1).map(t=>`${agentEscape(t.titulo)} · ${formatDateTime(t.data_hora)} · ${agentEscape(t.corretor||'')}`).join('')||'Sem próxima ação agendada'}</div></div>
     <div class="info-row" style="grid-column:1/-1"><div class="info-label">Observações</div><div class="info-value">${lead.observacoes||'—'}</div></div>
   `;
 
@@ -3428,75 +3460,112 @@ async function deleteLead(id) {
 }
 
 // -- AGENDA --
+function agendaLeadForTask(task) {
+  const ref = String(task.lead_rel || '').trim();
+  if (!ref) return null;
+  return APP.leads.find(l => String(l.id) === ref) || APP.leads.find(l => l.nome?.trim().toLocaleLowerCase('pt-BR') === ref.toLocaleLowerCase('pt-BR')) || null;
+}
+function agendaLeadName(task) { return agendaLeadForTask(task)?.nome || task.lead_rel || ''; }
+function agendaTasksForLead(lead) {
+  return APP.tasks.filter(t => !t.concluida && (String(t.lead_rel||'') === String(lead.id) || String(t.lead_rel||'').trim().toLocaleLowerCase('pt-BR') === lead.nome?.trim().toLocaleLowerCase('pt-BR')));
+}
+function agendaSelectedBroker() {
+  const filter = document.getElementById('agendaBrokerFilter');
+  if (!isGestorOrAdmin()) { filter.parentElement.style.display = 'none'; return APP.user?.corretor_ref || ''; }
+  filter.parentElement.style.display = 'flex';
+  const current = filter.value;
+  const brokers = [...new Set([...APP.brokers, ...APP.leads.map(l=>l.corretor), ...APP.tasks.map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  filter.innerHTML = '<option value="">Todos</option>' + brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
+  filter.value = current;
+  return filter.value;
+}
+function agendaDateGroup(date, now, tomorrow) {
+  const value = new Date(date);
+  if (Number.isNaN(value.getTime()) || value < now) return 'overdue';
+  if (value < tomorrow) return 'today';
+  return 'future';
+}
 function renderAgenda() {
-  const tasks = getTasksDoUsuario().sort((a,b) => new Date(a.data_hora)-new Date(b.data_hora));
+  const broker = agendaSelectedBroker();
+  const tasks = getTasksDoUsuario().filter(t => !broker || t.corretor === broker).sort((a,b) => new Date(a.data_hora)-new Date(b.data_hora));
   const now = new Date();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);
 
   const list = document.getElementById('taskList');
-  if (tasks.length === 0) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">Sem tarefas pendentes</div><div class="empty-desc">Adicione follow-ups e lembretes!</div></div>';
-  } else {
-    list.innerHTML = tasks.map(t => {
-      const isOverdue = !t.concluida && new Date(t.data_hora) < now;
-      return `
-        <div class="task-item ${isOverdue?'overdue':''}">
-          <div class="task-check ${t.concluida?'done':''}" onclick="toggleTask('${t.id}')">${t.concluida?'✓':''}</div>
-          <div class="task-priority priority-${t.prioridade}"></div>
-          <div class="task-info" style="flex:1">
-            <div class="task-title" style="${t.concluida?'text-decoration:line-through;opacity:0.5':''}">${t.titulo}</div>
-            <div class="task-detail">
-              ${t.lead_rel ? `🔗 ${t.lead_rel}   ` : ''}
-              ${isOverdue ? '🔴 ' : '🕐 '}${formatDateTime(t.data_hora)}
-              ${isOverdue ? '<span style="color:#f87171;font-size:11px">   Atrasado</span>' : ''}
-            </div>
-          </div>
-          <button class="icon-btn btn-sm" style="color:#f87171;border-color:rgba(239,68,68,0.2);flex-shrink:0" onclick="deleteTask('${t.id}')">🗑️</button>
-        </div>
-      `;
-    }).join('');
-  }
+  const item = t => {
+    const lead = agendaLeadForTask(t);
+    const isOverdue = agendaDateGroup(t.data_hora, now, tomorrow) === 'overdue';
+    return `<div class="task-item ${isOverdue?'overdue':''}">
+      <button class="task-check" aria-label="Concluir tarefa" title="Registrar resultado" onclick="openTaskResult('${t.id}')"></button>
+      <div class="task-priority priority-${agentEscape(t.prioridade)}"></div>
+      <div class="task-info" style="flex:1;min-width:0">
+        <div class="task-title">${agentEscape(t.titulo)}</div>
+        <div class="task-detail">${lead ? `<a href="#" onclick="event.preventDefault();openLeadDetail('${lead.id}')">${agentEscape(lead.nome)}</a>` : agentEscape(t.lead_rel||'Sem lead vinculado')} · ${agentEscape(t.corretor||'Sem corretor')} · ${formatDateTime(t.data_hora)}</div>
+        ${t.notas ? `<div class="task-detail">${agentEscape(t.notas)}</div>` : ''}
+        <div class="task-actions" style="margin-top:8px">${lead?.telefone ? `<button class="btn btn-secondary" onclick="openWhatsApp('${agentEscape(lead.telefone)}')">💬 WhatsApp</button>` : ''}<button class="btn btn-secondary" onclick="openTaskResult('${t.id}')">Registrar resultado</button><button class="icon-btn btn-sm" title="Excluir tarefa" onclick="deleteTask('${t.id}')">🗑️</button></div>
+      </div></div>`;
+  };
+  const pending = tasks.filter(t => !t.concluida);
+  const sections = [
+    ['Atrasados', pending.filter(t => agendaDateGroup(t.data_hora,now,tomorrow)==='overdue')],
+    ['Hoje', pending.filter(t => agendaDateGroup(t.data_hora,now,tomorrow)==='today')],
+    ['Próximos dias', pending.filter(t => agendaDateGroup(t.data_hora,now,tomorrow)==='future')]
+  ];
+  list.innerHTML = sections.map(([label,entries]) => `<section class="agenda-section"><div class="agenda-section-title"><span>${label}</span><span>${entries.length}</span></div>${entries.length?entries.map(item).join(''):'<div class="agenda-empty">Nenhuma tarefa aqui.</div>'}</section>`).join('') +
+    `<details><summary style="cursor:pointer;color:var(--text-muted);font-size:12px">Concluídas (${tasks.length-pending.length})</summary><div style="padding-top:8px">${tasks.filter(t=>t.concluida).slice(-10).reverse().map(t=>`<div class="agenda-lead-row"><span><span class="name">${agentEscape(t.titulo)}</span><br><span class="detail">${agentEscape(t.resultado||'Concluída')} · ${agentEscape(agendaLeadName(t))}</span></span><button class="btn btn-secondary btn-sm" onclick="toggleTask('${t.id}')">Reabrir</button></div>`).join('')||'<div class="agenda-empty">Nenhuma tarefa concluída.</div>'}</div></details>`;
 
-  const upcoming = getLeadsDoUsuario().filter(l => l.status === 'visita' || l.status === 'followup').slice(0, 5);
+  const leads = getLeadsDoUsuario().filter(l => (!broker || l.corretor === broker) && !['fechada','perdido'].includes(l.status) && !agendaTasksForLead(l).length)
+    .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
   const upList = document.getElementById('upcomingList');
-  upList.innerHTML = upcoming.length ? upcoming.map(l => `
-    <div class="recent-item" onclick="openLeadDetail('${l.id}')">
-      <div class="lead-avatar" style="background:${getAvatarColor(l.nome)}22;color:${getAvatarColor(l.nome)};width:32px;height:32px;font-size:11px">${getInitials(l.nome)}</div>
-      <div class="recent-info">
-        <div class="name" style="font-size:13px">${l.nome}</div>
-        <div class="detail">${STATUS_LABELS[l.status]}</div>
-      </div>
-      ${l.telefone ? `<button class="icon-btn whatsapp-btn btn-sm" onclick="event.stopPropagation();openWhatsApp('${l.telefone}')">💬</button>` : ''}
-    </div>
-  `).join('') : '<div style="color:var(--text-muted);font-size:13px;padding:8px">Sem contatos pendentes.</div>';
+  document.getElementById('agendaNoActionCount').textContent = `(${leads.length})`;
+  upList.innerHTML = leads.length ? leads.slice(0,12).map(l => `<div class="agenda-lead-row"><div style="min-width:0"><div class="name" style="cursor:pointer" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}</div><div class="detail">${agentEscape(STATUS_LABELS[l.status]||l.status||'')} · ${agentEscape(l.corretor||'')}</div></div><button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${l.id}')">Agendar</button></div>`).join('') + (leads.length>12?`<div class="agenda-empty">Mostrando os 12 mais recentes de ${leads.length} leads.</div>`:'') : '<div class="agenda-empty">Todos os leads ativos têm uma próxima ação.</div>';
 }
 
+function scheduleLeadTask(leadId) {
+  const lead = APP.leads.find(l => l.id === leadId);
+  if (!lead) return;
+  closeModal('leadModal');
+  openModal('addTaskModal');
+  document.getElementById('t_lead').value = lead.nome;
+  agendaTaskLeadId = lead.id;
+  document.getElementById('t_titulo').value = 'Retomar contato';
+  document.getElementById('t_corretor').value = lead.corretor || APP.user?.corretor_ref || '';
+  document.getElementById('t_data').focus();
+}
+
+let agendaTaskLeadId = null;
 async function saveTask() {
   const titulo = document.getElementById('t_titulo').value.trim();
   if (!titulo) { toast('Título é obrigatório','error'); return; }
+  const leadInput = document.getElementById('t_lead').value.trim();
+  const leadMatch = getLeadsDoUsuario().filter(l => l.nome?.trim().toLocaleLowerCase('pt-BR') === leadInput.toLocaleLowerCase('pt-BR'));
+  const selectedLead = APP.leads.find(l=>l.id===agendaTaskLeadId && l.nome?.trim()===leadInput);
+  if (leadInput && leadMatch.length > 1 && !selectedLead) { toast('Há mais de um lead com esse nome. Abra o cadastro correto e agende por lá.','error'); return; }
+  const when = document.getElementById('t_data').value;
+  if (!when || Number.isNaN(new Date(when).getTime())) { toast('Escolha a data e o horário da tarefa','error'); return; }
   const task = {
     id: Date.now().toString(),
     titulo,
-    lead_rel: document.getElementById('t_lead').value,
+    lead_rel: selectedLead?.id || leadMatch[0]?.id || leadInput,
     corretor: isGestorOrAdmin()
       ? document.getElementById('t_corretor').value
       : APP.user?.corretor_ref,
-    data_hora: document.getElementById('t_data').value || new Date().toISOString(),
+    data_hora: new Date(when).toISOString(),
     prioridade: document.getElementById('t_prioridade').value,
     notas: document.getElementById('t_notas').value,
     concluida: false
   };
-  APP.tasks.unshift(task);
-  renderAgenda();
   if (APP.supabase && APP.sbConnected) {
     const { id, ...taskForSB } = task;
     const { data, error } = await APP.supabase.from('tarefas').insert([taskForSB]).select();
     if (error) {
       console.error('Erro ao salvar tarefa no Supabase:', error);
-      toast('Tarefa salva apenas neste dispositivo (erro ao sincronizar)','error');
-    } else if (data && data[0]) {
-      task.id = data[0].id; // usa o id real gerado pelo Supabase
+      toast('Não foi possível criar a tarefa. Tente novamente.','error');
+      return;
     }
+    if (data && data[0]) task.id = data[0].id;
   }
+  APP.tasks.unshift(task);
   saveToLocal();
   updateBadges();
   renderAgenda();
@@ -3505,21 +3574,81 @@ async function saveTask() {
   ['t_titulo','t_lead','t_notas'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('t_data').value = '';
   document.getElementById('t_corretor').value = '';
+  agendaTaskLeadId = null;
 }
 
 async function toggleTask(id) {
   const task = APP.tasks.find(t => t.id === id);
-  if (task) {
-    task.concluida = !task.concluida;
-    saveToLocal();
-    updateBadges();
-    renderAgenda();
-    if (task.concluida) toast('Tarefa concluída! 🎉','success');
-    if (APP.supabase && APP.sbConnected) {
-      const { error } = await APP.supabase.from('tarefas').update({ concluida: task.concluida }).eq('id', id);
-      if (error) console.error('Erro ao atualizar tarefa no Supabase:', error);
-    }
+  if (!task) return;
+  if (!task.concluida) { openTaskResult(id); return; }
+  if (APP.supabase && APP.sbConnected) {
+    const { error } = await APP.supabase.from('tarefas').update({ concluida:false, resultado:null, concluida_em:null }).eq('id',id);
+    if (error) { toast('Não foi possível reabrir a tarefa','error'); return; }
   }
+  task.concluida = false; task.resultado = ''; task.concluida_em = null;
+  saveToLocal(); updateBadges(); renderAgenda(); toast('Tarefa reaberta','success');
+}
+
+let agendaCompletingTaskId = null;
+function openTaskResult(id) {
+  const task = APP.tasks.find(t=>t.id===id);
+  if (!task || task.concluida) return;
+  agendaCompletingTaskId = id;
+  document.getElementById('taskResultTitle').textContent = task.titulo + (agendaLeadName(task) ? ' · '+agendaLeadName(task) : '');
+  ['taskOutcome','taskOutcomeNote','taskNextTitle','taskNextDate'].forEach(key=>document.getElementById(key).value='');
+  openModal('taskResultModal');
+}
+function suggestNextTask() {
+  const result = document.getElementById('taskOutcome').value;
+  const suggestions = {'Não respondeu':['Retomar contato',2], 'Demonstrou interesse':['Enviar informações e retornar',1], 'Visita agendada':['Confirmar visita',1], 'Visita realizada':['Pedir retorno sobre a visita',1], 'Pediu retorno':['Retomar contato',2]};
+  const next = suggestions[result];
+  document.getElementById('taskNextTitle').value = next?.[0] || '';
+  const date = document.getElementById('taskNextDate');
+  date.value = '';
+  if (next) {
+    const d = new Date(); d.setDate(d.getDate()+next[1]); d.setHours(10,0,0,0);
+    date.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T10:00`;
+  }
+}
+async function completeTaskWithOutcome() {
+  const task = APP.tasks.find(t=>t.id===agendaCompletingTaskId);
+  if (!task || task.concluida) return;
+  const outcome = document.getElementById('taskOutcome').value;
+  const note = document.getElementById('taskOutcomeNote').value.trim();
+  const nextTitle = document.getElementById('taskNextTitle').value.trim();
+  const nextDate = document.getElementById('taskNextDate').value;
+  if (!outcome) { toast('Selecione o resultado','error'); return; }
+  if (!!nextTitle !== !!nextDate || (nextDate && Number.isNaN(new Date(nextDate).getTime()))) { toast('Preencha a próxima ação e sua data, ou deixe ambas vazias','error'); return; }
+  const button = document.getElementById('taskResultSubmit');
+  button.disabled = true;
+  const completedAt = new Date().toISOString();
+  try {
+    if (APP.supabase && APP.sbConnected) {
+      const {error} = await APP.supabase.from('tarefas').update({concluida:true, resultado:outcome+(note?' · '+note:''), concluida_em:completedAt}).eq('id',task.id);
+      if (error) throw error;
+    }
+    task.concluida = true; task.resultado = outcome+(note?' · '+note:''); task.concluida_em = completedAt;
+    const lead = agendaLeadForTask(task);
+    if (lead) addHistory(lead.id, `Tarefa concluída: ${task.titulo}. Resultado: ${task.resultado}`, 'contact');
+    if (nextTitle) {
+      const next = {id:String(Date.now()), titulo:nextTitle, lead_rel:lead?.id||task.lead_rel||'', corretor:task.corretor||lead?.corretor||'', data_hora:new Date(nextDate).toISOString(), prioridade:task.prioridade||'media', notas:'', concluida:false};
+      if (APP.supabase && APP.sbConnected) {
+        const {id, ...fields} = next;
+        const {data,error} = await APP.supabase.from('tarefas').insert([fields]).select();
+        if (error) throw error;
+        next.id = data[0].id;
+      }
+      APP.tasks.push(next);
+      if (lead) addHistory(lead.id, `Próxima ação agendada: ${nextTitle} em ${formatDateTime(next.data_hora)}`, 'note');
+    }
+    saveToLocal(); updateBadges(); renderAgenda(); closeModal('taskResultModal');
+    toast('Resultado registrado'+(nextTitle?' e próxima ação agendada':'')+'!','success');
+  } catch (error) {
+    console.error('Erro ao registrar follow-up:',error);
+    saveToLocal(); renderAgenda();
+    if (task.concluida) closeModal('taskResultModal');
+    toast(task.concluida?'Resultado salvo, mas a próxima ação falhou. Agende pelo cadastro do lead.':'Não foi possível salvar o resultado. Tente novamente.','error');
+  } finally { button.disabled=false; }
 }
 
 function deleteTask(id) {
@@ -3823,6 +3952,7 @@ function openModal(id) {
   if (id === 'addTaskModal') {
     const field = document.getElementById('taskCorretorField');
     if (field) field.style.display = isGestorOrAdmin() ? 'block' : 'none';
+    document.getElementById('agendaLeadOptions').innerHTML = getLeadsDoUsuario().map(l => `<option value="${agentEscape(l.nome)}" label="${agentEscape(l.empreendimento||'')}"></option>`).join('');
   }
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
