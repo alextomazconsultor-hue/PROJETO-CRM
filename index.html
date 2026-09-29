@@ -222,6 +222,10 @@ tr:hover .action-btns{opacity:1}
 .kanban-card-name{font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:6px}
 .kanban-card-detail{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .kanban-card-actions{display:flex;gap:4px;margin-top:8px;align-items:center}
+.lead-actions-mini{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.lead-action-chip{display:inline-flex;align-items:center;gap:3px;background:var(--bg-card);border:1px solid var(--border);border-radius:99px;padding:2px 6px;font-size:10px;color:var(--text-secondary);white-space:nowrap}
+.task-clickable{cursor:pointer}
+.task-clickable:hover{border-color:var(--purple)}
 .kanban-card-broker{display:inline-flex;align-items:center;gap:4px;background:var(--purple-dim);border:1px solid var(--border-bright);border-radius:99px;padding:2px 8px 2px 4px;font-size:10px;color:var(--purple-light);font-weight:500}
 .kanban-card-broker-dot{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700}
 .kanban-col.drag-over{border-color:var(--purple);background:var(--purple-dim)}
@@ -683,11 +687,35 @@ html.light .pill-atendimento{color:#6743b5}
     <div class="modal-head"><div><div class="modal-name">Concluir atendimento</div><div class="modal-sub" id="taskResultTitle"></div></div><button class="modal-close" onclick="closeModal('taskResultModal')">×</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
       <div class="form-field"><label class="form-label">Qual foi o resultado?</label><select class="form-input" id="taskOutcome" onchange="suggestNextTask()"><option value="">Selecione...</option><option>Respondeu</option><option>Não respondeu</option><option>Demonstrou interesse</option><option>Visita agendada</option><option>Visita realizada</option><option>Pediu retorno</option><option>Sem interesse</option><option>Outro</option></select></div>
+      <div class="form-field"><label class="form-label">Como foi o contato?</label><select class="form-input" id="taskActionType"><option value="">Selecione...</option><option value="call">📞 Ligação</option><option value="audio">🎤 Áudio</option><option value="message">💬 Mensagem</option><option value="visit">🏠 Visita</option><option value="contact">🤝 Outro contato</option></select></div>
       <div class="form-field"><label class="form-label">Observação (opcional)</label><textarea class="form-input" id="taskOutcomeNote" style="min-height:55px"></textarea></div>
       <div style="border-top:1px solid var(--border);padding-top:12px;font-size:13px;font-weight:600">Próxima ação (opcional)</div>
       <div class="form-field"><label class="form-label">O que fazer?</label><input class="form-input" id="taskNextTitle" placeholder="Ex.: retomar contato"></div>
       <div class="form-field"><label class="form-label">Quando?</label><input class="form-input" id="taskNextDate" type="datetime-local"></div>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px"><button class="btn btn-secondary" onclick="closeModal('taskResultModal')">Cancelar</button><button class="btn btn-primary" id="taskResultSubmit" onclick="completeTaskWithOutcome()">Salvar resultado</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETALHES DA TAREFA -->
+<div class="modal-overlay" id="taskDetailModal">
+  <div class="modal form-modal" style="max-width:500px">
+    <div class="modal-head"><div><div class="modal-name" id="taskDetailTitle"></div><div class="modal-sub" id="taskDetailLead"></div></div><button class="modal-close" onclick="closeModal('taskDetailModal')">×</button></div>
+    <div class="modal-body">
+      <div id="taskDetailInfo" style="font-size:13px;line-height:1.8;color:var(--text-secondary);margin-bottom:18px"></div>
+      <div id="taskDetailActions" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTRAR CONTATO COM LEAD -->
+<div class="modal-overlay" id="leadActionModal">
+  <div class="modal form-modal" style="max-width:480px">
+    <div class="modal-head"><div><div class="modal-name">Registrar ação</div><div class="modal-sub" id="leadActionName"></div></div><button class="modal-close" onclick="closeModal('leadActionModal')">×</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <div class="form-field"><label class="form-label">Tipo de contato</label><select class="form-input" id="leadActionType"><option value="call">📞 Ligação</option><option value="audio">🎤 Áudio</option><option value="message">💬 Mensagem</option><option value="visit">🏠 Visita</option><option value="contact">🤝 Outro contato</option></select></div>
+      <div class="form-field"><label class="form-label">O que aconteceu?</label><textarea class="form-input" id="leadActionText" placeholder="Ex.: liguei, conversamos sobre o imóvel e combinamos retorno" style="min-height:88px"></textarea></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-secondary" onclick="closeModal('leadActionModal')">Cancelar</button><button class="btn btn-primary" id="leadActionSubmit" onclick="saveLeadAction()">Salvar ação</button></div>
     </div>
   </div>
 </div>
@@ -1346,6 +1374,27 @@ async function loadTasksFromSB() {
   }
 }
 
+async function loadHistoryFromSB() {
+  if (!APP.supabase || !APP.sbConnected) return;
+  try {
+    const rows = [];
+    for (let start=0; ; start+=1000) {
+      const {data,error} = await APP.supabase.from('historico').select('id,lead_id,texto,tipo,created_at').order('created_at',{ascending:true}).range(start,start+999);
+      if (error) throw error;
+      rows.push(...(data||[]));
+      if (!data || data.length<1000) break;
+    }
+    const byLead = {};
+    rows.forEach(h => {
+      if (!h.lead_id) return;
+      (byLead[h.lead_id] ||= []).push({ id:h.id, text:h.texto||'', type:h.tipo||'note', date:h.created_at });
+    });
+    APP.history = byLead;
+    saveToLocal();
+    refreshAll();
+  } catch (error) { console.error('Erro ao carregar histórico do Supabase:',error); }
+}
+
 async function loadBrokersFromSB() {
   if (!APP.supabase || !APP.sbConnected) return;
   try {
@@ -1847,6 +1896,7 @@ async function enterApp() {
     await loadLeadsFromSB(); // leads depois das etapas
     await loadBrokersFromSB();
     await loadTasksFromSB();
+    await loadHistoryFromSB();
     await loadEmpFromSB();
     if (isGestorOrAdmin()) await carregarUsuarios();
     startSbHeartbeat();
@@ -2233,6 +2283,12 @@ function renderEmpFunnel() {
 }
 
 // -- DASHBOARD --
+const ACTION_LABELS = {call:'Ligação', audio:'Áudio', message:'Mensagem', visit:'Visita', contact:'Contato'};
+const ACTION_ICONS = {call:'📞', audio:'🎤', message:'💬', visit:'🏠', contact:'🤝'};
+function leadActionBadges(leadId, limit=2) {
+  const actions = (APP.history[leadId]||[]).filter(h => ACTION_LABELS[h.type]);
+  return actions.slice(-limit).reverse().map(h => `<span class="lead-action-chip" title="${agentEscape((ACTION_LABELS[h.type]||'Contato')+': '+h.text+' · '+formatDateTime(h.date))}">${ACTION_ICONS[h.type]} ${ACTION_LABELS[h.type]}</span>`).join('');
+}
 let statusChartInstance = null;
 function renderDashboard() {
   renderAlertsPanel();
@@ -2278,6 +2334,7 @@ function renderDashboard() {
       <div class="recent-info">
         <div class="name">${l.nome}</div>
         <div class="detail">${l.empreendimento||' '}   ${timeAgo(l.created_at)}</div>
+        <div class="lead-actions-mini">${leadActionBadges(l.id,3)}</div>
       </div>
       <div class="recent-status"><span class="pill pill-${l.status}">${STATUS_LABELS[l.status]}</span></div>
     </div>
@@ -2426,6 +2483,7 @@ function renderKanban() {
           <div class="kanban-card-name">${l.nome}</div>
           <div class="kanban-card-detail">🏢 ${l.empreendimento||' '}</div>
           <div class="kanban-card-detail">📍 ${l.cidade||' '}</div>
+          <div class="lead-actions-mini">${leadActionBadges(l.id,2)}</div>
           <div class="kanban-card-actions">
             ${brokerBadge}
             <select class="kanban-move-select" onchange="moveLeadFromSelect(event,'${l.id}')" onclick="event.stopPropagation()" style="font-size:10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:2px 4px;max-width:90px">
@@ -2534,6 +2592,7 @@ function openLeadDetail(id) {
 
   document.getElementById('modalActions').innerHTML = `
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
+    <button class="btn btn-secondary btn-sm" onclick="openLeadAction('${lead.id}')">📞 Registrar ação</button>
     <button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${lead.id}')">📅 Agendar follow-up</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirSimuladorLead('${lead.id}')" style="gap:5px;border-color:rgba(139,92,246,.45);color:var(--purple-light)">🧮 Criar fluxo</button>
@@ -2567,9 +2626,9 @@ function openLeadDetail(id) {
   const hist = APP.history[id] || [];
   document.getElementById('modalTimeline').innerHTML = hist.length ? hist.map(h => `
     <div class="timeline-item">
-      <div class="timeline-dot">${{create:'🌱',contact:'💬',call:'📞',visit:'🏠',update:'✏️',move:'🔄',note:'📝'}[h.type]||' '}</div>
+      <div class="timeline-dot">${{create:'🌱',contact:'🤝',call:'📞',audio:'🎤',message:'💬',visit:'🏠',update:'✏️',move:'🔄',note:'📝'}[h.type]||'📝'}</div>
       <div class="timeline-content">
-        <div class="timeline-text">${h.text}</div>
+        <div class="timeline-text">${agentEscape(h.text)}</div>
         <div class="timeline-date">${formatDate(h.date)}</div>
       </div>
     </div>
@@ -2627,6 +2686,40 @@ function addHistory(leadId, text, type) {
       if(error) console.error(error);
     });
   }
+}
+
+let actionLeadId = null;
+function openLeadAction(leadId) {
+  const lead = APP.leads.find(l=>l.id===leadId);
+  if (!lead) return;
+  actionLeadId = leadId;
+  document.getElementById('leadActionName').textContent = lead.nome;
+  document.getElementById('leadActionType').value = 'call';
+  document.getElementById('leadActionText').value = '';
+  closeModal('leadModal'); closeModal('taskDetailModal');
+  openModal('leadActionModal');
+}
+async function saveLeadAction() {
+  const lead = APP.leads.find(l=>l.id===actionLeadId);
+  const type = document.getElementById('leadActionType').value;
+  const details = document.getElementById('leadActionText').value.trim();
+  if (!lead || !ACTION_LABELS[type] || !details) { toast('Descreva o que aconteceu com o lead','error'); return; }
+  const button = document.getElementById('leadActionSubmit'); button.disabled = true;
+  const text = `${ACTION_LABELS[type]}: ${details}`;
+  try {
+    let id = null, date = new Date().toISOString();
+    if (APP.supabase && APP.sbConnected) {
+      const {data,error} = await APP.supabase.from('historico').insert([{lead_id:lead.id,texto:text,tipo:type}]).select('id,created_at').single();
+      if (error) throw error;
+      id = data.id; date = data.created_at;
+    }
+    (APP.history[lead.id] ||= []).push({id,text,type,date});
+    saveToLocal(); refreshAll(); closeModal('leadActionModal'); openLeadDetail(lead.id);
+    toast('Ação registrada no histórico','success');
+  } catch (error) {
+    console.error('Erro ao registrar ação:',error);
+    toast('Não foi possível salvar a ação. Tente novamente.','error');
+  } finally { button.disabled = false; }
 }
 
 // -- ASSISTENTE --
@@ -3351,32 +3444,19 @@ function renderAlertsPanel() {
       const diff = Math.round((now - new Date(t.data_hora)) / 60000);
       const diffText = diff < 60 ? `${diff}min atrás` : diff < 1440 ? `${Math.floor(diff/60)}h atrás` : `${Math.floor(diff/1440)}d atrás`;
       return `
-        <div class="alert-row">
+        <div class="alert-row task-clickable" onclick="openTaskDetail('${t.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openTaskDetail('${t.id}')" title="Abrir tarefa">
           <div class="alert-row-emoji">⏰</div>
           <div class="alert-row-info">
-            <div class="alert-row-title">${t.corretor||' '}   ${t.titulo}</div>
-            <div class="alert-row-sub">Lead: ${t.lead_rel||' '}   Prioridade: ${t.prioridade}</div>
+            <div class="alert-row-title">${agentEscape(agendaLeadName(t))} · ${agentEscape(t.titulo)}</div>
+            <div class="alert-row-sub">${agentEscape(agendaLeadForTask(t)?.empreendimento||t.notas||'')} · ${agentEscape(t.corretor||'Sem corretor')} · ${agentEscape(taskPriorityLabel(t.prioridade))}</div>
           </div>
           <div class="alert-row-ago">${diffText}</div>
-          <button class="alert-done-btn" onclick="completeFromPanel('${t.id}')" title="Marcar como concluída">✅</button>
+          <button class="alert-done-btn" onclick="event.stopPropagation();completeFromPanel('${t.id}')" title="Registrar resultado e concluir">✅</button>
         </div>`;
     }).join('')}`;
 }
 
-async function completeFromPanel(id) {
-  const task = APP.tasks.find(t => t.id === id);
-  if (task) {
-    task.concluida = true;
-    saveToLocal();
-    updateBadges();
-    renderAlertsPanel();
-    toast('Tarefa concluída! 🎉','success');
-    if (APP.supabase && APP.sbConnected) {
-      const { error } = await APP.supabase.from('tarefas').update({ concluida: true }).eq('id', id);
-      if (error) console.error('Erro ao atualizar tarefa no Supabase:', error);
-    }
-  }
-}
+function completeFromPanel(id) { openTaskResult(id); }
 
 // -- BROKER FILTER (Leads) --
 function renderBrokerFilterBar() {
@@ -3465,7 +3545,31 @@ function agendaLeadForTask(task) {
   if (!ref) return null;
   return APP.leads.find(l => String(l.id) === ref) || APP.leads.find(l => l.nome?.trim().toLocaleLowerCase('pt-BR') === ref.toLocaleLowerCase('pt-BR')) || null;
 }
-function agendaLeadName(task) { return agendaLeadForTask(task)?.nome || task.lead_rel || ''; }
+function agendaLeadName(task) {
+  const lead = agendaLeadForTask(task);
+  const ref = String(task.lead_rel||'').trim();
+  return lead?.nome || (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(ref) ? 'Lead não encontrado' : ref || 'Sem lead vinculado');
+}
+function taskPriorityLabel(value) { return ({alta:'Prioridade alta',media:'Prioridade média',baixa:'Prioridade baixa'})[value] || 'Prioridade não definida'; }
+function openTaskDetail(id) {
+  const task = APP.tasks.find(t=>t.id===id);
+  if (!task) return;
+  const lead = agendaLeadForTask(task);
+  document.getElementById('taskDetailTitle').textContent = task.titulo;
+  document.getElementById('taskDetailLead').textContent = agendaLeadName(task);
+  document.getElementById('taskDetailInfo').innerHTML = `
+    <div>📅 <strong>Data:</strong> ${formatDateTime(task.data_hora)}</div>
+    <div>👤 <strong>Corretor:</strong> ${agentEscape(task.corretor||'Não definido')}</div>
+    <div>🏢 <strong>Empreendimento:</strong> ${agentEscape(lead?.empreendimento||'Não informado')}</div>
+    <div>🔖 <strong>${agentEscape(taskPriorityLabel(task.prioridade))}</strong></div>
+    <div>📝 <strong>Orientação:</strong> ${agentEscape(task.notas||'Sem observações adicionais')}</div>
+    ${task.concluida?`<div>✅ <strong>Resultado:</strong> ${agentEscape(task.resultado||'Concluída')}</div>`:''}`;
+  document.getElementById('taskDetailActions').innerHTML = `
+    ${lead?`<button class="btn btn-secondary" onclick="closeModal('taskDetailModal');openLeadDetail('${lead.id}')">Abrir lead</button><button class="btn btn-secondary" onclick="openLeadAction('${lead.id}')">📞 Registrar ação</button>`:''}
+    ${lead?.telefone?`<button class="btn btn-secondary" onclick="openWhatsApp('${agentEscape(lead.telefone)}')">💬 WhatsApp</button>`:''}
+    ${!task.concluida?`<button class="btn btn-primary" onclick="openTaskResult('${task.id}')">Concluir com resultado</button>`:''}`;
+  openModal('taskDetailModal');
+}
 function agendaTasksForLead(lead) {
   return APP.tasks.filter(t => !t.concluida && (String(t.lead_rel||'') === String(lead.id) || String(t.lead_rel||'').trim().toLocaleLowerCase('pt-BR') === lead.nome?.trim().toLocaleLowerCase('pt-BR')));
 }
@@ -3495,14 +3599,14 @@ function renderAgenda() {
   const item = t => {
     const lead = agendaLeadForTask(t);
     const isOverdue = agendaDateGroup(t.data_hora, now, tomorrow) === 'overdue';
-    return `<div class="task-item ${isOverdue?'overdue':''}">
-      <button class="task-check" aria-label="Concluir tarefa" title="Registrar resultado" onclick="openTaskResult('${t.id}')"></button>
+    return `<div class="task-item task-clickable ${isOverdue?'overdue':''}" onclick="openTaskDetail('${t.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openTaskDetail('${t.id}')">
+      <button class="task-check" aria-label="Concluir tarefa" title="Registrar resultado" onclick="event.stopPropagation();openTaskResult('${t.id}')"></button>
       <div class="task-priority priority-${agentEscape(t.prioridade)}"></div>
       <div class="task-info" style="flex:1;min-width:0">
         <div class="task-title">${agentEscape(t.titulo)}</div>
-        <div class="task-detail">${lead ? `<a href="#" onclick="event.preventDefault();openLeadDetail('${lead.id}')">${agentEscape(lead.nome)}</a>` : agentEscape(t.lead_rel||'Sem lead vinculado')} · ${agentEscape(t.corretor||'Sem corretor')} · ${formatDateTime(t.data_hora)}</div>
+        <div class="task-detail">${agentEscape(agendaLeadName(t))} · ${agentEscape(t.corretor||'Sem corretor')} · ${formatDateTime(t.data_hora)}</div>
         ${t.notas ? `<div class="task-detail">${agentEscape(t.notas)}</div>` : ''}
-        <div class="task-actions" style="margin-top:8px">${lead?.telefone ? `<button class="btn btn-secondary" onclick="openWhatsApp('${agentEscape(lead.telefone)}')">💬 WhatsApp</button>` : ''}<button class="btn btn-secondary" onclick="openTaskResult('${t.id}')">Registrar resultado</button><button class="icon-btn btn-sm" title="Excluir tarefa" onclick="deleteTask('${t.id}')">🗑️</button></div>
+        <div class="task-actions" style="margin-top:8px">${lead?.telefone ? `<button class="btn btn-secondary" onclick="event.stopPropagation();openWhatsApp('${agentEscape(lead.telefone)}')">💬 WhatsApp</button>` : ''}<button class="btn btn-secondary" onclick="event.stopPropagation();openTaskResult('${t.id}')">Registrar resultado</button><button class="icon-btn btn-sm" title="Excluir tarefa" onclick="event.stopPropagation();deleteTask('${t.id}')">🗑️</button></div>
       </div></div>`;
   };
   const pending = tasks.filter(t => !t.concluida);
@@ -3596,6 +3700,8 @@ function openTaskResult(id) {
   agendaCompletingTaskId = id;
   document.getElementById('taskResultTitle').textContent = task.titulo + (agendaLeadName(task) ? ' · '+agendaLeadName(task) : '');
   ['taskOutcome','taskOutcomeNote','taskNextTitle','taskNextDate'].forEach(key=>document.getElementById(key).value='');
+  document.getElementById('taskActionType').value = '';
+  closeModal('taskDetailModal');
   openModal('taskResultModal');
 }
 function suggestNextTask() {
@@ -3614,10 +3720,12 @@ async function completeTaskWithOutcome() {
   const task = APP.tasks.find(t=>t.id===agendaCompletingTaskId);
   if (!task || task.concluida) return;
   const outcome = document.getElementById('taskOutcome').value;
+  const actionType = document.getElementById('taskActionType').value;
   const note = document.getElementById('taskOutcomeNote').value.trim();
   const nextTitle = document.getElementById('taskNextTitle').value.trim();
   const nextDate = document.getElementById('taskNextDate').value;
   if (!outcome) { toast('Selecione o resultado','error'); return; }
+  if (!ACTION_LABELS[actionType]) { toast('Selecione como foi o contato','error'); return; }
   if (!!nextTitle !== !!nextDate || (nextDate && Number.isNaN(new Date(nextDate).getTime()))) { toast('Preencha a próxima ação e sua data, ou deixe ambas vazias','error'); return; }
   const button = document.getElementById('taskResultSubmit');
   button.disabled = true;
@@ -3629,7 +3737,7 @@ async function completeTaskWithOutcome() {
     }
     task.concluida = true; task.resultado = outcome+(note?' · '+note:''); task.concluida_em = completedAt;
     const lead = agendaLeadForTask(task);
-    if (lead) addHistory(lead.id, `Tarefa concluída: ${task.titulo}. Resultado: ${task.resultado}`, 'contact');
+    if (lead) addHistory(lead.id, `${ACTION_LABELS[actionType]} · ${task.titulo}. Resultado: ${task.resultado}`, actionType);
     if (nextTitle) {
       const next = {id:String(Date.now()), titulo:nextTitle, lead_rel:lead?.id||task.lead_rel||'', corretor:task.corretor||lead?.corretor||'', data_hora:new Date(nextDate).toISOString(), prioridade:task.prioridade||'media', notas:'', concluida:false};
       if (APP.supabase && APP.sbConnected) {
@@ -3641,11 +3749,11 @@ async function completeTaskWithOutcome() {
       APP.tasks.push(next);
       if (lead) addHistory(lead.id, `Próxima ação agendada: ${nextTitle} em ${formatDateTime(next.data_hora)}`, 'note');
     }
-    saveToLocal(); updateBadges(); renderAgenda(); closeModal('taskResultModal');
+    saveToLocal(); updateBadges(); refreshAll(); closeModal('taskResultModal');
     toast('Resultado registrado'+(nextTitle?' e próxima ação agendada':'')+'!','success');
   } catch (error) {
     console.error('Erro ao registrar follow-up:',error);
-    saveToLocal(); renderAgenda();
+    saveToLocal(); refreshAll();
     if (task.concluida) closeModal('taskResultModal');
     toast(task.concluida?'Resultado salvo, mas a próxima ação falhou. Agende pelo cadastro do lead.':'Não foi possível salvar o resultado. Tente novamente.','error');
   } finally { button.disabled=false; }
