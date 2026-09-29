@@ -3582,8 +3582,8 @@ async function toggleTask(id) {
   if (!task) return;
   if (!task.concluida) { openTaskResult(id); return; }
   if (APP.supabase && APP.sbConnected) {
-    const { error } = await APP.supabase.from('tarefas').update({ concluida:false, resultado:null, concluida_em:null }).eq('id',id);
-    if (error) { toast('Não foi possível reabrir a tarefa','error'); return; }
+    const { data, error } = await APP.supabase.from('tarefas').update({ concluida:false, resultado:null, concluida_em:null }).eq('id',id).select('id');
+    if (error || !data?.length) { toast('Não foi possível reabrir a tarefa','error'); return; }
   }
   task.concluida = false; task.resultado = ''; task.concluida_em = null;
   saveToLocal(); updateBadges(); renderAgenda(); toast('Tarefa reaberta','success');
@@ -3624,8 +3624,8 @@ async function completeTaskWithOutcome() {
   const completedAt = new Date().toISOString();
   try {
     if (APP.supabase && APP.sbConnected) {
-      const {error} = await APP.supabase.from('tarefas').update({concluida:true, resultado:outcome+(note?' · '+note:''), concluida_em:completedAt}).eq('id',task.id);
-      if (error) throw error;
+      const {data,error} = await APP.supabase.from('tarefas').update({concluida:true, resultado:outcome+(note?' · '+note:''), concluida_em:completedAt}).eq('id',task.id).select('id');
+      if (error || !data?.length) throw error || new Error('Tarefa não encontrada ou sem permissão de atualização');
     }
     task.concluida = true; task.resultado = outcome+(note?' · '+note:''); task.concluida_em = completedAt;
     const lead = agendaLeadForTask(task);
