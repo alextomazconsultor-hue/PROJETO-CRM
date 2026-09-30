@@ -203,6 +203,9 @@ tr:hover .action-btns{opacity:1}
 
 /* KANBAN */
 .kanban-page-wrap{display:flex;flex-direction:column;height:calc(100vh - 60px);overflow:hidden}
+.kanban-contact-search{display:flex;align-items:center;gap:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;margin:10px 0 0;flex-shrink:0;max-width:580px;width:100%}
+.kanban-contact-search input{flex:1;min-width:0;background:transparent;border:0;color:var(--text-primary);font:inherit;font-size:14px;outline-offset:3px}
+.kanban-contact-search button{background:transparent;border:0;color:var(--text-muted);font-size:12px;cursor:pointer;padding:5px}
 .kanban-filter-bar{display:flex;align-items:center;gap:8px;padding:14px 0 12px;flex-wrap:wrap;flex-shrink:0}
 .kanban-filter-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-right:4px}
 .kfbtn{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .2s;font-weight:400}
@@ -1129,6 +1132,8 @@ CREATE TABLE historico (
       <!-- KANBAN -->
       <div class="page" id="page-kanban">
         <div class="kanban-page-wrap">
+          <div class="kanban-contact-search"><span aria-hidden="true">🔍</span><input id="kanbanContactSearch" type="search" aria-label="Buscar contato no Pipeline por nome ou últimos quatro números do telefone" placeholder="Nome ou 4 últimos números do telefone" oninput="setKanbanSearch(this.value)"><button type="button" onclick="clearKanbanSearch()" aria-label="Limpar busca do Pipeline">Limpar</button></div>
+          <div id="kanbanSearchStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--text-muted);padding-top:5px;flex-shrink:0"></div>
           <!-- FILTRO DE CORRETOR DO KANBAN -->
           <div class="kanban-filter-bar" id="kanbanFilterBar">
             <span class="kanban-filter-label">Visualizando:</span>
@@ -1270,6 +1275,7 @@ const APP = {
   sbUrl: '',
   sbKey: '',
   user: null,         // { id, email, nome, perfil, corretor_ref, initials }
+  kanbanSearch: '',
   kanbanBrokerFilter: 'todos',
   kanbanEmpFilter: 'todos',
   sbRetryCount: 0,
@@ -2509,41 +2515,40 @@ function filterByStatus(s, el) {
   renderLeadsTable();
 }
 
-// -- KANBAN FILTRO DE CORRETOR --
-function renderKanbanFilterBar() {
-  const bar = document.getElementById('kanbanFilterBar');
-  if (!bar) return;
-
-  // Corretor não vê a barra de filtro — já vem fixo nos próprios leads
-  if (!isGestorOrAdmin()) {
-    bar.style.display = 'none';
-    return;
-  }
-
-  const brokers = APP.brokers;
-  const total = APP.leads.length;
-
-  bar.style.display = 'flex';
-  bar.innerHTML = `<span class="kanban-filter-label">Visualizando:</span>
-    <button class="kfbtn ${APP.kanbanBrokerFilter==='todos'?'active':''}" onclick="setKanbanBroker('todos')">
-      👥 Todos os corretores
-      <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${total}</span>
-    </button>
-    ${brokers.map((b,i) => {
-      const count = APP.leads.filter(l => l.corretor === b).length;
-      const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
-      return `<button class="kfbtn ${APP.kanbanBrokerFilter===b?'active':''}" onclick="setKanbanBroker('${b}')">
-        <span class="kfbtn-avatar" style="background:${color}33;color:${color}">${getInitials(b)}</span>
-        ${b}
-        <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${count}</span>
-      </button>`;
-    }).join('')}`;
+// -- BUSCA E FILTROS DO PIPELINE --
+function kanbanNormalize(value) { return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR'); }
+function filterKanbanContacts(leads,{broker='todos',emp='todos',search=''}={}) {
+  const query=String(search||'').trim();
+  const nameQuery=kanbanNormalize(query);
+  const phoneQuery=/^[+\d\s().-]+$/.test(query)?query.replace(/\D/g,''):'';
+  return leads.filter(l=>(broker==='todos'||l.corretor===broker)&&(emp==='todos'||l.empreendimento===emp)&&(!query||kanbanNormalize(l.nome).includes(nameQuery)||(phoneQuery.length>=4&&String(l.telefone||'').replace(/\D/g,'').endsWith(phoneQuery))));
 }
-
+function getKanbanContacts(overrides={}) {
+  return filterKanbanContacts(getLeadsDoUsuario(),{broker:isGestorOrAdmin()?APP.kanbanBrokerFilter:APP.user?.corretor_ref,emp:APP.kanbanEmpFilter,search:APP.kanbanSearch,...overrides});
+}
+function setKanbanSearch(value) {
+  APP.kanbanSearch=value;
+  renderKanbanFilterBar();renderKanbanEmpFilterBar();renderKanban();
+}
+function clearKanbanSearch() {
+  document.getElementById('kanbanContactSearch').value='';setKanbanSearch('');document.getElementById('kanbanContactSearch').focus();
+}
+function renderKanbanFilterBar() {
+  const bar=document.getElementById('kanbanFilterBar');if(!bar)return;
+  if(!isGestorOrAdmin()){bar.style.display='none';return;}
+  const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const leads=getKanbanContacts({broker:'todos'});
+  bar.style.display='flex';
+  bar.innerHTML='<span class="kanban-filter-label">Visualizando:</span>'+['todos',...brokers].map(b=>{
+    const count=b==='todos'?leads.length:leads.filter(l=>l.corretor===b).length;
+    return `<button type="button" class="kfbtn ${APP.kanbanBrokerFilter===b?'active':''}" data-broker="${agentEscape(b)}">${b==='todos'?'👥 Equipe inteira':agentEscape(b)} <span style="font-size:10px;background:var(--bg-surface);padding:1px 6px;border-radius:99px;margin-left:2px">${count}</span></button>`;
+  }).join('');
+  bar.querySelectorAll('[data-broker]').forEach(button=>button.addEventListener('click',()=>setKanbanBroker(button.dataset.broker)));
+}
 function setKanbanBroker(broker) {
-  APP.kanbanBrokerFilter = broker;
-  renderKanbanFilterBar();
-  renderKanban();
+  if(!isGestorOrAdmin())return;
+  APP.kanbanBrokerFilter=broker;
+  renderKanbanFilterBar();renderKanbanEmpFilterBar();renderKanban();
 }
 
 // -- KANBAN --
@@ -2554,9 +2559,10 @@ function renderKanban() {
   const colColors = Object.fromEntries(APP.stages.map(s => [s.id, s.color]));
 
   // Filtra leads pelo corretor selecionado
-  const filteredLeads = getLeadsDoUsuario()
-    .filter(l => APP.kanbanBrokerFilter === 'todos' || l.corretor === APP.kanbanBrokerFilter)
-    .filter(l => APP.kanbanEmpFilter === 'todos' || l.empreendimento === APP.kanbanEmpFilter);
+  const filteredLeads=getKanbanContacts();
+  const searchInput=document.getElementById('kanbanContactSearch');
+  if(searchInput.value!==APP.kanbanSearch)searchInput.value=APP.kanbanSearch||'';
+  document.getElementById('kanbanSearchStatus').textContent=APP.kanbanSearch?.trim() ? (filteredLeads.length ? `${filteredLeads.length} contato(s) encontrado(s) nos filtros selecionados` : 'Nenhum contato encontrado. Confira a busca e os filtros de corretor e empreendimento.') : '';
 
   // Resumo
   const summary = document.getElementById('kanbanSummary');
@@ -2565,7 +2571,7 @@ function renderKanban() {
   const ativos = filteredLeads.filter(l => !['fechada','perdido'].includes(l.status)).length;
   const perdidos = filteredLeads.filter(l => l.status === 'perdido').length;
   summary.innerHTML = `
-    <div class="kanban-summary-item"><strong>${totalFilt}</strong> leads ${!isGestorOrAdmin() ? 'de ' + APP.user?.corretor_ref : APP.kanbanBrokerFilter !== 'todos' ? 'de ' + APP.kanbanBrokerFilter : 'no total'}</div>
+    <div class="kanban-summary-item"><strong>${totalFilt}</strong> leads ${!isGestorOrAdmin() ? 'de ' + APP.user?.corretor_ref : APP.kanbanBrokerFilter !== 'todos' ? 'de ' + agentEscape(APP.kanbanBrokerFilter) : 'da equipe inteira'}</div>
     <div class="kanban-summary-divider"></div>
     <div class="kanban-summary-item">🟢 <strong>${ativos}</strong> ativos</div>
     <div class="kanban-summary-divider"></div>
@@ -2615,7 +2621,7 @@ function renderKanban() {
           <span class="col-count">${leads.length}</span>
         </div>
         <div style="height:3px;border-radius:99px;background:${colColors[s]};margin:0 10px 8px;opacity:0.5"></div>
-        <div class="kanban-cards">${cards||'<div style="padding:12px 8px;text-align:center;font-size:11px;color:var(--text-muted)">Arraste aqui</div>'}</div>
+        <div class="kanban-cards">${cards||'<div style="padding:12px 8px;text-align:center;font-size:11px;color:var(--text-muted)">'+(APP.kanbanSearch?.trim()?'Nenhum resultado nesta etapa':'Arraste aqui')+'</div>'}</div>
       </div>
     `;
   }).join('');
@@ -4324,7 +4330,7 @@ function renderKanbanEmpFilterBar() {
   const emps = APP.empreendimentos;
   if (emps.length === 0) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
-  const leadsBase = getLeadsDoUsuario();
+  const leadsBase = getKanbanContacts({emp:'todos'});
   bar.innerHTML = `<span class="kanban-filter-label">Produto:</span>
     <button class="kfbtn ${APP.kanbanEmpFilter==='todos'?'active':''}" onclick="setKanbanEmp('todos')">
       🏢 Todos
@@ -4341,6 +4347,7 @@ function renderKanbanEmpFilterBar() {
 
 function setKanbanEmp(emp) {
   APP.kanbanEmpFilter = emp;
+  renderKanbanFilterBar();
   renderKanbanEmpFilterBar();
   renderKanban();
 }
