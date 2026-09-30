@@ -696,6 +696,24 @@ html.light .pill-atendimento{color:#6743b5}
   </div>
 </div>
 
+<!-- SITE: EDIÇÃO -->
+<div class="modal-overlay" id="sitePropertyModal"><div class="modal form-modal" style="max-width:620px"><div class="modal-head"><div class="modal-name" id="sitePropertyModalTitle">Empreendimento do site</div><button class="modal-close" onclick="closeModal('sitePropertyModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+<div class="form-field"><label class="form-label" for="sp_nome">Nome do empreendimento</label><input class="form-input" id="sp_nome" maxlength="180"></div>
+<div class="form-field"><label class="form-label" for="sp_slug">Identificador no link</label><input class="form-input" id="sp_slug" maxlength="180" placeholder="Ex.: scenarium (gerado pelo nome se vazio)"></div>
+<div class="form-field"><label class="form-label" for="sp_cidade">Cidade</label><input class="form-input" id="sp_cidade" maxlength="120" placeholder="Ex.: Penha"></div>
+<div class="form-field"><label class="form-label" for="sp_tipo">Tipo</label><input class="form-input" id="sp_tipo" maxlength="80" placeholder="Apartamento"></div>
+<div class="form-field"><label class="form-label" for="sp_fase">Fase</label><select class="form-input" id="sp_fase"><option value="pre_lancamento">Pré-lançamento</option><option value="em_obras">Em obras</option><option value="pronto">Pronto</option></select></div>
+<div class="form-field"><label class="form-label" for="sp_descricao">Descrição para o cliente</label><textarea class="form-input" id="sp_descricao" maxlength="6000" style="min-height:100px"></textarea></div>
+<div class="form-field"><label class="form-label" for="sp_localizacao">Localização divulgada (opcional)</label><input class="form-input" id="sp_localizacao" maxlength="250" placeholder="Deixe vazio para não divulgar"></div>
+<div class="form-field"><label class="form-label" for="sp_preco">Valor a partir de (opcional)</label><input class="form-input" id="sp_preco" type="number" min="1" step="0.01" placeholder="Ex.: 378000"><div class="material-meta">Deixe vazio para mostrar “Consulte a equipe”. Divulgue apenas valores confirmados.</div></div>
+<div class="form-field"><label class="form-label" for="sp_capa">Foto de capa da central de materiais</label><select class="form-input" id="sp_capa"></select></div>
+<div class="form-field"><label class="form-label" for="sp_foto">Ou link HTTPS da foto de capa (opcional)</label><input class="form-input" id="sp_foto" placeholder="https://…"><div class="material-meta">Use uma foto real do empreendimento. Se preenchido, esse link será usado como capa.</div></div>
+<div class="form-field"><label class="form-label">Materiais disponíveis no site</label><div id="sp_materiais" style="max-height:180px;overflow:auto;border:1px solid var(--border);padding:10px"></div></div>
+<label style="font-size:13px;display:flex;gap:8px"><input type="checkbox" id="sp_destaque"> Destacar no catálogo</label><label style="font-size:13px;display:flex;gap:8px"><input type="checkbox" id="sp_publicado"> Publicar no site</label>
+<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-secondary" onclick="closeModal('sitePropertyModal')">Cancelar</button><button class="btn btn-primary" id="sitePropertySaveBtn" onclick="saveSiteProperty()">Salvar empreendimento</button></div>
+</div></div></div>
+<div class="modal-overlay" id="sitePreviewModal"><div class="modal form-modal" style="max-width:650px"><div class="modal-head"><div class="modal-name">Prévia do empreendimento</div><button class="modal-close" onclick="closeModal('sitePreviewModal')">×</button></div><div class="modal-body" id="sitePreviewBody"></div></div></div>
+<div class="modal-overlay" id="siteSettingsModal"><div class="modal form-modal" style="max-width:480px"><div class="modal-head"><div class="modal-name">Contato e responsável do site</div><button class="modal-close" onclick="closeModal('siteSettingsModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><div class="form-field"><label class="form-label" for="ss_whatsapp">WhatsApp geral (com 55 e DDD)</label><input class="form-input" id="ss_whatsapp" type="tel"></div><div class="form-field"><label class="form-label" for="ss_corretor">Corretor para os cadastros sem indicação</label><select class="form-input" id="ss_corretor"></select></div><div class="material-meta">Links individuais direcionam o cadastro ao corretor identificado no link. O contato geral é usado quando não houver WhatsApp individual cadastrado.</div><button class="btn btn-primary" id="siteSettingsSaveBtn" onclick="saveSiteSettings()">Salvar configurações</button></div></div></div>
 <!-- MATERIAL DE APOIO: CADASTRO -->
 <div class="modal-overlay" id="materialEditorModal"><div class="modal form-modal" style="max-width:560px"><div class="modal-head"><div class="modal-name" id="materialEditorTitle">Adicionar material</div><button type="button" class="modal-close" onclick="closeModal('materialEditorModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
   <div class="form-field"><label class="form-label" for="m_title">Título</label><input class="form-input" id="m_title" maxlength="180" placeholder="Ex.: Apresentação Scenarium"></div>
@@ -960,6 +978,7 @@ CREATE TABLE historico (
           Agenda & Follow-up
           <span class="nav-badge" id="tasksCount">0</span>
         </div>
+        <div class="nav-item" onclick="showPage('site',this)"><span style="font-size:17px">🌐</span> Site Exclusive</div>
         <div class="nav-item" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
         <div class="nav-item" onclick="showPage('simulador',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="17" y2="16"/></svg>
@@ -1157,6 +1176,8 @@ CREATE TABLE historico (
         </div>
       </div>
 
+      <!-- SITE EXCLUSIVE -->
+      <div class="page" id="page-site"><div class="chart-card" style="margin-bottom:20px"><div class="chart-title">🌐 Site da Exclusive Imóveis</div><p style="font-size:13px;color:var(--text-secondary);margin:10px 0 18px">Administre a vitrine de empreendimentos e gere links com o corretor responsável. A primeira versão do site é uma prévia privada.</p><div class="agenda-toolbar"><select class="form-input" id="siteBrokerLink" aria-label="Corretor para o link do site"></select><button class="btn btn-secondary" onclick="openSiteProperty()">Abrir site</button><button class="btn btn-secondary" onclick="copySiteLink()">Copiar link do site</button><button class="btn btn-secondary" onclick="loadSiteAdmin()">Atualizar</button><button class="btn btn-secondary" id="siteSettingsBtn" onclick="openSiteSettings()">Contato e responsável</button><button class="btn btn-primary" id="siteAddBtn" onclick="openSitePropertyEditor()">+ Empreendimento</button></div><div class="material-meta" id="siteAdminStatus" role="status"></div></div><div id="siteAdminList"></div></div>
       <!-- MATERIAL DE APOIO -->
       <div class="page" id="page-materiais">
         <div class="chart-card" style="margin-bottom:18px"><div class="chart-title">📁 Materiais da Exclusive Imóveis</div><p style="font-size:13px;color:var(--text-secondary);margin:8px 0 16px">Apresentações, plantas, fotos, vídeos e tabelas para apoiar o atendimento.</p>
@@ -2053,7 +2074,7 @@ function showPage(name, el) {
   if(el) el.classList.add('active');
   document.getElementById('pageTitle').textContent = {
     dashboard:'Dashboard', leads:'Leads', kanban:'Pipeline Kanban',
-    agenda:'Agenda & Follow-up', materiais:'Material de apoio', vipayra:'Grupo VIP AYRA', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
+    agenda:'Agenda & Follow-up', materiais:'Material de apoio', site:'Site Exclusive', vipayra:'Grupo VIP AYRA', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
   }[name] || name;
 
   const lb = document.getElementById('addLeadBtn');
@@ -2070,6 +2091,7 @@ function showPage(name, el) {
   if(name==='kanban') { renderKanbanFilterBar(); renderKanbanEmpFilterBar(); renderKanban(); }
   if(name==='agenda') renderAgenda();
   if(name==='materiais') loadMaterials();
+  if(name==='site') loadSiteAdmin();
   if(name==='vipayra') renderVipAyra();
   if(name==='simulador') {
     const frame = document.getElementById('simuladorFrame');
@@ -2118,6 +2140,7 @@ function refreshAll() {
     if(id==='kanban') renderKanbanFilterBar(), renderKanbanEmpFilterBar(), renderKanban();
     if(id==='agenda') renderAgenda();
     if(id==='materiais') renderMaterials();
+    if(id==='site') renderSiteAdmin();
     if(id==='vipayra') renderVipAyra();
     if(id==='equipe') renderTeam();
   }
@@ -3687,6 +3710,87 @@ async function deleteMaterial(id) {
     if(material.arquivo_path){const cleanup=await APP.supabase.storage.from('crm-materiais').remove([material.arquivo_path]);if(cleanup.error)console.error('Limpeza de material excluído:',cleanup.error);}
     toast('Material excluído','success');await loadMaterials();
   }catch(error){toast('Não foi possível excluir o material','error');console.error(error);}
+}
+
+// -- SITE EXCLUSIVE IMÓVEIS --
+const siteAdminState={properties:[],brokers:[],materials:[],config:null,editingId:null,loading:false,error:'',saving:false,sequence:0};
+const SITE_PHASES={pre_lancamento:'Pré-lançamento',em_obras:'Em obras',pronto:'Pronto'};
+function siteSlugify(value){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+async function loadSiteAdmin(){
+ const sequence=++siteAdminState.sequence;siteAdminState.loading=true;siteAdminState.error='';siteAdminState.properties=[];renderSiteAdmin();
+ try {
+  if(!APP.supabase||!APP.sbConnected)throw new Error('Sem conexão');
+  const queries=[APP.supabase.from('site_empreendimentos').select('*').order('nome'),APP.supabase.from('site_config').select('*').eq('id',1).single(),APP.supabase.from('corretores').select('id,nome,whatsapp').order('nome'),APP.supabase.from('materiais_apoio').select('*').eq('compartilhavel',true).order('titulo')];
+  const results=await Promise.all(queries);for(const r of results)if(r.error)throw r.error;
+  if(sequence===siteAdminState.sequence){siteAdminState.properties=results[0].data||[];siteAdminState.config=results[1].data;siteAdminState.brokers=results[2].data||[];siteAdminState.materials=results[3].data||[];}
+ }catch(error){if(sequence===siteAdminState.sequence)siteAdminState.error='Não foi possível carregar o site. Verifique a conexão e clique em Atualizar.';console.error('Site CRM:',error);}
+ finally{if(sequence===siteAdminState.sequence){siteAdminState.loading=false;renderSiteAdmin();}}
+}
+function renderSiteAdmin(){
+ const list=document.getElementById('siteAdminList');if(!list)return;
+ document.getElementById('siteAddBtn').style.display=isGestorOrAdmin()?'inline-flex':'none';document.getElementById('siteSettingsBtn').style.display=isGestorOrAdmin()?'inline-flex':'none';
+ const broker=document.getElementById('siteBrokerLink'),current=broker.value;
+ const brokers=isGestorOrAdmin()?siteAdminState.brokers:siteAdminState.brokers.filter(b=>b.nome===APP.user?.corretor_ref);
+ broker.innerHTML=(isGestorOrAdmin()?'<option value="">Link geral da equipe</option>':'')+brokers.map(b=>`<option value="${b.id}">Link de ${agentEscape(b.nome)}</option>`).join('');if(current&&brokers.some(b=>b.id===current))broker.value=current;
+ if(siteAdminState.loading){document.getElementById('siteAdminStatus').textContent='Carregando…';list.innerHTML='';return;}
+ if(siteAdminState.error){document.getElementById('siteAdminStatus').textContent=siteAdminState.error;list.innerHTML='';return;}
+ document.getElementById('siteAdminStatus').textContent=`${siteAdminState.properties.filter(p=>p.publicado).length} empreendimentos publicados · ${siteAdminState.properties.filter(p=>!p.publicado).length} rascunhos`;
+ list.innerHTML=siteAdminState.properties.length?`<div class="material-grid">${siteAdminState.properties.map(p=>`<article class="material-card"><div class="material-meta">${p.publicado?'🌐 Publicado no site':'📝 Rascunho'} · ${SITE_PHASES[p.fase]||''}</div><h3>${agentEscape(p.nome)}</h3><div class="material-meta">${agentEscape(p.cidade)} · ${agentEscape(p.tipo)}${p.preco?' · A partir de '+Number(p.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):' · Sem preço divulgado'}</div><p class="material-description">${agentEscape(p.descricao)}</p><div class="material-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="previewSiteProperty('${p.id}')">Prévia</button>${p.publicado?`<button type="button" class="btn btn-secondary btn-sm" onclick="openSiteProperty('${p.id}')">Abrir no site</button><button type="button" class="btn btn-secondary btn-sm" onclick="copySiteLink('${p.id}')">Copiar link</button>`:''}${isGestorOrAdmin()?`<button type="button" class="btn btn-primary btn-sm" onclick="openSitePropertyEditor('${p.id}')">Editar</button><button type="button" class="btn btn-secondary btn-sm" onclick="toggleSiteProperty('${p.id}')">${p.publicado?'Retirar do site':'Publicar'}</button>`:''}</div></article>`).join('')}</div>`:'<div class="empty-state"><div class="empty-title">Cadastre o primeiro empreendimento do site.</div></div>';
+}
+function buildSiteLink(propertyId=null){
+ const raw=siteAdminState.config?.site_url,url=materialSafeUrl(raw);if(!url)return null;
+ const link=new URL(url),broker=document.getElementById('siteBrokerLink').value;
+ if(broker)link.searchParams.set('corretor',broker);
+ const property=siteAdminState.properties.find(p=>p.id===propertyId);if(property)link.searchParams.set('imovel',property.slug);return link.href;
+}
+function openSiteProperty(id=null){const url=buildSiteLink(id);if(url)window.open(url,'_blank','noopener');else toast('O endereço do site ainda não está disponível','error');}
+async function copySiteLink(id=null){
+ const url=buildSiteLink(id);if(!url){toast('O endereço do site ainda não está disponível','error');return;}
+ try{await navigator.clipboard.writeText(url);toast('Link copiado!','success');}catch{document.getElementById('materialShareText').value=url;document.getElementById('materialShareHint').textContent='Este link identifica o corretor selecionado no cadastro pelo formulário.';openModal('materialShareModal');}
+}
+function openSitePropertyEditor(id=null){
+ if(!isGestorOrAdmin())return;const p=siteAdminState.properties.find(p=>p.id===id);if(id&&!p)return;siteAdminState.editingId=id;
+ document.getElementById('sitePropertyModalTitle').textContent=id?'Editar empreendimento do site':'Adicionar empreendimento ao site';
+ const values={sp_nome:p?.nome||'',sp_slug:p?.slug||'',sp_cidade:p?.cidade||'',sp_tipo:p?.tipo||'Apartamento',sp_fase:p?.fase||'em_obras',sp_descricao:p?.descricao||'',sp_localizacao:p?.localizacao||'',sp_preco:p?.preco||'',sp_foto:p?.foto_url||''};Object.entries(values).forEach(([key,value])=>document.getElementById(key).value=value);
+ document.getElementById('sp_destaque').checked=!!p?.destaque;document.getElementById('sp_publicado').checked=!!p?.publicado;
+ document.getElementById('sp_capa').innerHTML='<option value="">Sem foto de capa cadastrada</option>'+siteAdminState.materials.filter(m=>m.categoria==='foto').map(m=>`<option value="${m.id}">${agentEscape(m.titulo)} · ${agentEscape(m.empreendimento||'Geral')}</option>`).join('');document.getElementById('sp_capa').value=p?.capa_material_id||'';
+ document.getElementById('sp_materiais').innerHTML=siteAdminState.materials.length?siteAdminState.materials.map(m=>`<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;padding:6px 0"><input type="checkbox" value="${m.id}" ${p?.materiais_ids?.includes(m.id)?'checked':''} style="margin-top:3px"><span>${agentEscape(m.titulo)} <span style="color:var(--text-muted)">· ${agentEscape(m.empreendimento||'Geral')}</span></span></label>`).join(''):'<div class="material-meta">Cadastre materiais compartilháveis na aba Material de apoio para disponibilizá-los aqui.</div>';
+ openModal('sitePropertyModal');
+}
+async function saveSiteProperty(){
+ if(siteAdminState.saving||!isGestorOrAdmin())return;if(!APP.supabase||!APP.sbConnected){toast('Sem conexão para salvar','error');return;}
+ const fields={nome:document.getElementById('sp_nome').value.trim(),slug:siteSlugify(document.getElementById('sp_slug').value||document.getElementById('sp_nome').value),cidade:document.getElementById('sp_cidade').value.trim(),tipo:document.getElementById('sp_tipo').value.trim(),fase:document.getElementById('sp_fase').value,descricao:document.getElementById('sp_descricao').value.trim(),localizacao:document.getElementById('sp_localizacao').value.trim(),preco:document.getElementById('sp_preco').value?Number(document.getElementById('sp_preco').value):null,foto_url:document.getElementById('sp_foto').value.trim()||null,capa_material_id:document.getElementById('sp_capa').value||null,materiais_ids:Array.from(document.querySelectorAll('#sp_materiais input:checked'),input=>input.value),destaque:document.getElementById('sp_destaque').checked,publicado:document.getElementById('sp_publicado').checked,updated_at:new Date().toISOString()};
+ if(!fields.nome||!fields.slug||!fields.cidade||!fields.tipo||!fields.descricao){toast('Preencha nome, cidade, tipo e descrição','error');return;}
+ if(fields.preco!==null&&(!Number.isFinite(fields.preco)||fields.preco<=0)){toast('Informe um preço válido ou deixe vazio','error');return;}
+ if(fields.foto_url&&!materialSafeUrl(fields.foto_url)){toast('Informe um link HTTPS válido para a foto','error');return;}
+ const button=document.getElementById('sitePropertySaveBtn');button.disabled=true;siteAdminState.saving=true;
+ try{
+  let query=siteAdminState.editingId?APP.supabase.from('site_empreendimentos').update(fields).eq('id',siteAdminState.editingId):APP.supabase.from('site_empreendimentos').insert(fields);
+  const {data,error}=await query.select('id');if(error||!data?.length)throw error||new Error('Sem permissão');
+  closeModal('sitePropertyModal');toast(fields.publicado?'Empreendimento salvo e publicado!':'Rascunho salvo!','success');await loadSiteAdmin();
+ }catch(error){toast(error.code==='23505'?'Esse endereço já está em uso. Altere o identificador do link.':'Não foi possível salvar. Verifique a conexão e tente novamente.','error');console.error('Salvar site:',error);}
+ finally{button.disabled=false;siteAdminState.saving=false;}
+}
+async function toggleSiteProperty(id){
+ if(!isGestorOrAdmin()||!APP.supabase||!APP.sbConnected)return;const p=siteAdminState.properties.find(p=>p.id===id);if(!p)return;
+ if(!p.publicado&&(!p.cidade||!p.descricao)){toast('Edite o empreendimento e preencha cidade e descrição antes de publicar','error');return;}
+ const {data,error}=await APP.supabase.from('site_empreendimentos').update({publicado:!p.publicado,updated_at:new Date().toISOString()}).eq('id',id).select('id');
+ if(error||!data?.length){toast('Não foi possível alterar a publicação','error');return;}toast(p.publicado?'Empreendimento retirado do site':'Empreendimento publicado','success');await loadSiteAdmin();
+}
+async function previewSiteProperty(id){
+ const p=siteAdminState.properties.find(p=>p.id===id);if(!p)return;
+ let cover=materialSafeUrl(p.foto_url);const material=siteAdminState.materials.find(m=>m.id===p.capa_material_id);
+ if(!cover&&material)try{cover=await materialAccessUrl(material);}catch{}
+ document.getElementById('sitePreviewBody').innerHTML=`${cover?`<img src="${agentEscape(cover)}" alt="${agentEscape(p.nome)}" style="width:100%;max-height:320px;object-fit:cover;margin-bottom:18px">`:''}<div class="material-meta">${agentEscape(p.cidade)} · ${SITE_PHASES[p.fase]||''} · ${p.publicado?'Publicado':'Rascunho'}</div><h2 style="margin:10px 0">${agentEscape(p.nome)}</h2><p style="white-space:pre-wrap">${agentEscape(p.descricao)}</p><p>${agentEscape(p.tipo)}${p.localizacao?' · '+agentEscape(p.localizacao):''}</p><p>${p.preco?'A partir de '+Number(p.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'Valores e condições: consulte a equipe'}</p><div class="material-meta">${(p.materiais_ids||[]).length} materiais selecionados. Materiais marcados como uso interno não são exibidos aos visitantes.</div>`;openModal('sitePreviewModal');
+}
+function openSiteSettings(){
+ if(!isGestorOrAdmin())return;document.getElementById('ss_whatsapp').value=siteAdminState.config?.whatsapp||'';
+ document.getElementById('ss_corretor').innerHTML=siteAdminState.brokers.map(b=>`<option value="${agentEscape(b.nome)}">${agentEscape(b.nome)}</option>`).join('');document.getElementById('ss_corretor').value=siteAdminState.config?.corretor_padrao||'Alex';openModal('siteSettingsModal');
+}
+async function saveSiteSettings(){
+ if(!isGestorOrAdmin()||!APP.supabase||!APP.sbConnected)return;const phone=document.getElementById('ss_whatsapp').value.replace(/\D/g,'');if(!/^[0-9]{10,13}$/.test(phone)){toast('Informe o WhatsApp com DDD e código do país','error');return;}
+ const button=document.getElementById('siteSettingsSaveBtn');button.disabled=true;
+ try{const {data,error}=await APP.supabase.from('site_config').update({whatsapp:phone,corretor_padrao:document.getElementById('ss_corretor').value,updated_at:new Date().toISOString()}).eq('id',1).select('id');if(error||!data?.length)throw error||new Error('Sem permissão');closeModal('siteSettingsModal');toast('Contato e responsável atualizados!','success');await loadSiteAdmin();}catch{toast('Não foi possível salvar as configurações','error');}finally{button.disabled=false;}
 }
 
 // -- RADAR DO DIA --
