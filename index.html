@@ -721,6 +721,16 @@ html.light .pill-atendimento{color:#6743b5}
 </div>
 
 <!-- SUPABASE CONFIG MODAL -->
+<div class="modal-overlay" id="vipAyraAddModal">
+  <div class="modal form-modal" style="max-width:480px">
+    <div class="modal-head"><div><div class="modal-name">Incluir no Grupo VIP AYRA</div><div class="modal-sub">Selecione o contato que aceitou o convite</div></div><button class="modal-close" onclick="closeModal('vipAyraAddModal')">×</button></div>
+    <div class="modal-body">
+      <input class="form-input" id="vipAyraAddSearch" placeholder="Buscar nome ou telefone" oninput="renderVipAyraAddOptions()" style="width:100%;margin-bottom:12px">
+      <select class="form-input" id="vipAyraAddLead" size="7" style="width:100%"></select>
+      <div style="margin-top:16px;text-align:right"><button class="btn btn-primary" id="vipAyraAddSubmit" onclick="addSelectedVipAyra()">Incluir contato</button></div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="configModal">
   <div class="modal" style="max-width:540px">
     <div class="modal-head">
@@ -910,6 +920,9 @@ CREATE TABLE historico (
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
           Pipeline Kanban
         </div>
+        <div class="nav-item" onclick="showPage('vipayra',this)">
+          <span style="font-size:17px">⭐</span> Grupo VIP AYRA
+        </div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Gestão</div>
@@ -1085,6 +1098,16 @@ CREATE TABLE historico (
       </div>
 
       <!-- AGENDA -->
+      <div class="page" id="page-vipayra">
+        <div class="agenda-toolbar">
+          <input class="form-input" id="vipAyraSearch" placeholder="Buscar nome ou telefone" oninput="renderVipAyra()">
+          <select class="form-input" id="vipAyraBroker" onchange="renderVipAyra()"></select>
+          <button class="btn btn-primary" onclick="openVipAyraAdd()">+ Incluir contato</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px">Contatos que aceitaram o convite para o grupo VIP. Clique no card para abrir o cadastro e use o seletor para avançar a etapa.</p>
+        <div id="vipAyraSummary" style="font-size:13px;margin-bottom:12px;color:var(--text-secondary)"></div>
+        <div class="kanban-wrap" id="vipAyraBoard"></div>
+      </div>
       <div class="page" id="page-agenda">
         <div class="agenda-toolbar" id="agendaToolbar"><label for="agendaBrokerFilter" style="font-size:12px;color:var(--text-muted)">Corretor</label><select id="agendaBrokerFilter" class="form-input" onchange="renderAgenda()"></select></div>
         <div class="agenda-grid">
@@ -1991,7 +2014,7 @@ function showPage(name, el) {
   if(el) el.classList.add('active');
   document.getElementById('pageTitle').textContent = {
     dashboard:'Dashboard', leads:'Leads', kanban:'Pipeline Kanban',
-    agenda:'Agenda & Follow-up', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
+    agenda:'Agenda & Follow-up', vipayra:'Grupo VIP AYRA', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
   }[name] || name;
 
   const lb = document.getElementById('addLeadBtn');
@@ -2007,6 +2030,7 @@ function showPage(name, el) {
   if(name==='leads') renderLeadsTable();
   if(name==='kanban') { renderKanbanFilterBar(); renderKanbanEmpFilterBar(); renderKanban(); }
   if(name==='agenda') renderAgenda();
+  if(name==='vipayra') renderVipAyra();
   if(name==='simulador') {
     const frame = document.getElementById('simuladorFrame');
     if (window.innerWidth <= 768) {
@@ -2053,6 +2077,7 @@ function refreshAll() {
     if(id==='leads') renderLeadsTable();
     if(id==='kanban') renderKanbanFilterBar(), renderKanbanEmpFilterBar(), renderKanban();
     if(id==='agenda') renderAgenda();
+    if(id==='vipayra') renderVipAyra();
     if(id==='equipe') renderTeam();
   }
 }
@@ -2577,6 +2602,59 @@ function formatDuration(ms) {
 }
 
 // -- LEAD DETAIL --
+const VIP_AYRA_STAGES = [
+  {id:'aceitou',label:'Aceitou o convite'},
+  {id:'adicionado',label:'Adicionado ao grupo'},
+  {id:'acompanhamento',label:'Em acompanhamento'},
+  {id:'interesse',label:'Interesse em unidade'},
+  {id:'negociacao',label:'Encaminhado para negociação'}
+];
+let vipDragLead = null;
+function renderVipAyra() {
+  const select = document.getElementById('vipAyraBroker'), current = select.value;
+  const brokers = [...new Set(getLeadsDoUsuario().map(l=>l.corretor).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  select.innerHTML = '<option value="">Todos os corretores</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
+  select.value = current; select.style.display = isGestorOrAdmin()?'':'none';
+  const query = document.getElementById('vipAyraSearch').value.trim().toLocaleLowerCase('pt-BR');
+  const digits = query.replace(/\D/g,'');
+  const leads = getLeadsDoUsuario().filter(l=>l.vip_ayra_etapa && (!select.value||l.corretor===select.value) && (!query || (l.nome||'').toLocaleLowerCase('pt-BR').includes(query) || (digits.length>=4 && (l.telefone||'').replace(/\D/g,'').includes(digits))));
+  document.getElementById('vipAyraSummary').textContent = `${leads.length} contato(s) no funil VIP AYRA`;
+  document.getElementById('vipAyraBoard').innerHTML = VIP_AYRA_STAGES.map(stage=>{
+    const members=leads.filter(l=>l.vip_ayra_etapa===stage.id);
+    return `<div class="kanban-col" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${stage.label}</span><span class="col-count">${members.length}</span></div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
+  }).join('');
+}
+function dropVipAyra(event,stage) { event.preventDefault(); if(vipDragLead) setVipAyraStage(vipDragLead,stage); vipDragLead=null; }
+function openVipAyraAdd() { document.getElementById('vipAyraAddSearch').value=''; renderVipAyraAddOptions(); openModal('vipAyraAddModal'); }
+function renderVipAyraAddOptions() {
+  const q=document.getElementById('vipAyraAddSearch').value.trim().toLocaleLowerCase('pt-BR'),digits=q.replace(/\D/g,'');
+  const leads=getLeadsDoUsuario().filter(l=>!l.vip_ayra_etapa && (!q||(l.nome||'').toLocaleLowerCase('pt-BR').includes(q)||(digits.length>=4&&(l.telefone||'').replace(/\D/g,'').includes(digits)))).sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+  document.getElementById('vipAyraAddLead').innerHTML=leads.map(l=>`<option value="${l.id}">${agentEscape(l.nome)} · ${agentEscape(l.telefone||'')} · ${agentEscape(l.corretor||'')}</option>`).join('');
+  document.getElementById('vipAyraAddSubmit').disabled=!leads.length;
+}
+async function addSelectedVipAyra() {
+  const id=document.getElementById('vipAyraAddLead').value;
+  if(!id){toast('Selecione um contato','error');return;}
+  const button=document.getElementById('vipAyraAddSubmit');button.disabled=true;
+  try { if(await setVipAyraStage(id,'aceitou'))closeModal('vipAyraAddModal'); } finally { button.disabled=false; }
+}
+async function setVipAyraStage(id,stage) {
+  if(stage && !VIP_AYRA_STAGES.some(s=>s.id===stage))return false;
+  const lead=getLeadsDoUsuario().find(l=>l.id===id);if(!lead)return false;
+  if(!stage && !confirm('Remover este contato do funil VIP AYRA? O cadastro principal será mantido.'))return false;
+  const old=lead.vip_ayra_etapa||'';if(old===stage)return true;
+  try {
+    if(APP.supabase&&APP.sbConnected){
+      const {data,error}=await APP.supabase.from('leads').update({vip_ayra_etapa:stage||null}).eq('id',id).select('id');
+      if(error||!data?.length)throw error||new Error('Não foi possível atualizar o contato');
+    }
+    lead.vip_ayra_etapa=stage||null;
+    addHistory(id,stage?`Grupo VIP AYRA: ${VIP_AYRA_STAGES.find(s=>s.id===stage).label}`:'Removido do funil Grupo VIP AYRA','note');
+    saveToLocal();refreshAll();
+    if(document.getElementById('leadModal').classList.contains('open'))openLeadDetail(id);
+    toast(stage?'Contato atualizado no funil VIP AYRA':'Contato removido do funil VIP AYRA','success');return true;
+  }catch(error){console.error(error);toast('Não foi possível salvar a etapa VIP. Tente novamente.','error');renderVipAyra();return false;}
+}
 function openLeadDetail(id) {
   const lead = APP.leads.find(l => l.id === id);
   if (!lead) return;
@@ -2591,6 +2669,7 @@ function openLeadDetail(id) {
   av.style.color = getAvatarColor(lead.nome);
 
   document.getElementById('modalActions').innerHTML = `
+    <button class="btn btn-secondary btn-sm" onclick="setVipAyraStage('${lead.id}', '${lead.vip_ayra_etapa ? '' : 'aceitou'}')">${lead.vip_ayra_etapa?'⭐ Remover do funil VIP AYRA':'⭐ Incluir no VIP AYRA'}</button>
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
     <button class="btn btn-secondary btn-sm" onclick="openLeadAction('${lead.id}')">📞 Registrar ação</button>
     <button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${lead.id}')">📅 Agendar follow-up</button>
@@ -2607,6 +2686,7 @@ function openLeadDetail(id) {
     <div class="info-row"><div class="info-label">Telefone</div><div class="info-value">${lead.telefone||'—'}</div></div>
     <div class="info-row"><div class="info-label">E-mail</div><div class="info-value">${lead.email||'—'}</div></div>
     <div class="info-row"><div class="info-label">Origem</div><div class="info-value">${lead.origem||'—'}</div></div>
+    <div class="info-row"><div class="info-label">Grupo VIP AYRA</div><div class="info-value">${VIP_AYRA_STAGES.find(s=>s.id===lead.vip_ayra_etapa)?.label||'Ainda não incluído'}</div></div>
     <div class="info-row">
       <div class="info-label">Corretor Responsável</div>
       <div class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
