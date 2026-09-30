@@ -695,7 +695,8 @@ html.light .pill-atendimento{color:#6743b5}
       <div class="form-field"><label class="form-label">Qual foi o resultado?</label><select class="form-input" id="taskOutcome" onchange="suggestNextTask()"><option value="">Selecione...</option><option>Respondeu</option><option>Não respondeu</option><option>Demonstrou interesse</option><option>Visita agendada</option><option>Visita realizada</option><option>Pediu retorno</option><option>Sem interesse</option><option>Outro</option></select></div>
       <div class="form-field"><label class="form-label">Como foi o contato?</label><select class="form-input" id="taskActionType"><option value="">Selecione...</option><option value="call">📞 Ligação</option><option value="audio">🎤 Áudio</option><option value="message">💬 Mensagem</option><option value="visit">🏠 Visita</option><option value="contact">🤝 Outro contato</option></select></div>
       <div class="form-field"><label class="form-label">Observação (opcional)</label><textarea class="form-input" id="taskOutcomeNote" style="min-height:55px"></textarea></div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;font-size:13px;font-weight:600">Próxima ação (opcional)</div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;font-size:13px;font-weight:600">Qual é o próximo passo?</div>
+      <div class="form-field"><label class="form-label" for="taskNextChoice">Continuidade do atendimento</label><select class="form-input" id="taskNextChoice" onchange="setTaskNextChoice()"><option value="">Selecione o próximo passo...</option><option value="return">💬 Agendar retorno</option><option value="visit">🏡 Agendar visita</option><option value="existing">📅 Manter tarefa já agendada</option><option value="none">Concluir sem novo agendamento</option></select><div id="taskNextHint" style="font-size:11px;color:var(--text-muted);margin-top:5px"></div></div>
       <div class="form-field"><label class="form-label">O que fazer?</label><input class="form-input" id="taskNextTitle" placeholder="Ex.: retomar contato"></div>
       <div class="form-field"><label class="form-label">Quando?</label><input class="form-input" id="taskNextDate" type="datetime-local"></div>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px"><button class="btn btn-secondary" onclick="closeModal('taskResultModal')">Cancelar</button><button class="btn btn-primary" id="taskResultSubmit" onclick="completeTaskWithOutcome()">Salvar resultado</button></div>
@@ -3529,11 +3530,31 @@ function radarIsVisit(task) {
   const title=(task.titulo||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
   return /^(?:(?:realizar|acompanhar|fazer)\s+)?visita\b/i.test(title);
 }
-function getRadarData(leads,tasks,history,now=new Date()) {
+function radarTaskLeadId(task,leads) {
+  const ref=String(task.lead_rel||'').trim();
+  const exact=leads.find(l=>String(l.id)===ref);
+  if(exact)return exact.id;
+  const matches=leads.filter(l=>l.nome?.trim().toLocaleLowerCase('pt-BR')===ref.toLocaleLowerCase('pt-BR'));
+  return matches.length===1?matches[0].id:null;
+}
+let radarStaleDays=Number(localStorage.getItem('3ps_radar_days'))||7;
+if(![3,7,14,30].includes(radarStaleDays))radarStaleDays=7;
+function setRadarStaleDays(value) {
+  radarStaleDays=Number(value);
+  localStorage.setItem('3ps_radar_days',String(radarStaleDays));
+  renderAlertsPanel();
+}
+function getRadarData(leads,tasks,history,now=new Date(),staleDays=7) {
   const today=radarDay(now);
   const pending=tasks.filter(t=>!t.concluida && t.data_hora && !Number.isNaN(new Date(t.data_hora).getTime()))
     .sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora));
+  const active=leads.filter(l=>!['novo','fechada','perdido'].includes(l.status));
+  const futureLeadIds=new Set(pending.filter(t=>new Date(t.data_hora)>=now).map(t=>radarTaskLeadId(t,leads)).filter(Boolean));
+  const lastContact=l=>Math.max(0,...(history[l.id]||[]).filter(h=>ACTION_LABELS[h.type]).map(h=>new Date(h.date).getTime()).filter(Number.isFinite));
+  const stale=active.map(l=>({lead:l,since:lastContact(l)||new Date(l.created_at).getTime()})).filter(item=>Number.isFinite(item.since) && now.getTime()-item.since>=staleDays*86400000).sort((a,b)=>a.since-b.since);
   return {
+    noNext:active.filter(l=>!futureLeadIds.has(l.id)).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)),
+    stale,
     overdue:pending.filter(t=>new Date(t.data_hora)<now),
     returns:pending.filter(t=>radarDay(t.data_hora)===today && !radarIsVisit(t)),
     visits:pending.filter(t=>radarDay(t.data_hora)===today && radarIsVisit(t)),
@@ -3545,13 +3566,15 @@ function renderAlertsPanel() {
   const panel=document.getElementById('alertsPanel');
   if(!panel)return;
   const now=new Date();
-  const radar=getRadarData(getDashboardLeads(),getDashboardTasks(),APP.history,now);
+  const radar=getRadarData(getDashboardLeads(),getDashboardTasks(),APP.history,now,radarStaleDays);
   const scope=isGestorOrAdmin()?(document.getElementById('dashboardBroker').value||'Equipe inteira'):(APP.user?.corretor_ref||'Meus atendimentos');
   const taskRow=t=>`<button type="button" class="radar-row" onclick="openTaskDetail('${t.id}')">${agentEscape(agendaLeadName(t))}<small>${agentEscape(t.titulo||'Tarefa')} · ${agentEscape(new Date(t.data_hora).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))} · ${agentEscape(t.corretor||agendaLeadForTask(t)?.corretor||'Sem corretor')}</small></button>`;
   const leadRow=l=>`<button type="button" class="radar-row" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}<small>${agentEscape(l.empreendimento||'Sem empreendimento')} · ${agentEscape(l.corretor||'Sem corretor')} · Sem contato registrado</small></button>`;
+  const followupRow=l=>`<button type="button" class="radar-row" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}<small>${agentEscape(STATUS_LABELS[l.status]||l.status)} · ${agentEscape(l.corretor||'Sem corretor')}</small></button><button type="button" class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${l.id}')">Agendar retorno</button>`;
+  const staleRow=item=>`<button type="button" class="radar-row" onclick="openLeadDetail('${item.lead.id}')">${agentEscape(item.lead.nome)}<small>Há ${Math.floor((now-item.since)/86400000)} dias sem contato registrado · ${agentEscape(item.lead.corretor||'Sem corretor')}</small></button>`;
   const box=(title,items,row,empty)=>`<div class="radar-box"><div class="radar-head"><span>${title}</span><span class="pill">${items.length}</span></div>${items.length?items.slice(0,5).map(row).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:8px 0">'+empty+'</div>'}${items.length>5?`<details><summary style="cursor:pointer;font-size:12px;color:var(--purple-light);padding-top:8px">Ver mais ${items.length-5}</summary>${items.slice(5).map(row).join('')}</details>`:''}</div>`;
   panel.style.borderColor='var(--border)';
-  panel.innerHTML=`<div class="alerts-panel-head"><div class="alerts-panel-title">📡 Radar do Dia</div><span style="font-size:12px;color:var(--text-muted)">${agentEscape(scope)} · ${radarDay(now)}</span></div><div class="radar-grid">${box('⏰ Atrasados',radar.overdue,taskRow,'Nenhuma tarefa atrasada.')}${box('💬 Retornos de hoje',radar.returns,taskRow,'Nenhum retorno agendado para hoje.')}${box('🏡 Visitas de hoje',radar.visits,taskRow,'Nenhuma visita agendada para hoje.')}${box('🆕 Novos sem contato',radar.untouched,leadRow,'Todos os novos leads têm contato registrado.')}</div><div style="font-size:10px;color:var(--text-muted);margin-top:10px">Horário de Brasília. Tarefas vencidas hoje também aparecem em Atrasados. Visitas são tarefas com título “Visita”, “Realizar visita”, “Fazer visita” ou “Acompanhar visita”.</div>`;
+  panel.innerHTML=`<div class="alerts-panel-head"><div class="alerts-panel-title">📡 Radar do Dia</div><span style="font-size:12px;color:var(--text-muted)">${agentEscape(scope)} · ${radarDay(now)}</span></div><div class="radar-grid">${box('⏰ Atrasados',radar.overdue,taskRow,'Nenhuma tarefa atrasada.')}${box('💬 Retornos de hoje',radar.returns,taskRow,'Nenhum retorno agendado para hoje.')}${box('🏡 Visitas de hoje',radar.visits,taskRow,'Nenhuma visita agendada para hoje.')}${box('🆕 Novos sem contato',radar.untouched,leadRow,'Todos os novos leads têm contato registrado.')}${box('📅 Sem próxima tarefa',radar.noNext,followupRow,'Todos os leads em andamento têm uma tarefa futura.')}${box('🔎 Sem contato recente',radar.stale,staleRow,'Nenhum lead em andamento ultrapassou o prazo.')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:12px"><label for="radarDays">Alertar após</label><select class="form-input" style="width:auto" id="radarDays" onchange="setRadarStaleDays(this.value)">${[3,7,14,30].map(d=>`<option value="${d}" ${d===radarStaleDays?'selected':''}>${d} dias sem contato</option>`).join('')}</select><span style="color:var(--text-muted)">Considera ligações, áudios, mensagens e visitas registrados. Sem contato anterior, conta desde o cadastro.</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:10px">Horário de Brasília. Tarefas vencidas hoje também aparecem em Atrasados. Visitas são tarefas com título “Visita”, “Realizar visita”, “Fazer visita” ou “Acompanhar visita”.</div>`;
 }
 
 function completeFromPanel(id) { openTaskResult(id); }
@@ -3770,7 +3793,7 @@ async function saveTask() {
   APP.tasks.unshift(task);
   saveToLocal();
   updateBadges();
-  renderAgenda();
+  refreshAll();
   closeModal('addTaskModal');
   toast('Tarefa criada!','success');
   ['t_titulo','t_lead','t_notas'].forEach(id => document.getElementById(id).value = '');
@@ -3797,21 +3820,45 @@ function openTaskResult(id) {
   if (!task || task.concluida) return;
   agendaCompletingTaskId = id;
   document.getElementById('taskResultTitle').textContent = task.titulo + (agendaLeadName(task) ? ' · '+agendaLeadName(task) : '');
-  ['taskOutcome','taskOutcomeNote','taskNextTitle','taskNextDate'].forEach(key=>document.getElementById(key).value='');
+  ['taskOutcome','taskOutcomeNote','taskNextTitle','taskNextDate','taskNextChoice'].forEach(key=>document.getElementById(key).value='');
   document.getElementById('taskActionType').value = '';
+  setTaskNextChoice();
   closeModal('taskDetailModal');
   openModal('taskResultModal');
 }
+function taskHasFutureFollowup(task,now=new Date()) {
+  const lead=agendaLeadForTask(task);
+  return lead && APP.tasks.some(t=>t.id!==task.id && !t.concluida && new Date(t.data_hora)>=now && radarTaskLeadId(t,APP.leads)===lead.id);
+}
+function setTaskNextChoice() {
+  const choice=document.getElementById('taskNextChoice').value;
+  const schedule=choice==='return'||choice==='visit';
+  ['taskNextTitle','taskNextDate'].forEach(id=>{
+    const input=document.getElementById(id);
+    input.closest('.form-field').style.display=schedule?'':'none';
+    if(!schedule)input.value='';
+  });
+  if(schedule) {
+    document.getElementById('taskNextTitle').value=choice==='visit'?'Visita ao imóvel':'Retomar contato';
+    if(!document.getElementById('taskNextDate').value) {
+      const d=new Date();d.setDate(d.getDate()+1);d.setHours(10,0,0,0);
+      document.getElementById('taskNextDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T10:00`;
+    }
+  }
+  const task=APP.tasks.find(t=>t.id===agendaCompletingTaskId);
+  document.getElementById('taskNextHint').textContent=choice==='none'?'O lead poderá aparecer no Radar sem próxima tarefa. Sua etapa do funil será mantida.':choice==='existing'?(task&&taskHasFutureFollowup(task)?'A próxima tarefa existente será mantida.':'Este atendimento não tem outra tarefa futura. Escolha um agendamento ou conclua sem novo agendamento.'):'Confira a data e o horário combinados com o cliente.';
+}
 function suggestNextTask() {
-  const result = document.getElementById('taskOutcome').value;
-  const suggestions = {'Não respondeu':['Retomar contato',2], 'Demonstrou interesse':['Enviar informações e retornar',1], 'Visita agendada':['Confirmar visita',1], 'Visita realizada':['Pedir retorno sobre a visita',1], 'Pediu retorno':['Retomar contato',2]};
-  const next = suggestions[result];
-  document.getElementById('taskNextTitle').value = next?.[0] || '';
-  const date = document.getElementById('taskNextDate');
-  date.value = '';
-  if (next) {
-    const d = new Date(); d.setDate(d.getDate()+next[1]); d.setHours(10,0,0,0);
-    date.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T10:00`;
+  const result=document.getElementById('taskOutcome').value;
+  const suggestions={'Respondeu':['Retomar contato',1], 'Não respondeu':['Retomar contato',2], 'Demonstrou interesse':['Enviar informações e retornar',1], 'Visita agendada':['Confirmar visita',1], 'Visita realizada':['Pedir retorno sobre a visita',1], 'Pediu retorno':['Retomar contato',2], 'Outro':['Retomar contato',1]};
+  const task=APP.tasks.find(t=>t.id===agendaCompletingTaskId);
+  const next=suggestions[result];
+  document.getElementById('taskNextChoice').value=result==='Sem interesse'?'none':task&&taskHasFutureFollowup(task)?'existing':next?'return':'';
+  setTaskNextChoice();
+  if(next && document.getElementById('taskNextChoice').value==='return') {
+    document.getElementById('taskNextTitle').value=next[0];
+    const d=new Date();d.setDate(d.getDate()+next[1]);d.setHours(10,0,0,0);
+    document.getElementById('taskNextDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T10:00`;
   }
 }
 async function completeTaskWithOutcome() {
@@ -3820,11 +3867,14 @@ async function completeTaskWithOutcome() {
   const outcome = document.getElementById('taskOutcome').value;
   const actionType = document.getElementById('taskActionType').value;
   const note = document.getElementById('taskOutcomeNote').value.trim();
+  const nextChoice=document.getElementById('taskNextChoice').value;
   const nextTitle = document.getElementById('taskNextTitle').value.trim();
   const nextDate = document.getElementById('taskNextDate').value;
   if (!outcome) { toast('Selecione o resultado','error'); return; }
   if (!ACTION_LABELS[actionType]) { toast('Selecione como foi o contato','error'); return; }
-  if (!!nextTitle !== !!nextDate || (nextDate && Number.isNaN(new Date(nextDate).getTime()))) { toast('Preencha a próxima ação e sua data, ou deixe ambas vazias','error'); return; }
+  if (!['return','visit','existing','none'].includes(nextChoice)) { toast('Escolha o próximo passo do atendimento','error'); return; }
+  if (nextChoice==='existing' && !taskHasFutureFollowup(task)) { toast('Não existe outra tarefa futura para este lead. Escolha o próximo passo.','error'); return; }
+  if ((nextChoice==='return'||nextChoice==='visit') && (!nextTitle||!nextDate||Number.isNaN(new Date(nextDate).getTime())||new Date(nextDate)<=new Date())) { toast('Preencha a próxima ação com uma data e um horário futuros','error'); return; }
   const button = document.getElementById('taskResultSubmit');
   button.disabled = true;
   const completedAt = new Date().toISOString();
@@ -3835,7 +3885,10 @@ async function completeTaskWithOutcome() {
     }
     task.concluida = true; task.resultado = outcome+(note?' · '+note:''); task.concluida_em = completedAt;
     const lead = agendaLeadForTask(task);
-    if (lead) addHistory(lead.id, `${ACTION_LABELS[actionType]} · ${task.titulo}. Resultado: ${task.resultado}`, actionType);
+    if (lead) {
+      addHistory(lead.id, `${ACTION_LABELS[actionType]} · ${task.titulo}. Resultado: ${task.resultado}`, actionType);
+      if(nextChoice==='none')addHistory(lead.id,'Atendimento concluído sem novo agendamento.','note');
+    }
     if (nextTitle) {
       const next = {id:String(Date.now()), titulo:nextTitle, lead_rel:lead?.id||task.lead_rel||'', corretor:task.corretor||lead?.corretor||'', data_hora:new Date(nextDate).toISOString(), prioridade:task.prioridade||'media', notas:'', concluida:false};
       if (APP.supabase && APP.sbConnected) {
