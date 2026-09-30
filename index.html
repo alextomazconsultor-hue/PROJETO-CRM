@@ -308,6 +308,15 @@ select.form-input option{background:var(--bg-card)}
 .agenda-lead-row .name{color:var(--text-primary);font-weight:600}
 .agenda-lead-row .detail{color:var(--text-muted);margin-top:2px}
 
+/* MATERIAL DE APOIO */
+.material-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.material-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;min-width:0}
+.material-card h3{font-size:15px;margin:10px 0 6px;color:var(--text-primary);overflow-wrap:anywhere}
+.material-meta{font-size:11px;color:var(--text-muted);line-height:1.6;overflow-wrap:anywhere}
+.material-description{font-size:12px;color:var(--text-secondary);white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
+.material-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.material-section{margin-bottom:24px}
+.material-section h2{font-size:16px;margin:0 0 12px;color:var(--text-primary)}
 /* EQUIPE */
 .team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
 .team-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:border-color var(--transition)}
@@ -687,6 +696,19 @@ html.light .pill-atendimento{color:#6743b5}
   </div>
 </div>
 
+<!-- MATERIAL DE APOIO: CADASTRO -->
+<div class="modal-overlay" id="materialEditorModal"><div class="modal form-modal" style="max-width:560px"><div class="modal-head"><div class="modal-name" id="materialEditorTitle">Adicionar material</div><button type="button" class="modal-close" onclick="closeModal('materialEditorModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+  <div class="form-field"><label class="form-label" for="m_title">Título</label><input class="form-input" id="m_title" maxlength="180" placeholder="Ex.: Apresentação Scenarium"></div>
+  <div class="form-field"><label class="form-label" for="m_emp">Empreendimento</label><input class="form-input" id="m_emp" list="materialEmpOptions" maxlength="180" placeholder="Digite ou selecione; deixe vazio para material geral"><datalist id="materialEmpOptions"></datalist></div>
+  <div class="form-field"><label class="form-label" for="m_category">Tipo de material</label><select class="form-input" id="m_category"></select></div>
+  <div class="form-field"><label class="form-label" for="m_description">Descrição (opcional)</label><textarea class="form-input" id="m_description" maxlength="2000" placeholder="Ex.: tabela comercial atualizada em setembro"></textarea></div>
+  <div class="form-field"><label class="form-label" for="m_source">Como adicionar?</label><select class="form-input" id="m_source" onchange="toggleMaterialSource()"><option value="file">Enviar arquivo</option><option value="link">Cadastrar link</option></select></div>
+  <div class="form-field" id="m_fileField"><label class="form-label" for="m_file">Arquivo (até 50 MB)</label><input class="form-input" id="m_file" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.webp,.mp4,.mov,.mp3,.zip"><div class="material-meta" id="m_currentFile"></div><div class="material-meta">PDF, apresentações, planilhas, fotos, vídeos, áudio ou ZIP. Para vídeos maiores, cadastre um link.</div></div>
+  <div class="form-field" id="m_urlField"><label class="form-label" for="m_url">Link HTTPS</label><input class="form-input" id="m_url" type="url" placeholder="https://…"><div class="material-meta">Confira se o destinatário terá acesso ao link externo.</div></div>
+  <div class="form-field"><label class="form-label" for="m_visibility">Uso do material</label><select class="form-input" id="m_visibility"><option value="share">Compartilhável com clientes</option><option value="internal">Uso interno da equipe</option></select></div>
+  <div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn btn-secondary" onclick="closeModal('materialEditorModal')">Cancelar</button><button type="button" class="btn btn-primary" id="materialSaveBtn" onclick="saveMaterial()">Salvar material</button></div>
+</div></div></div>
+<div class="modal-overlay" id="materialShareModal"><div class="modal form-modal" style="max-width:500px"><div class="modal-head"><div class="modal-name">Compartilhar material</div><button type="button" class="modal-close" onclick="closeModal('materialShareModal')">×</button></div><div class="modal-body"><label class="form-label" for="materialShareText">Copie e envie ao cliente</label><textarea class="form-input" id="materialShareText" readonly style="min-height:140px" onclick="this.select()"></textarea><p class="material-meta" id="materialShareHint"></p><button type="button" class="btn btn-primary" onclick="copyMaterialShareText()">Copiar mensagem</button></div></div></div>
 <!-- RESULTADO DO FOLLOW-UP -->
 <div class="modal-overlay" id="taskResultModal">
   <div class="modal form-modal" style="max-width:480px">
@@ -938,6 +960,7 @@ CREATE TABLE historico (
           Agenda & Follow-up
           <span class="nav-badge" id="tasksCount">0</span>
         </div>
+        <div class="nav-item" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
         <div class="nav-item" onclick="showPage('simulador',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="17" y2="16"/></svg>
           Simulador de Fluxo
@@ -1134,6 +1157,14 @@ CREATE TABLE historico (
         </div>
       </div>
 
+      <!-- MATERIAL DE APOIO -->
+      <div class="page" id="page-materiais">
+        <div class="chart-card" style="margin-bottom:18px"><div class="chart-title">📁 Materiais da Exclusive Imóveis</div><p style="font-size:13px;color:var(--text-secondary);margin:8px 0 16px">Apresentações, plantas, fotos, vídeos e tabelas para apoiar o atendimento.</p>
+          <div class="agenda-toolbar"><input id="materialSearch" class="form-input" type="search" placeholder="Buscar material…" aria-label="Buscar material" oninput="renderMaterials()" style="flex:1"><select id="materialEmpFilter" class="form-input" aria-label="Filtrar por empreendimento" onchange="renderMaterials()"></select><select id="materialCategoryFilter" class="form-input" aria-label="Filtrar por tipo" onchange="renderMaterials()"><option value="">Todos os tipos</option></select><button type="button" class="btn btn-secondary" onclick="loadMaterials()">Atualizar</button><button type="button" id="materialAddBtn" class="btn btn-primary" onclick="openMaterialEditor()">+ Adicionar material</button></div>
+          <div id="materialCount" class="material-meta" role="status"></div>
+        </div>
+        <div id="materialList"></div>
+      </div>
       <!-- SIMULADOR DE FLUXO -->
       <div class="page" id="page-simulador" style="height:calc(100vh - 108px)">
         <iframe id="simuladorFrame" title="Simulador de Fluxo" data-src="simulador.html?embed=1" style="width:100%;height:100%;border:0;border-radius:12px;background:var(--bg-base)"></iframe>
@@ -2022,7 +2053,7 @@ function showPage(name, el) {
   if(el) el.classList.add('active');
   document.getElementById('pageTitle').textContent = {
     dashboard:'Dashboard', leads:'Leads', kanban:'Pipeline Kanban',
-    agenda:'Agenda & Follow-up', vipayra:'Grupo VIP AYRA', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
+    agenda:'Agenda & Follow-up', materiais:'Material de apoio', vipayra:'Grupo VIP AYRA', simulador:'Simulador de Fluxo', equipe:'Equipe', config:'Configurações'
   }[name] || name;
 
   const lb = document.getElementById('addLeadBtn');
@@ -2038,6 +2069,7 @@ function showPage(name, el) {
   if(name==='leads') renderLeadsTable();
   if(name==='kanban') { renderKanbanFilterBar(); renderKanbanEmpFilterBar(); renderKanban(); }
   if(name==='agenda') renderAgenda();
+  if(name==='materiais') loadMaterials();
   if(name==='vipayra') renderVipAyra();
   if(name==='simulador') {
     const frame = document.getElementById('simuladorFrame');
@@ -2085,6 +2117,7 @@ function refreshAll() {
     if(id==='leads') renderLeadsTable();
     if(id==='kanban') renderKanbanFilterBar(), renderKanbanEmpFilterBar(), renderKanban();
     if(id==='agenda') renderAgenda();
+    if(id==='materiais') renderMaterials();
     if(id==='vipayra') renderVipAyra();
     if(id==='equipe') renderTeam();
   }
@@ -3520,6 +3553,141 @@ function agentVoltar() { agentBack(); }
 function processarLeadAgente() { agentProcessSingle(); }
 async function confirmarLeadAgente() { await confirmarLeadUnico(); }
 function agentConfirm() {}
+
+// -- MATERIAL DE APOIO --
+const MATERIAL_CATEGORIES={apresentacao:'📑 Apresentação',planta:'📐 Planta',video:'🎬 Vídeo',foto:'🖼️ Foto',tabela:'📊 Tabela comercial',outro:'📎 Outro'};
+const MATERIAL_EXTENSIONS=['pdf','ppt','pptx','doc','docx','xls','xlsx','csv','jpg','jpeg','png','webp','mp4','mov','mp3','zip'];
+const materialsState={items:[],loading:false,error:'',sequence:0,editingId:null,saving:false};
+function materialSafeUrl(value) {
+  try { const url=new URL(value);return url.protocol==='https:' && !url.username && !url.password ? url.href : null; } catch { return null; }
+}
+function materialEmpNames() {
+  return [...new Set([...APP.empreendimentos,...materialsState.items.map(m=>m.empreendimento)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+async function loadMaterials() {
+  const sequence=++materialsState.sequence;
+  materialsState.loading=true;materialsState.error='';materialsState.items=[];renderMaterials();
+  try {
+    if(!APP.supabase||!APP.sbConnected)throw new Error('Sem conexão. Reconecte o CRM e tente novamente.');
+    const items=[];
+    for(let offset=0;;offset+=500) {
+      const {data,error}=await APP.supabase.from('materiais_apoio').select('*').order('updated_at',{ascending:false}).order('id').range(offset,offset+499);
+      if(error)throw error;
+      items.push(...(data||[]));if(!data||data.length<500)break;
+    }
+    if(sequence===materialsState.sequence)materialsState.items=items;
+  } catch(error) {if(sequence===materialsState.sequence)materialsState.error='Não foi possível carregar os materiais. Verifique a conexão e clique em Atualizar.';console.error('Materiais:',error);}
+  finally {if(sequence===materialsState.sequence){materialsState.loading=false;renderMaterials();}}
+}
+function filteredMaterials(items,search,emp,category) {
+  const q=search.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+  return items.filter(m=>(!emp||(emp==='__geral__'?!m.empreendimento:m.empreendimento===emp))&&(!category||m.categoria===category)&&(!q||[m.titulo,m.descricao,m.empreendimento].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').includes(q)));
+}
+function renderMaterials() {
+  const list=document.getElementById('materialList');if(!list)return;
+  document.getElementById('materialAddBtn').style.display=isGestorOrAdmin()?'inline-flex':'none';
+  const filter=document.getElementById('materialEmpFilter'),current=filter.value;
+  filter.innerHTML='<option value="">Todos os empreendimentos</option><option value="__geral__">Materiais gerais</option>'+materialEmpNames().map(e=>`<option value="${agentEscape(e)}">${agentEscape(e)}</option>`).join('');filter.value=current;
+  const category=document.getElementById('materialCategoryFilter'),selected=category.value;
+  category.innerHTML='<option value="">Todos os tipos</option>'+Object.entries(MATERIAL_CATEGORIES).map(([key,label])=>`<option value="${key}">${label}</option>`).join('');category.value=selected;
+  const count=document.getElementById('materialCount');
+  if(materialsState.loading){count.textContent='Carregando materiais…';list.innerHTML='';return;}
+  if(materialsState.error){count.textContent=materialsState.error;list.innerHTML='';return;}
+  const items=filteredMaterials(materialsState.items,document.getElementById('materialSearch').value,filter.value,category.value);
+  count.textContent=`${items.length} ${items.length===1?'material encontrado':'materiais encontrados'} · ${materialsState.items.length} no total`;
+  if(!items.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-title">${materialsState.items.length?'Nenhum material corresponde aos filtros':'Sua central de materiais está pronta'}</div><div class="empty-desc">${materialsState.items.length?'Ajuste a busca ou os filtros.':isGestorOrAdmin()?'Clique em Adicionar material para cadastrar o primeiro arquivo ou link.':'Os materiais aparecerão aqui quando a gestão os cadastrar.'}</div></div>`;return;}
+  const groups=new Map();items.forEach(m=>{const emp=m.empreendimento||'Materiais gerais';if(!groups.has(emp))groups.set(emp,[]);groups.get(emp).push(m);});
+  list.innerHTML=[...groups].map(([emp,rows])=>`<section class="material-section"><h2>${agentEscape(emp)} <span class="material-meta">(${rows.length})</span></h2><div class="material-grid">${rows.map(m=>`<article class="material-card"><div class="material-meta">${MATERIAL_CATEGORIES[m.categoria]||'📎 Material'} · ${m.compartilhavel?'Compartilhável com clientes':'🔒 Uso interno'}</div><h3>${agentEscape(m.titulo)}</h3><div class="material-meta">Atualizado em ${agentEscape(new Date(m.updated_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}))}${m.nome_arquivo?' · '+agentEscape(m.nome_arquivo):' · Link externo'}${m.tamanho?' · '+(m.tamanho/1048576).toLocaleString('pt-BR',{maximumFractionDigits:1})+' MB':''}</div>${m.descricao?`<p class="material-description">${agentEscape(m.descricao)}</p>`:''}<div class="material-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="openMaterial('${m.id}')">Abrir</button>${m.compartilhavel?`<button type="button" class="btn btn-secondary btn-sm" onclick="shareMaterial('${m.id}','copy')">Copiar link</button><button type="button" class="btn btn-primary btn-sm" onclick="shareMaterial('${m.id}','whatsapp')">WhatsApp</button>`:''}${isGestorOrAdmin()?`<button type="button" class="btn btn-secondary btn-sm" onclick="openMaterialEditor('${m.id}')">Editar</button><button type="button" class="btn btn-secondary btn-sm" onclick="deleteMaterial('${m.id}')">Excluir</button>`:''}</div></article>`).join('')}</div></section>`).join('');
+}
+function toggleMaterialSource() {
+  const file=document.getElementById('m_source').value==='file';
+  document.getElementById('m_fileField').style.display=file?'':'none';document.getElementById('m_urlField').style.display=file?'none':'';
+}
+function openMaterialEditor(id=null) {
+  if(!isGestorOrAdmin()){toast('Somente a gestão pode cadastrar materiais','error');return;}
+  const material=materialsState.items.find(m=>m.id===id);if(id&&!material)return;
+  materialsState.editingId=id;
+  document.getElementById('materialEditorTitle').textContent=id?'Editar material':'Adicionar material';
+  document.getElementById('m_title').value=material?.titulo||'';document.getElementById('m_emp').value=material?.empreendimento||'';document.getElementById('m_description').value=material?.descricao||'';
+  document.getElementById('m_category').innerHTML=Object.entries(MATERIAL_CATEGORIES).map(([k,l])=>`<option value="${k}">${l}</option>`).join('');document.getElementById('m_category').value=material?.categoria||'apresentacao';
+  document.getElementById('materialEmpOptions').innerHTML=materialEmpNames().map(e=>`<option value="${agentEscape(e)}"></option>`).join('');
+  document.getElementById('m_source').value=material?.url?'link':'file';document.getElementById('m_file').value='';document.getElementById('m_url').value=material?.url||'';
+  document.getElementById('m_currentFile').textContent=material?.arquivo_path?'Arquivo atual: '+material.nome_arquivo+'. Escolha outro arquivo somente para substituir.':'';
+  document.getElementById('m_visibility').value=material?.compartilhavel===false?'internal':'share';toggleMaterialSource();openModal('materialEditorModal');
+}
+async function saveMaterial() {
+  if(materialsState.saving)return;
+  if(!isGestorOrAdmin()||!APP.supabase||!APP.sbConnected){toast('É necessário acesso da gestão e conexão com o banco','error');return;}
+  const old=materialsState.items.find(m=>m.id===materialsState.editingId);
+  const fields={titulo:document.getElementById('m_title').value.trim(),empreendimento:document.getElementById('m_emp').value.trim(),categoria:document.getElementById('m_category').value,descricao:document.getElementById('m_description').value.trim(),compartilhavel:document.getElementById('m_visibility').value==='share',updated_at:new Date().toISOString()};
+  const source=document.getElementById('m_source').value,file=document.getElementById('m_file').files[0];
+  if(!fields.titulo||fields.titulo.length>180||!MATERIAL_CATEGORIES[fields.categoria]){toast('Informe o título e o tipo do material','error');return;}
+  if(source==='link') {
+    fields.url=materialSafeUrl(document.getElementById('m_url').value.trim());if(!fields.url){toast('Informe um link HTTPS válido','error');return;}
+    fields.arquivo_path=null;fields.nome_arquivo=null;fields.tamanho=null;
+  } else {
+    if(!file&&!old?.arquivo_path){toast('Selecione o arquivo','error');return;}
+    if(file&&(!MATERIAL_EXTENSIONS.includes(file.name.split('.').pop().toLowerCase())||file.size<1||file.size>52428800)){toast('Formato não permitido ou arquivo acima de 50 MB','error');return;}
+    fields.url=null;fields.arquivo_path=old?.arquivo_path||null;fields.nome_arquivo=old?.nome_arquivo||null;fields.tamanho=old?.tamanho||null;
+  }
+  const button=document.getElementById('materialSaveBtn');materialsState.saving=true;button.disabled=true;button.textContent='Salvando…';let uploadedPath=null;
+  try {
+    if(source==='file'&&file) {
+      uploadedPath=`materiais/${APP.user.id}/${crypto.randomUUID()}.${file.name.split('.').pop().toLowerCase()}`;
+      const {error}=await APP.supabase.storage.from('crm-materiais').upload(uploadedPath,file,{upsert:false});if(error)throw error;
+      fields.arquivo_path=uploadedPath;fields.nome_arquivo=file.name;fields.tamanho=file.size;
+    }
+    let query=old?APP.supabase.from('materiais_apoio').update(fields).eq('id',old.id):APP.supabase.from('materiais_apoio').insert({...fields,created_by:APP.user.id});
+    const {data,error}=await query.select('id');if(error||!data?.length)throw error||new Error('Sem permissão para salvar');
+    uploadedPath=null;
+    if(old?.arquivo_path&&old.arquivo_path!==fields.arquivo_path) {
+      const cleanup=await APP.supabase.storage.from('crm-materiais').remove([old.arquivo_path]);if(cleanup.error)console.error('Limpeza do arquivo substituído:',cleanup.error);
+    }
+    closeModal('materialEditorModal');toast('Material salvo!','success');await loadMaterials();
+  } catch(error) {
+    console.error('Salvar material:',error);
+    if(uploadedPath){const cleanup=await APP.supabase.storage.from('crm-materiais').remove([uploadedPath]);if(cleanup.error)console.error('Limpeza de upload:',cleanup.error);}
+    toast('Não foi possível salvar o material. Confira a conexão e tente novamente.','error');
+  } finally {materialsState.saving=false;button.disabled=false;button.textContent='Salvar material';}
+}
+async function materialAccessUrl(material,share=false) {
+  if(material.url){const url=materialSafeUrl(material.url);if(!url)throw new Error('Link inválido');return url;}
+  if(!APP.supabase||!APP.sbConnected)throw new Error('Sem conexão');
+  const {data,error}=await APP.supabase.storage.from('crm-materiais').createSignedUrl(material.arquivo_path,share?604800:3600);
+  if(error||!data?.signedUrl)throw error||new Error('Arquivo indisponível');return data.signedUrl;
+}
+async function openMaterial(id) {
+  const material=materialsState.items.find(m=>m.id===id);if(!material)return;
+  const popup=window.open('about:blank','_blank');if(popup)popup.opener=null;
+  try {const url=await materialAccessUrl(material);if(popup)popup.location.href=url;else{document.getElementById('materialShareText').value=url;document.getElementById('materialShareHint').textContent='O navegador bloqueou a abertura. Copie o link e abra em outra aba. Link de arquivo válido por 1 hora.';openModal('materialShareModal');}}
+  catch(error){popup?.close();toast('Não foi possível abrir o material. Tente atualizar a lista.','error');console.error(error);}
+}
+async function shareMaterial(id,mode) {
+  const material=materialsState.items.find(m=>m.id===id);if(!material||!material.compartilhavel){toast('Este material é de uso interno','error');return;}
+  const popup=mode==='whatsapp'?window.open('about:blank','_blank'):null;if(popup)popup.opener=null;
+  try {
+    const url=await materialAccessUrl(material,true),text=`${material.titulo}${material.empreendimento?' — '+material.empreendimento:''}\nExclusive Imóveis\n${url}`;
+    if(mode==='whatsapp'&&popup){popup.location.href='https://wa.me/?text='+encodeURIComponent(text);toast(material.arquivo_path?'Link do arquivo válido por 7 dias':'Mensagem pronta no WhatsApp','success');}
+    else {
+      document.getElementById('materialShareText').value=text;document.getElementById('materialShareHint').textContent=material.arquivo_path?'Link do arquivo válido por 7 dias. Gere um novo link quando precisar.':'Link externo. O acesso depende das permissões do site de origem.';openModal('materialShareModal');
+      if(mode==='copy')try{await navigator.clipboard.writeText(url);toast('Link copiado!','success');}catch{toast('Selecione o texto para copiar o link.','success');}
+    }
+  }catch(error){popup?.close();toast('Não foi possível gerar o link. Tente novamente.','error');console.error(error);}
+}
+async function copyMaterialShareText() {
+  const input=document.getElementById('materialShareText');
+  try{await navigator.clipboard.writeText(input.value);toast('Mensagem copiada!','success');}catch{input.focus();input.select();toast('Texto selecionado. Use a opção Copiar do seu dispositivo.','success');}
+}
+async function deleteMaterial(id) {
+  const material=materialsState.items.find(m=>m.id===id);if(!material||!isGestorOrAdmin())return;
+  if(!confirm(`Excluir o material “${material.titulo}”?`))return;
+  if(!APP.supabase||!APP.sbConnected){toast('Sem conexão para excluir','error');return;}
+  try {
+    const {data,error}=await APP.supabase.from('materiais_apoio').delete().eq('id',id).select('id');if(error||!data?.length)throw error||new Error('Sem permissão');
+    if(material.arquivo_path){const cleanup=await APP.supabase.storage.from('crm-materiais').remove([material.arquivo_path]);if(cleanup.error)console.error('Limpeza de material excluído:',cleanup.error);}
+    toast('Material excluído','success');await loadMaterials();
+  }catch(error){toast('Não foi possível excluir o material','error');console.error(error);}
+}
 
 // -- RADAR DO DIA --
 function radarDay(date) {
