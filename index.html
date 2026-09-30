@@ -226,6 +226,12 @@ tr:hover .action-btns{opacity:1}
 .lead-action-chip{display:inline-flex;align-items:center;gap:3px;background:var(--bg-card);border:1px solid var(--border);border-radius:99px;padding:2px 6px;font-size:10px;color:var(--text-secondary);white-space:nowrap}
 .task-clickable{cursor:pointer}
 .task-clickable:hover{border-color:var(--purple)}
+.radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.radar-box{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;min-width:0}
+.radar-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-primary)}
+.radar-row{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--border);padding:8px 0;color:var(--text-primary);cursor:pointer;font:inherit;font-size:12px}
+.radar-row:hover{color:var(--purple-light)}
+.radar-row small{display:block;color:var(--text-muted);margin-top:3px;font-size:10px}
 .kanban-card-broker{display:inline-flex;align-items:center;gap:4px;background:var(--purple-dim);border:1px solid var(--border-bright);border-radius:99px;padding:2px 8px 2px 4px;font-size:10px;color:var(--purple-light);font-weight:500}
 .kanban-card-broker-dot{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700}
 .kanban-col.drag-over{border-color:var(--purple);background:var(--purple-dim)}
@@ -1005,6 +1011,7 @@ CREATE TABLE historico (
     <div class="content">
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
+        <div class="agenda-toolbar" id="dashboardFilterBar"><label for="dashboardBroker" style="font-size:12px;color:var(--text-muted)">Visualizar</label><select class="form-input" id="dashboardBroker" onchange="renderDashboard()"></select></div>
         <div class="alerts-panel" id="alertsPanel"></div>
         <div class="metrics-grid">
           <div class="metric-card purple">
@@ -1028,13 +1035,13 @@ CREATE TABLE historico (
           <div class="metric-card green">
             <div class="metric-label">Visitas Agendadas</div>
             <div class="metric-value" id="m-visita">0</div>
-            <div class="metric-change">Esta semana</div>
+            <div class="metric-change">No funil</div>
             <div class="metric-icon">📅</div>
           </div>
           <div class="metric-card pink">
             <div class="metric-label">Vendas Fechadas</div>
             <div class="metric-value" id="m-vendas">0</div>
-            <div class="metric-change up">📈 Este mês</div>
+            <div class="metric-change up">📈 Total registrado</div>
             <div class="metric-icon">💰</div>
           </div>
         </div>
@@ -2281,7 +2288,7 @@ function renderEmpFunnel() {
   const perdaId = APP.stages.find(s => s.label.toLowerCase().includes('perdid') || s.id === 'perdido')?.id || 'perdido';
 
   list.innerHTML = emps.map(emp => {
-    const leads = APP.leads.filter(l => l.empreendimento === emp);
+    const leads = getDashboardLeads().filter(l => l.empreendimento === emp);
     if (leads.length === 0) return '';
     const vendas = leads.filter(l => l.status === vendaId).length;
     const perdidos = leads.filter(l => l.status === perdaId).length;
@@ -2315,9 +2322,27 @@ function leadActionBadges(leadId, limit=2) {
   return actions.slice(-limit).reverse().map(h => `<span class="lead-action-chip" title="${agentEscape((ACTION_LABELS[h.type]||'Contato')+': '+h.text+' · '+formatDateTime(h.date))}">${ACTION_ICONS[h.type]} ${ACTION_LABELS[h.type]}</span>`).join('');
 }
 let statusChartInstance = null;
+function renderDashboardFilter() {
+  const select=document.getElementById('dashboardBroker');
+  document.getElementById('dashboardFilterBar').style.display=isGestorOrAdmin()?'flex':'none';
+  const current=select.value;
+  const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor),...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  select.innerHTML='<option value="">Equipe inteira</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
+  select.value=isGestorOrAdmin()?current:'';
+}
+function getDashboardLeads() {
+  const broker=isGestorOrAdmin()?document.getElementById('dashboardBroker')?.value:'';
+  return getLeadsDoUsuario().filter(l=>!broker||l.corretor===broker);
+}
+function getDashboardTasks() {
+  const manager=isGestorOrAdmin();
+  const broker=manager?document.getElementById('dashboardBroker')?.value:APP.user?.corretor_ref;
+  return getTasksDoUsuario().filter(t=>manager&&!broker||(t.corretor||agendaLeadForTask(t)?.corretor)===broker);
+}
 function renderDashboard() {
+  renderDashboardFilter();
   renderAlertsPanel();
-  const leads = getLeadsDoUsuario();
+  const leads = getDashboardLeads();
   document.getElementById('m-total').textContent = leads.length;
   const week = Date.now() - 7*86400000;
   document.getElementById('m-novos').textContent = leads.filter(l => new Date(l.created_at).getTime() > week).length;
@@ -2351,6 +2376,7 @@ function renderDashboard() {
   const rl = document.getElementById('recentLeads');
   if (recent.length === 0) {
     rl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Sem leads ainda</div><div class="empty-desc">Adicione seu primeiro lead!</div></div>';
+    renderEmpFunnel();
     return;
   }
   rl.innerHTML = recent.map(l => `
@@ -3494,46 +3520,38 @@ function processarLeadAgente() { agentProcessSingle(); }
 async function confirmarLeadAgente() { await confirmarLeadUnico(); }
 function agentConfirm() {}
 
-// -- ALERTS PANEL --
-// -- ALERTS PANEL --
+// -- RADAR DO DIA --
+function radarDay(date) {
+  const d = new Date(date);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
+}
+function radarIsVisit(task) {
+  const title=(task.titulo||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  return /^(?:(?:realizar|acompanhar|fazer)\s+)?visita\b/i.test(title);
+}
+function getRadarData(leads,tasks,history,now=new Date()) {
+  const today=radarDay(now);
+  const pending=tasks.filter(t=>!t.concluida && t.data_hora && !Number.isNaN(new Date(t.data_hora).getTime()))
+    .sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora));
+  return {
+    overdue:pending.filter(t=>new Date(t.data_hora)<now),
+    returns:pending.filter(t=>radarDay(t.data_hora)===today && !radarIsVisit(t)),
+    visits:pending.filter(t=>radarDay(t.data_hora)===today && radarIsVisit(t)),
+    untouched:leads.filter(l=>l.status==='novo' && !(history[l.id]||[]).some(h=>ACTION_LABELS[h.type]))
+      .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))
+  };
+}
 function renderAlertsPanel() {
-  const now = new Date();
-  const tarefas = getTasksDoUsuario();
-  const overdue = tarefas.filter(t => !t.concluida && new Date(t.data_hora) < now);
-  const panel = document.getElementById('alertsPanel');
-  if (!panel) return;
-
-  if (overdue.length === 0) {
-    panel.style.borderColor = 'rgba(16,185,129,0.2)';
-    panel.innerHTML = `
-      <div class="alerts-panel-head">
-        <div class="alerts-panel-title" style="color:#34d399">⏰ Pendências do Dia</div>
-      </div>
-      <div class="alerts-ok">✅ Nenhuma tarefa atrasada. Equipe em dia!</div>`;
-    return;
-  }
-
-  panel.style.borderColor = 'rgba(239,68,68,0.2)';
-  panel.innerHTML = `
-    <div class="alerts-panel-head">
-      <div class="alerts-panel-title">⏰ Tarefas Atrasadas
-        <span class="alerts-panel-badge">${overdue.length}</span>
-      </div>
-    </div>
-    ${overdue.map(t => {
-      const diff = Math.round((now - new Date(t.data_hora)) / 60000);
-      const diffText = diff < 60 ? `${diff}min atrás` : diff < 1440 ? `${Math.floor(diff/60)}h atrás` : `${Math.floor(diff/1440)}d atrás`;
-      return `
-        <div class="alert-row task-clickable" onclick="openTaskDetail('${t.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openTaskDetail('${t.id}')" title="Abrir tarefa">
-          <div class="alert-row-emoji">⏰</div>
-          <div class="alert-row-info">
-            <div class="alert-row-title">${agentEscape(agendaLeadName(t))} · ${agentEscape(t.titulo)}</div>
-            <div class="alert-row-sub">${agentEscape(agendaLeadForTask(t)?.empreendimento||t.notas||'')} · ${agentEscape(t.corretor||'Sem corretor')} · ${agentEscape(taskPriorityLabel(t.prioridade))}</div>
-          </div>
-          <div class="alert-row-ago">${diffText}</div>
-          <button class="alert-done-btn" onclick="event.stopPropagation();completeFromPanel('${t.id}')" title="Registrar resultado e concluir">✅</button>
-        </div>`;
-    }).join('')}`;
+  const panel=document.getElementById('alertsPanel');
+  if(!panel)return;
+  const now=new Date();
+  const radar=getRadarData(getDashboardLeads(),getDashboardTasks(),APP.history,now);
+  const scope=isGestorOrAdmin()?(document.getElementById('dashboardBroker').value||'Equipe inteira'):(APP.user?.corretor_ref||'Meus atendimentos');
+  const taskRow=t=>`<button type="button" class="radar-row" onclick="openTaskDetail('${t.id}')">${agentEscape(agendaLeadName(t))}<small>${agentEscape(t.titulo||'Tarefa')} · ${agentEscape(new Date(t.data_hora).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))} · ${agentEscape(t.corretor||agendaLeadForTask(t)?.corretor||'Sem corretor')}</small></button>`;
+  const leadRow=l=>`<button type="button" class="radar-row" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}<small>${agentEscape(l.empreendimento||'Sem empreendimento')} · ${agentEscape(l.corretor||'Sem corretor')} · Sem contato registrado</small></button>`;
+  const box=(title,items,row,empty)=>`<div class="radar-box"><div class="radar-head"><span>${title}</span><span class="pill">${items.length}</span></div>${items.length?items.slice(0,5).map(row).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:8px 0">'+empty+'</div>'}${items.length>5?`<details><summary style="cursor:pointer;font-size:12px;color:var(--purple-light);padding-top:8px">Ver mais ${items.length-5}</summary>${items.slice(5).map(row).join('')}</details>`:''}</div>`;
+  panel.style.borderColor='var(--border)';
+  panel.innerHTML=`<div class="alerts-panel-head"><div class="alerts-panel-title">📡 Radar do Dia</div><span style="font-size:12px;color:var(--text-muted)">${agentEscape(scope)} · ${radarDay(now)}</span></div><div class="radar-grid">${box('⏰ Atrasados',radar.overdue,taskRow,'Nenhuma tarefa atrasada.')}${box('💬 Retornos de hoje',radar.returns,taskRow,'Nenhum retorno agendado para hoje.')}${box('🏡 Visitas de hoje',radar.visits,taskRow,'Nenhuma visita agendada para hoje.')}${box('🆕 Novos sem contato',radar.untouched,leadRow,'Todos os novos leads têm contato registrado.')}</div><div style="font-size:10px;color:var(--text-muted);margin-top:10px">Horário de Brasília. Tarefas vencidas hoje também aparecem em Atrasados. Visitas são tarefas com título “Visita”, “Realizar visita”, “Fazer visita” ou “Acompanhar visita”.</div>`;
 }
 
 function completeFromPanel(id) { openTaskResult(id); }
