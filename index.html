@@ -223,6 +223,7 @@ tr:hover .action-btns{opacity:1}
 .kanban-card:active{cursor:grabbing}
 .kanban-card.dragging{opacity:0.5;transform:rotate(2deg)}
 .kanban-card-name{font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:6px}
+.kanban-stage-value{padding:8px 14px;font-size:12px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);overflow-wrap:anywhere}
 .kanban-card-value{font-size:13px;font-weight:700;color:var(--text-primary);margin:7px 0;overflow-wrap:anywhere}
 .kanban-card-detail{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .kanban-card-actions{display:flex;gap:4px;margin-top:8px;align-items:center}
@@ -241,7 +242,7 @@ tr:hover .action-btns{opacity:1}
 .kanban-col.drag-over{border-color:var(--purple);background:var(--purple-dim)}
 
 /* KANBAN STATS SUMMARY */
-.kanban-summary{display:flex;align-items:center;gap:16px;padding:8px 0 4px;flex-shrink:0}
+.kanban-summary{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:8px 0 4px;flex-shrink:0}
 .kanban-summary-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
 .kanban-summary-item strong{color:var(--text-primary);font-weight:600}
 .kanban-summary-divider{width:1px;height:12px;background:var(--border)}
@@ -2571,6 +2572,8 @@ function renderKanban() {
   // Resumo
   const summary = document.getElementById('kanbanSummary');
   const totalFilt = filteredLeads.length;
+  const totalCRM = sumDealValues(getLeadsDoUsuario());
+  const totalFiltered = sumDealValues(filteredLeads);
   const vendas = filteredLeads.filter(l => l.status === 'fechada').length;
   const ativos = filteredLeads.filter(l => !['fechada','perdido'].includes(l.status)).length;
   const perdidos = filteredLeads.filter(l => l.status === 'perdido').length;
@@ -2582,6 +2585,8 @@ function renderKanban() {
     <div class="kanban-summary-item">💰 <strong>${vendas}</strong> vendas</div>
     <div class="kanban-summary-divider"></div>
     <div class="kanban-summary-item">🔴 <strong>${perdidos}</strong> perdidos</div>
+    <div class="kanban-summary-item" title="Soma dos valores de todos os contatos que você pode acessar, em todas as etapas">Total do CRM: <strong>${formatDealValue(totalCRM)}</strong></div>
+    <div class="kanban-summary-item" title="Soma dos contatos nos filtros de corretor, empreendimento e busca">Total nos filtros: <strong>${formatDealValue(totalFiltered)}</strong></div>
   `;
 
   wrap.innerHTML = statuses.map(s => {
@@ -2625,6 +2630,7 @@ function renderKanban() {
           <span class="col-title" style="color:${colColors[s]}">${STATUS_LABELS[s]}</span>
           <span class="col-count">${leads.length}</span>
         </div>
+        <div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(leads))}</div>
         <div style="height:3px;border-radius:99px;background:${colColors[s]};margin:0 10px 8px;opacity:0.5"></div>
         <div class="kanban-cards">${cards||'<div style="padding:12px 8px;text-align:center;font-size:11px;color:var(--text-muted)">'+(APP.kanbanSearch?.trim()?'Nenhum resultado nesta etapa':'Arraste aqui')+'</div>'}</div>
       </div>
@@ -2712,10 +2718,10 @@ function renderVipAyra() {
   const query = document.getElementById('vipAyraSearch').value.trim().toLocaleLowerCase('pt-BR');
   const digits = query.replace(/\D/g,'');
   const leads = getLeadsDoUsuario().filter(l=>l.vip_ayra_etapa && (!select.value||l.corretor===select.value) && (!query || (l.nome||'').toLocaleLowerCase('pt-BR').includes(query) || (digits.length>=4 && (l.telefone||'').replace(/\D/g,'').includes(digits))));
-  document.getElementById('vipAyraSummary').textContent = `${leads.length} contato(s) no funil VIP AYRA`;
+  document.getElementById('vipAyraSummary').textContent = `${leads.length} contato(s) no funil VIP AYRA · Total nos filtros: ${formatDealValue(sumDealValues(leads))}`;
   document.getElementById('vipAyraBoard').innerHTML = VIP_AYRA_STAGES.map(stage=>{
     const members=leads.filter(l=>l.vip_ayra_etapa===stage.id);
-    return `<div class="kanban-col" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${stage.label}</span><span class="col-count">${members.length}</span></div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
+    return `<div class="kanban-col" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${stage.label}</span><span class="col-count">${members.length}</span></div><div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(members))}</div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
   }).join('');
 }
 function dropVipAyra(event,stage) { event.preventDefault(); if(vipDragLead) setVipAyraStage(vipDragLead,stage); vipDragLead=null; }
@@ -3889,6 +3895,12 @@ function setBrokerFilter(broker) {
   renderLeadsTable();
 }
 
+function sumDealValues(leads) {
+  return leads.reduce((total, lead) => {
+    const value = Number(lead.valor_negociacao ?? 0);
+    return total + (Number.isFinite(value) && value >= 0 ? Math.round(value * 100) : 0);
+  }, 0) / 100;
+}
 function formatDealValue(value) {
   const amount = Number(value ?? 0);
   return (Number.isFinite(amount) && amount >= 0 ? amount : 0).toLocaleString('pt-BR', {style:'currency',currency:'BRL'});
