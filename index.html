@@ -223,6 +223,7 @@ tr:hover .action-btns{opacity:1}
 .kanban-card:active{cursor:grabbing}
 .kanban-card.dragging{opacity:0.5;transform:rotate(2deg)}
 .kanban-card-name{font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:6px}
+.kanban-card-value{font-size:13px;font-weight:700;color:var(--text-primary);margin:7px 0;overflow-wrap:anywhere}
 .kanban-card-detail{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .kanban-card-actions{display:flex;gap:4px;margin-top:8px;align-items:center}
 .lead-actions-mini{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
@@ -554,6 +555,7 @@ html.light .pill-atendimento{color:#6743b5}
         <div class="form-field"><label class="form-label">Empreendimento</label>
           <select class="form-input" id="e_empreendimento"><option value="">Selecione...</option></select>
         </div>
+        <div class="form-field"><label class="form-label" for="e_valor_negociacao">Valor da negociação (R$) *</label><input class="form-input" id="e_valor_negociacao" type="number" inputmode="decimal" min="0" max="999999999999.99" step="0.01" required value="0" placeholder="0"><div style="font-size:11px;color:var(--text-muted);margin-top:4px">Informe 0 quando o valor ainda não estiver definido.</div></div>
         <div class="form-field"><label class="form-label">Cidade</label><input class="form-input" id="e_cidade" placeholder="Cidade - UF"></div>
         <div class="form-field" id="editCorretorField"><label class="form-label">Corretor Responsável</label>
           <select class="form-input" id="e_corretor"><option value="">Selecione...</option></select>
@@ -650,6 +652,7 @@ html.light .pill-atendimento{color:#6743b5}
           </select>
         </div>
         <div class="form-field"><label class="form-label">Empreendimento de Interesse</label><select class="form-input" id="f_empreendimento"><option value="">Selecione...</option></select></div>
+        <div class="form-field"><label class="form-label" for="f_valor_negociacao">Valor da negociação (R$) *</label><input class="form-input" id="f_valor_negociacao" type="number" inputmode="decimal" min="0" max="999999999999.99" step="0.01" required value="0" placeholder="0"><div style="font-size:11px;color:var(--text-muted);margin-top:4px">Informe 0 quando o valor ainda não estiver definido.</div></div>
         <div class="form-field"><label class="form-label">Cidade</label><input class="form-input" id="f_cidade" placeholder="S o Paulo - SP"></div>
         <div class="form-field"><label class="form-label">Corretor Responsável</label>
           <select class="form-input" id="f_corretor"><option value="">Selecione...</option></select>
@@ -1520,6 +1523,7 @@ async function saveLeadToSB(lead) {
       observacoes: lead.observacoes || null,
       corretor: lead.corretor || null,
       status: lead.status || 'novo',
+      valor_negociacao: lead.valor_negociacao ?? 0,
     };
     const { data, error } = await APP.supabase.from('leads').insert([payload]).select();
     if (error) { console.error('saveLeadToSB erro:', error); throw error; }
@@ -2595,6 +2599,7 @@ function renderKanban() {
       return `
         <div class="kanban-card" draggable="true" data-id="${l.id}" onclick="openLeadDetail('${l.id}')">
           <div class="kanban-card-name">${l.nome}</div>
+          <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
           <div class="kanban-card-detail">🏢 ${l.empreendimento||' '}</div>
           <div class="kanban-card-detail">📍 ${l.cidade||' '}</div>
           <div class="lead-actions-mini">${leadActionBadges(l.id,2)}</div>
@@ -2710,7 +2715,7 @@ function renderVipAyra() {
   document.getElementById('vipAyraSummary').textContent = `${leads.length} contato(s) no funil VIP AYRA`;
   document.getElementById('vipAyraBoard').innerHTML = VIP_AYRA_STAGES.map(stage=>{
     const members=leads.filter(l=>l.vip_ayra_etapa===stage.id);
-    return `<div class="kanban-col" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${stage.label}</span><span class="col-count">${members.length}</span></div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
+    return `<div class="kanban-col" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${stage.label}</span><span class="col-count">${members.length}</span></div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
   }).join('');
 }
 function dropVipAyra(event,stage) { event.preventDefault(); if(vipDragLead) setVipAyraStage(vipDragLead,stage); vipDragLead=null; }
@@ -3884,12 +3889,32 @@ function setBrokerFilter(broker) {
   renderLeadsTable();
 }
 
+function formatDealValue(value) {
+  const amount = Number(value ?? 0);
+  return (Number.isFinite(amount) && amount >= 0 ? amount : 0).toLocaleString('pt-BR', {style:'currency',currency:'BRL'});
+}
+function readDealValue(inputId) {
+  const field = document.getElementById(inputId);
+  const value = Number(field.value);
+  if (!field.value.trim() || !field.checkValidity() || !Number.isFinite(value) || value < 0) {
+    field.reportValidity();
+    field.focus();
+    toast('Informe o valor da negociação. Use 0 se ainda não estiver definido.', 'error');
+    return null;
+  }
+  return Math.round(value * 100) / 100;
+}
+
 // -- SAVE LEAD --
 function saveLead() {
   const nome = document.getElementById('f_nome').value.trim();
   if (!nome) { toast('Nome é obrigatório','error'); return; }
 
+  const valorNegociacao = readDealValue('f_valor_negociacao');
+  if (valorNegociacao === null) return;
+
   const lead = {
+    valor_negociacao: valorNegociacao,
     id: Date.now().toString(),
     nome,
     telefone: document.getElementById('f_telefone').value,
@@ -3922,6 +3947,7 @@ function saveLead() {
     document.getElementById(id).value = '';
   });
   document.getElementById('f_status').value = 'novo';
+  document.getElementById('f_valor_negociacao').value = '0';
 }
 
 async function deleteLead(id) {
@@ -4411,6 +4437,7 @@ function abrirEdicaoLead(id) {
 
   // Preenche campos
   document.getElementById('e_nome').value = lead.nome || '';
+  document.getElementById('e_valor_negociacao').value = lead.valor_negociacao ?? 0;
   document.getElementById('e_telefone').value = lead.telefone || '';
   document.getElementById('e_email').value = lead.email || '';
   document.getElementById('e_cidade').value = lead.cidade || '';
@@ -4455,7 +4482,11 @@ async function salvarEdicaoLead() {
   const nome = document.getElementById('e_nome').value.trim();
   if (!nome) { toast('Nome é obrigatório', 'error'); return; }
 
+  const valorNegociacao = readDealValue('e_valor_negociacao');
+  if (valorNegociacao === null) return;
+
   const updates = {
+    valor_negociacao: valorNegociacao,
     nome,
     telefone: document.getElementById('e_telefone').value,
     email: document.getElementById('e_email').value,
