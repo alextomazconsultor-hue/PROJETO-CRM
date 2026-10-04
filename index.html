@@ -510,6 +510,47 @@ html.light .pill-atendimento{color:#6743b5}
  #page-kanban .kanban-col{flex-basis:240px;width:240px;min-width:240px}
 }
 
+
+/* DASHBOARD: PAINEL OPERACIONAL */
+#page-dashboard .dashboard-subtitle{color:var(--text-muted);font-size:13px;margin:0 0 16px}
+.dashboard-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px}
+.dashboard-scope{display:flex;align-items:center;gap:10px}
+.dashboard-scope label{font-size:12px;color:var(--text-secondary);white-space:nowrap}
+.dashboard-scope select{width:180px}
+.dashboard-date{margin-left:auto;color:var(--text-muted);font-size:12px}
+.dashboard-quick-actions{display:flex;gap:8px;flex-wrap:wrap}
+#page-dashboard .dashboard-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+#page-dashboard .metric-card{padding:17px 18px;min-width:0}
+#page-dashboard .metric-value{font-size:30px;margin:8px 0 4px;line-height:1.2}
+#page-dashboard .dashboard-vgv{font-size:clamp(17px,1.8vw,26px);overflow-wrap:anywhere}
+#page-dashboard .metric-label{font-size:12px;text-transform:none;letter-spacing:0;padding-right:30px;margin-bottom:6px}
+#page-dashboard .metric-icon{font-size:25px;opacity:.65}
+#page-dashboard .alerts-panel{background:transparent;border:0;padding:0;margin-bottom:16px}
+#page-dashboard .alerts-panel-head{margin-bottom:12px}
+#page-dashboard .alerts-panel-title{font-size:18px;color:var(--text-primary)}
+.dashboard-radar-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+#page-dashboard .radar-box{background:var(--bg-card);border-radius:var(--radius);padding:16px}
+#page-dashboard .radar-head{font-size:14px;margin-bottom:10px}
+#page-dashboard .radar-head .pill{font-size:12px}
+#page-dashboard .radar-row{padding:10px 0;font-size:13px}
+#page-dashboard .radar-row small{font-size:11px;line-height:1.5}
+.dashboard-radar-secondary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start;margin-top:14px}
+.radar-compact{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);min-width:0;overflow:hidden}
+.radar-compact>summary{list-style:none;cursor:pointer;padding:14px;font-size:12px;color:var(--text-secondary)}
+.radar-compact>summary::-webkit-details-marker{display:none}
+.radar-compact>summary strong{display:block;font-size:25px;color:var(--text-primary);margin:6px 0}
+.radar-compact>summary small{display:block;color:var(--text-muted);font-size:10px}
+.radar-compact>summary:focus-visible{outline:2px solid var(--purple);outline-offset:-3px}
+.radar-compact .radar-compact-list{padding:0 14px 14px;max-height:340px;overflow:auto}
+.dashboard-radar-settings{margin-top:14px}
+.dashboard-radar-settings>summary{cursor:pointer;font-size:11px;color:var(--text-muted)}
+.dashboard-upcoming{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px}
+.dashboard-upcoming-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:600}
+.dashboard-upcoming-list{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.dashboard-upcoming-list .radar-row{flex:1;min-width:180px;border:0}
+@media(max-width:1100px){.dashboard-date{margin-left:0} .dashboard-quick-actions{margin-left:auto} .dashboard-radar-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){#page-dashboard .dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-radar-primary{grid-template-columns:1fr}.dashboard-toolbar{padding:12px}.dashboard-quick-actions{margin-left:0}.dashboard-quick-actions .btn{padding:8px 10px;font-size:12px}.dashboard-scope{width:100%}.dashboard-scope select{flex:1;width:auto}.dashboard-radar-secondary{gap:10px}.dashboard-date{font-size:11px}}
+
 </style>
 </head>
 <body>
@@ -1091,40 +1132,20 @@ CREATE TABLE historico (
     <div class="content">
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
-        <div class="agenda-toolbar" id="dashboardFilterBar"><label for="dashboardBroker" style="font-size:12px;color:var(--text-muted)">Visualizar</label><select class="form-input" id="dashboardBroker" onchange="renderDashboard()"></select></div>
-        <div class="alerts-panel" id="alertsPanel"></div>
-        <div class="metrics-grid">
-          <div class="metric-card purple">
-            <div class="metric-label">Total de Leads</div>
-            <div class="metric-value" id="m-total">0</div>
-            <div class="metric-change up">📈 Todos os tempos</div>
-            <div class="metric-icon">👥</div>
-          </div>
-          <div class="metric-card blue">
-            <div class="metric-label">Novos (7 dias)</div>
-            <div class="metric-value" id="m-novos">0</div>
-            <div class="metric-change up">📈 Esta semana</div>
-            <div class="metric-icon">✨</div>
-          </div>
-          <div class="metric-card amber">
-            <div class="metric-label">Em Atendimento</div>
-            <div class="metric-value" id="m-atend">0</div>
-            <div class="metric-change">Ativos agora</div>
-            <div class="metric-icon">💬</div>
-          </div>
-          <div class="metric-card green">
-            <div class="metric-label">Visitas Agendadas</div>
-            <div class="metric-value" id="m-visita">0</div>
-            <div class="metric-change">No funil</div>
-            <div class="metric-icon">📅</div>
-          </div>
-          <div class="metric-card pink">
-            <div class="metric-label">Vendas Fechadas</div>
-            <div class="metric-value" id="m-vendas">0</div>
-            <div class="metric-change up">📈 Total registrado</div>
-            <div class="metric-icon">💰</div>
-          </div>
+        <p class="dashboard-subtitle">Sua operação em um só lugar</p>
+        <div class="dashboard-toolbar">
+          <div class="dashboard-scope" id="dashboardFilterBar"><label for="dashboardBroker">Visão da equipe</label><select class="form-input" id="dashboardBroker" onchange="renderDashboard()"></select></div>
+          <span class="dashboard-date" id="dashboardDate"></span>
+          <div class="dashboard-quick-actions"><button class="btn btn-primary" onclick="openModal('addLeadModal')">+ Novo lead</button><button class="btn btn-secondary" onclick="openModal('addTaskModal')">+ Agendar retorno</button><button class="btn btn-secondary" onclick="dashboardNavigate('kanban')">Abrir Kanban</button></div>
         </div>
+        <div class="metrics-grid dashboard-metrics">
+          <div class="metric-card purple"><div class="metric-label">Leads ativos</div><div class="metric-value" id="m-total">0</div><div class="metric-change">Em andamento no funil</div><div class="metric-icon">👥</div></div>
+          <div class="metric-card amber"><div class="metric-label">Em proposta</div><div class="metric-value" id="m-propostas">0</div><div class="metric-change">Propostas em negociação</div><div class="metric-icon">📑</div></div>
+          <div class="metric-card green"><div class="metric-label">Vendas</div><div class="metric-value" id="m-vendas">0</div><div class="metric-change">Total registrado</div><div class="metric-icon">📈</div></div>
+          <div class="metric-card blue"><div class="metric-label">VGV em negociação</div><div class="metric-value dashboard-vgv" id="m-vgv">R$ 0,00</div><div class="metric-change">Valores dos leads ativos</div><div class="metric-icon">💰</div></div>
+        </div>
+        <div class="alerts-panel" id="alertsPanel"></div>
+        <div class="dashboard-upcoming" id="dashboardUpcoming"></div>
         <div class="dashboard-grid">
           <div class="chart-card">
             <div class="chart-title">Leads por Status<span class="subtitle">Distribuição atual</span></div>
@@ -2434,16 +2455,27 @@ function getDashboardTasks() {
   const broker=manager?document.getElementById('dashboardBroker')?.value:APP.user?.corretor_ref;
   return getTasksDoUsuario().filter(t=>manager&&!broker||(t.corretor||agendaLeadForTask(t)?.corretor)===broker);
 }
+function dashboardNavigate(name) {
+  const nav=[...document.querySelectorAll('.nav-item')].find(el=>(el.getAttribute('onclick')||'').includes("'"+name+"'"));
+  showPage(name,nav);
+}
+function renderDashboardUpcoming(){
+  const el=document.getElementById('dashboardUpcoming');if(!el)return;
+  const now=new Date();
+  const tasks=getDashboardTasks().filter(t=>!t.concluida&&t.data_hora&&new Date(t.data_hora)>=now).sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora)).slice(0,3);
+  el.innerHTML=`<div class="dashboard-upcoming-head"><span>📅 Próximos compromissos</span><button type="button" class="btn btn-ghost btn-sm" onclick="dashboardNavigate('agenda')">Abrir agenda →</button></div><div class="dashboard-upcoming-list">${tasks.length?tasks.map(t=>`<button type="button" class="radar-row" onclick="openTaskDetail('${t.id}')">${agentEscape(agendaLeadName(t))}<small>${agentEscape(t.titulo||'Tarefa')} · ${agentEscape(new Date(t.data_hora).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))}</small></button>`).join(''):'<span style="font-size:12px;color:var(--text-muted)">Nenhum compromisso futuro agendado para esta seleção.</span>'}</div>`;
+}
 function renderDashboard() {
   renderDashboardFilter();
   renderAlertsPanel();
   const leads = getDashboardLeads();
-  document.getElementById('m-total').textContent = leads.length;
-  const week = Date.now() - 7*86400000;
-  document.getElementById('m-novos').textContent = leads.filter(l => new Date(l.created_at).getTime() > week).length;
-  document.getElementById('m-atend').textContent = leads.filter(l => l.status === 'atendimento').length;
-  document.getElementById('m-visita').textContent = leads.filter(l => l.status === 'visita').length;
-  document.getElementById('m-vendas').textContent = leads.filter(l => l.status === 'fechada').length;
+  const active=leads.filter(l=>!['fechada','perdido'].includes(l.status));
+  document.getElementById('m-total').textContent=active.length;
+  document.getElementById('m-propostas').textContent=leads.filter(l=>l.status==='proposta').length;
+  document.getElementById('m-vendas').textContent=leads.filter(l=>l.status==='fechada').length;
+  document.getElementById('m-vgv').textContent=formatDealValue(sumDealValues(active));
+  document.getElementById('dashboardDate').textContent=new Date().toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'long',year:'numeric'});
+  renderDashboardUpcoming();
 
   const statuses = Object.keys(STATUS_LABELS);
   const counts = statuses.map(s => leads.filter(l => l.status === s).length);
@@ -3944,9 +3976,11 @@ function renderAlertsPanel() {
   const leadRow=l=>`<button type="button" class="radar-row" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}<small>${agentEscape(l.empreendimento||'Sem empreendimento')} · ${agentEscape(l.corretor||'Sem corretor')} · Sem contato registrado</small></button>`;
   const followupRow=l=>`<button type="button" class="radar-row" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}<small>${agentEscape(STATUS_LABELS[l.status]||l.status)} · ${agentEscape(l.corretor||'Sem corretor')}</small></button><button type="button" class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${l.id}')">Agendar retorno</button>`;
   const staleRow=item=>`<button type="button" class="radar-row" onclick="openLeadDetail('${item.lead.id}')">${agentEscape(item.lead.nome)}<small>Há ${Math.floor((now-item.since)/86400000)} dias sem contato registrado · ${agentEscape(item.lead.corretor||'Sem corretor')}</small></button>`;
-  const box=(title,items,row,empty)=>`<div class="radar-box"><div class="radar-head"><span>${title}</span><span class="pill">${items.length}</span></div>${items.length?items.slice(0,5).map(row).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:8px 0">'+empty+'</div>'}${items.length>5?`<details><summary style="cursor:pointer;font-size:12px;color:var(--purple-light);padding-top:8px">Ver mais ${items.length-5}</summary>${items.slice(5).map(row).join('')}</details>`:''}</div>`;
+  const box=(title,items,row,empty)=>`<div class="radar-box"><div class="radar-head"><span>${title}</span><span class="pill">${items.length}</span></div>${items.length?items.slice(0,3).map(row).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:8px 0">'+empty+'</div>'}${items.length>3?`<details><summary style="cursor:pointer;font-size:12px;color:var(--purple-light);padding-top:10px">Ver todos (${items.length}) →</summary>${items.slice(3).map(row).join('')}</details>`:''}</div>`;
+  const compact=(title,items,row,empty)=>`<details class="radar-compact"><summary>${title}<strong>${items.length}</strong><small>${items.length?'Clique para ver os contatos ▾':empty}</small></summary><div class="radar-compact-list">${items.length?items.map(row).join(''):empty}</div></details>`;
   panel.style.borderColor='var(--border)';
-  panel.innerHTML=`<div class="alerts-panel-head"><div class="alerts-panel-title">📡 Radar do Dia</div><span style="font-size:12px;color:var(--text-muted)">${agentEscape(scope)} · ${radarDay(now)}</span></div><div class="radar-grid">${box('⏰ Atrasados',radar.overdue,taskRow,'Nenhuma tarefa atrasada.')}${box('💬 Retornos de hoje',radar.returns,taskRow,'Nenhum retorno agendado para hoje.')}${box('🏡 Visitas de hoje',radar.visits,taskRow,'Nenhuma visita agendada para hoje.')}${box('🆕 Novos sem contato',radar.untouched,leadRow,'Todos os novos leads têm contato registrado.')}${box('📅 Sem próxima tarefa',radar.noNext,followupRow,'Todos os leads em andamento têm uma tarefa futura.')}${box('🔎 Sem contato recente',radar.stale,staleRow,'Nenhum lead em andamento ultrapassou o prazo.')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:12px"><label for="radarDays">Alertar após</label><select class="form-input" style="width:auto" id="radarDays" onchange="setRadarStaleDays(this.value)">${[3,7,14,30].map(d=>`<option value="${d}" ${d===radarStaleDays?'selected':''}>${d} dias sem contato</option>`).join('')}</select><span style="color:var(--text-muted)">Considera ligações, áudios, mensagens e visitas registrados. Sem contato anterior, conta desde o cadastro.</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:10px">Horário de Brasília. Tarefas vencidas hoje também aparecem em Atrasados. Visitas são tarefas com título “Visita”, “Realizar visita”, “Fazer visita” ou “Acompanhar visita”.</div>`;
+  panel.innerHTML=`<div class="alerts-panel-head"><div class="alerts-panel-title">📡 Radar do Dia</div><span style="font-size:12px;color:var(--text-muted)">${agentEscape(scope)} · ${radarDay(now)}</span></div><div class="dashboard-radar-primary">${box('⏰ Atrasados',radar.overdue,taskRow,'Nenhuma tarefa atrasada.')}${box('🆕 Novos sem contato',radar.untouched,leadRow,'Todos os novos leads têm contato registrado.')}</div><div class="dashboard-radar-secondary">${compact('💬 Retornos de hoje',radar.returns,taskRow,'Nenhum retorno agendado.')}${compact('🏡 Visitas de hoje',radar.visits,taskRow,'Nenhuma visita agendada.')}${compact('📅 Sem próxima tarefa',radar.noNext,followupRow,'Todos têm próxima tarefa.')}${compact('🔎 Sem contato recente',radar.stale,staleRow,'Nenhum lead acima do prazo.')}</div><details class="dashboard-radar-settings"><summary>Configurar alertas e critérios do Radar</summary><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:12px"><label for="radarDays">Alertar após</label><select class="form-input" style="width:auto" id="radarDays" onchange="setRadarStaleDays(this.value)">${[3,7,14,30].map(d=>`<option value="${d}" ${d===radarStaleDays?'selected':''}>${d} dias sem contato</option>`).join('')}</select><span style="color:var(--text-muted)">Considera ligações, áudios, mensagens e visitas registrados. Sem contato anterior, conta desde o cadastro.</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:10px">Horário de Brasília. Tarefas vencidas hoje também aparecem em Atrasados. Visitas são tarefas com título “Visita”, “Realizar visita”, “Fazer visita” ou “Acompanhar visita”.</div></details>`;
+
 }
 
 function completeFromPanel(id) { openTaskResult(id); }
