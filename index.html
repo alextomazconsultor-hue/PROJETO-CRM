@@ -3625,8 +3625,10 @@ function agentConfirm() {}
 const MATERIAL_CATEGORIES={apresentacao:'📑 Apresentação',planta:'📐 Planta',video:'🎬 Vídeo',foto:'🖼️ Foto',tabela:'📊 Tabela comercial',outro:'📎 Outro'};
 const MATERIAL_EXTENSIONS=['pdf','ppt','pptx','doc','docx','xls','xlsx','csv','jpg','jpeg','png','webp','mp4','mov','mp3','zip'];
 const materialsState={items:[],loading:false,error:'',sequence:0,editingId:null,saving:false};
-const MATERIAL_FOLDERS={fotos:'Fotos',pdfs:'PDFs',videos:'Vídeos',planilhas:'Planilhas',apresentacoes:'Apresentações',documentos:'Documentos',audios:'Áudios',compactados:'Arquivos ZIP',outros:'Outros arquivos',links:'Links'};
+const MATERIAL_FOLDERS={apresentacoes:'Apresentação',tabelas:'Tabela comercial',fotos:'Fotos',pdfs:'PDFs',videos:'Vídeos',planilhas:'Planilhas',documentos:'Documentos',audios:'Áudios',compactados:'Arquivos ZIP',outros:'Outros arquivos',links:'Links'};
 function materialFormatFolder(material) {
+  if(material.categoria==='apresentacao')return 'apresentacoes';
+  if(material.categoria==='tabela')return 'tabelas';
   let filename=material.nome_arquivo||material.arquivo_path||'';
   if(!filename&&material.url) {
     try { filename=decodeURIComponent(new URL(material.url).pathname); } catch {}
