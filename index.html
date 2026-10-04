@@ -320,6 +320,11 @@ select.form-input option{background:var(--bg-card)}
 .material-meta{font-size:11px;color:var(--text-muted);line-height:1.6;overflow-wrap:anywhere}
 .material-description{font-size:12px;color:var(--text-secondary);white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
 .material-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.material-folder{border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-card);margin-bottom:10px;overflow:hidden}
+.material-folder summary{cursor:pointer;padding:14px 16px;font-size:14px;font-weight:600;color:var(--text-primary)}
+.material-folder summary:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+.material-folder[open] summary{border-bottom:1px solid var(--border)}
+.material-folder>.material-grid{padding:14px}
 .material-section{margin-bottom:24px}
 .material-section h2{font-size:16px;margin:0 0 12px;color:var(--text-primary)}
 /* EQUIPE */
@@ -3619,6 +3624,23 @@ function agentConfirm() {}
 const MATERIAL_CATEGORIES={apresentacao:'📑 Apresentação',planta:'📐 Planta',video:'🎬 Vídeo',foto:'🖼️ Foto',tabela:'📊 Tabela comercial',outro:'📎 Outro'};
 const MATERIAL_EXTENSIONS=['pdf','ppt','pptx','doc','docx','xls','xlsx','csv','jpg','jpeg','png','webp','mp4','mov','mp3','zip'];
 const materialsState={items:[],loading:false,error:'',sequence:0,editingId:null,saving:false};
+const MATERIAL_FOLDERS={fotos:'Fotos',pdfs:'PDFs',videos:'Vídeos',planilhas:'Planilhas',apresentacoes:'Apresentações',documentos:'Documentos',audios:'Áudios',compactados:'Arquivos ZIP',outros:'Outros arquivos',links:'Links'};
+function materialFormatFolder(material) {
+  let filename=material.nome_arquivo||material.arquivo_path||'';
+  if(!filename&&material.url) {
+    try { filename=decodeURIComponent(new URL(material.url).pathname); } catch {}
+  }
+  const ext=filename.split('/').pop().split('.').pop().toLowerCase();
+  if(['jpg','jpeg','png','webp','gif','svg','heic'].includes(ext))return 'fotos';
+  if(ext==='pdf')return 'pdfs';
+  if(['mp4','mov','webm','avi'].includes(ext))return 'videos';
+  if(['xls','xlsx','csv','ods'].includes(ext))return 'planilhas';
+  if(['ppt','pptx','odp'].includes(ext))return 'apresentacoes';
+  if(['doc','docx','txt','odt'].includes(ext))return 'documentos';
+  if(['mp3','wav','m4a','ogg'].includes(ext))return 'audios';
+  if(['zip','rar','7z'].includes(ext))return 'compactados';
+  return material.url?'links':'outros';
+}
 function materialSafeUrl(value) {
   try { const url=new URL(value);return url.protocol==='https:' && !url.username && !url.password ? url.href : null; } catch { return null; }
 }
@@ -3658,7 +3680,14 @@ function renderMaterials() {
   count.textContent=`${items.length} ${items.length===1?'material encontrado':'materiais encontrados'} · ${materialsState.items.length} no total`;
   if(!items.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-title">${materialsState.items.length?'Nenhum material corresponde aos filtros':'Sua central de materiais está pronta'}</div><div class="empty-desc">${materialsState.items.length?'Ajuste a busca ou os filtros.':isGestorOrAdmin()?'Clique em Adicionar material para cadastrar o primeiro arquivo ou link.':'Os materiais aparecerão aqui quando a gestão os cadastrar.'}</div></div>`;return;}
   const groups=new Map();items.forEach(m=>{const emp=m.empreendimento||'Materiais gerais';if(!groups.has(emp))groups.set(emp,[]);groups.get(emp).push(m);});
-  list.innerHTML=[...groups].map(([emp,rows])=>`<section class="material-section"><h2>${agentEscape(emp)} <span class="material-meta">(${rows.length})</span></h2><div class="material-grid">${rows.map(m=>`<article class="material-card"><div class="material-meta">${MATERIAL_CATEGORIES[m.categoria]||'📎 Material'} · ${m.compartilhavel?'Compartilhável com clientes':'🔒 Uso interno'}</div><h3>${agentEscape(m.titulo)}</h3><div class="material-meta">Atualizado em ${agentEscape(new Date(m.updated_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}))}${m.nome_arquivo?' · '+agentEscape(m.nome_arquivo):' · Link externo'}${m.tamanho?' · '+(m.tamanho/1048576).toLocaleString('pt-BR',{maximumFractionDigits:1})+' MB':''}</div>${m.descricao?`<p class="material-description">${agentEscape(m.descricao)}</p>`:''}<div class="material-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="openMaterial('${m.id}')">Abrir</button>${m.compartilhavel?`<button type="button" class="btn btn-secondary btn-sm" onclick="shareMaterial('${m.id}','copy')">Copiar link</button><button type="button" class="btn btn-primary btn-sm" onclick="shareMaterial('${m.id}','whatsapp')">WhatsApp</button>`:''}${isGestorOrAdmin()?`<button type="button" class="btn btn-secondary btn-sm" onclick="openMaterialEditor('${m.id}')">Editar</button><button type="button" class="btn btn-secondary btn-sm" onclick="deleteMaterial('${m.id}')">Excluir</button>`:''}</div></article>`).join('')}</div></section>`).join('');
+  list.innerHTML=[...groups].map(([emp,rows])=>{
+    const folders=new Map();
+    rows.forEach(m=>{const key=materialFormatFolder(m);if(!folders.has(key))folders.set(key,[]);folders.get(key).push(m);});
+    return `<section class="material-section"><h2>${agentEscape(emp)} <span class="material-meta">(${rows.length})</span></h2>${Object.entries(MATERIAL_FOLDERS).filter(([key])=>folders.has(key)).map(([key,label])=>{
+      const folderRows=folders.get(key);
+      return `<details class="material-folder"><summary>📁 ${label} <span class="material-meta">(${folderRows.length})</span></summary><div class="material-grid">${folderRows.map(m=>`<article class="material-card"><div class="material-meta">${MATERIAL_CATEGORIES[m.categoria]||'📎 Material'} · ${m.compartilhavel?'Compartilhável com clientes':'🔒 Uso interno'}</div><h3>${agentEscape(m.titulo)}</h3><div class="material-meta">Atualizado em ${agentEscape(new Date(m.updated_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}))}${m.nome_arquivo?' · '+agentEscape(m.nome_arquivo):' · Link externo'}${m.tamanho?' · '+(m.tamanho/1048576).toLocaleString('pt-BR',{maximumFractionDigits:1})+' MB':''}</div>${m.descricao?`<p class="material-description">${agentEscape(m.descricao)}</p>`:''}<div class="material-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="openMaterial('${m.id}')">Abrir</button>${m.compartilhavel?`<button type="button" class="btn btn-secondary btn-sm" onclick="shareMaterial('${m.id}','copy')">Copiar link</button><button type="button" class="btn btn-primary btn-sm" onclick="shareMaterial('${m.id}','whatsapp')">WhatsApp</button>`:''}${isGestorOrAdmin()?`<button type="button" class="btn btn-secondary btn-sm" onclick="openMaterialEditor('${m.id}')">Editar</button><button type="button" class="btn btn-secondary btn-sm" onclick="deleteMaterial('${m.id}')">Excluir</button>`:''}</div></article>`).join('')}</div></details>`;
+    }).join('')}</section>`;
+  }).join('');
 }
 function toggleMaterialSource() {
   const file=document.getElementById('m_source').value==='file';
