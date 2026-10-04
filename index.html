@@ -567,6 +567,17 @@ html.light .pill-atendimento{color:#6743b5}
 .followup-entry-text{white-space:pre-wrap}
 .followup-card-button{width:100%;justify-content:center;margin-top:8px}
 @media(max-width:700px){.followup-layout{grid-template-columns:1fr}.followup-history{max-height:none}}
+.kanban-card.kanban-priority-late{border-left:3px solid #dc6666}
+.kanban-card.kanban-priority-scheduled{border-left:3px solid #608ddd}
+.kanban-priority-indicator{position:absolute;top:12px;right:10px;width:9px;height:9px;padding:0;border:0;border-radius:50%;cursor:help;background:transparent}
+.kanban-priority-late .kanban-priority-indicator{background:#dc6666}
+.kanban-priority-scheduled .kanban-priority-indicator{background:#608ddd}
+.kanban-priority-indicator:focus-visible{outline:2px solid var(--text-primary);outline-offset:3px}
+.kanban-priority-late .kanban-card-name,.kanban-priority-scheduled .kanban-card-name{padding-right:14px}
+.kanban-priority-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--text-muted);width:100%;padding-bottom:4px}
+.kanban-priority-legend span{display:inline-flex;align-items:center;gap:5px}
+.priority-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.priority-dot.late{background:#dc6666}.priority-dot.scheduled{background:#608ddd}
 </style>
 </head>
 <body>
@@ -2678,6 +2689,37 @@ function setKanbanBroker(broker) {
 
 // -- KANBAN --
 let draggedLead = null;
+function kanbanStageEnteredAt(lead){
+  const moves=(APP.history[lead.id]||[]).filter(h=>h.type==='move'&&Number.isFinite(new Date(h.date).getTime()));
+  const lastMove=moves.reduce((latest,h)=>Math.max(latest,new Date(h.date).getTime()),0);
+  const explicit=new Date(lead.status_changed_at||'').getTime();
+  return {time:Math.max(lastMove,Number.isFinite(explicit)?explicit:0)||new Date(lead.created_at).getTime(),estimated:!lastMove&&!Number.isFinite(explicit)};
+}
+function kanbanTaskIndex(leads,tasks){
+  const ids=new Set(leads.map(l=>String(l.id))),names=new Map(),index=new Map();
+  leads.forEach(l=>{const name=(l.nome||'').trim().toLocaleLowerCase('pt-BR');if(name){if(!names.has(name))names.set(name,[]);names.get(name).push(String(l.id));}});
+  tasks.filter(t=>!t.concluida).forEach(t=>{
+    const ref=String(t.lead_rel||'').trim(),matches=names.get(ref.toLocaleLowerCase('pt-BR'));
+    const id=ids.has(ref)?ref:matches?.length===1?matches[0]:null;
+    if(id){if(!index.has(id))index.set(id,[]);index.get(id).push(t);}
+  });
+  return index;
+}
+function kanbanCardPriority(lead,now=Date.now(),leadTasks=null){
+  const reasons=[];
+  const entered=kanbanStageEnteredAt(lead);
+  const limit=lead.status==='novo'?24:lead.status==='atendimento'?72:null;
+  if(limit&&Number.isFinite(entered.time)&&now-entered.time>=limit*3600000){
+    reasons.push(lead.status==='novo'?'Prazo de 24h em Novo lead vencido':'Prazo de 3 dias em Atendimento vencido');
+    if(entered.estimated)reasons.push('Contado desde o cadastro: entrada na etapa sem registro');
+  }
+  const pending=(leadTasks||getTasksDoUsuario().filter(t=>followupTaskMatches(t,lead))).filter(t=>!t.concluida&&t.data_hora&&Number.isFinite(new Date(t.data_hora).getTime())).sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora));
+  const late=pending.filter(t=>new Date(t.data_hora).getTime()<now);
+  if(late.length)reasons.push(late.length+' atividade'+(late.length===1?'':'s')+' atrasada'+(late.length===1?'':'s')+': '+(late[0].titulo||'Tarefa')+' · '+formatDateTime(late[0].data_hora));
+  if(reasons.length)return {kind:'late',title:reasons.join(' · ')};
+  const next=pending.find(t=>new Date(t.data_hora).getTime()>=now);
+  return next?{kind:'scheduled',title:'Próxima atividade: '+(next.titulo||'Tarefa')+' · '+formatDateTime(next.data_hora)}:{kind:'normal',title:''};
+}
 function renderKanban() {
   const statuses = APP.stages.map(s => s.id);
   const wrap = document.getElementById('kanbanWrap');
@@ -2685,6 +2727,7 @@ function renderKanban() {
 
   // Filtra leads pelo corretor selecionado
   const filteredLeads=getKanbanContacts();
+  const priorityNow=Date.now(),priorityTasks=kanbanTaskIndex(getLeadsDoUsuario(),getTasksDoUsuario());
   const searchInput=document.getElementById('kanbanContactSearch');
   if(searchInput.value!==APP.kanbanSearch)searchInput.value=APP.kanbanSearch||'';
   document.getElementById('kanbanSearchStatus').textContent=APP.kanbanSearch?.trim() ? (filteredLeads.length ? `${filteredLeads.length} contato(s) encontrado(s) nos filtros selecionados` : 'Nenhum contato encontrado. Confira a busca e os filtros de corretor e empreendimento.') : '';
@@ -2698,6 +2741,7 @@ function renderKanban() {
   const ativos = filteredLeads.filter(l => !['fechada','perdido'].includes(l.status)).length;
   const perdidos = filteredLeads.filter(l => l.status === 'perdido').length;
   summary.innerHTML = `
+    <div class="kanban-priority-legend"><span><i class="priority-dot late"></i>Prazo ou tarefa atrasada</span><span><i class="priority-dot scheduled"></i>Atividade agendada</span></div>
     <div class="kanban-summary-item"><strong>${totalFilt}</strong> leads ${!isGestorOrAdmin() ? 'de ' + APP.user?.corretor_ref : APP.kanbanBrokerFilter !== 'todos' ? 'de ' + agentEscape(APP.kanbanBrokerFilter) : 'da equipe inteira'}</div>
     <div class="kanban-summary-divider"></div>
     <div class="kanban-summary-item">🟢 <strong>${ativos}</strong> ativos</div>
@@ -2712,6 +2756,7 @@ function renderKanban() {
   wrap.innerHTML = statuses.map(s => {
     const leads = filteredLeads.filter(l => l.status === s);
     const cards = leads.map(l => {
+      const priority=kanbanCardPriority(l,priorityNow,priorityTasks.get(String(l.id))||[]);
       const bIdx = APP.brokers.indexOf(l.corretor);
       const bColor = bIdx >= 0 ? AVATAR_COLORS[bIdx % AVATAR_COLORS.length] : '#8b5cf6';
       // S  mostra badge de corretor na visão "Todos"
@@ -2722,7 +2767,8 @@ function renderKanban() {
           </span>`
         : '';
       return `
-        <div class="kanban-card" draggable="true" data-id="${l.id}" onclick="openLeadDetail('${l.id}')">
+        <div class="kanban-card kanban-priority-${priority.kind}" draggable="true" data-id="${l.id}" onclick="openLeadDetail('${l.id}')">
+          ${priority.kind!=='normal'?`<button type="button" class="kanban-priority-indicator" title="${agentEscape(priority.title)}" aria-label="${agentEscape(priority.title)}" onclick="event.stopPropagation();toast(this.title,\'info\')"></button>`:''}
           <div class="kanban-card-name">${l.nome}</div>
           ${isFollowupStage(l.status)?`<button type="button" class="btn btn-secondary btn-sm followup-card-button" onclick="event.stopPropagation();openFollowup('${l.id}')">📋 Histórico e sequência</button>`:''}
           <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
@@ -2811,6 +2857,9 @@ function moveLeadFromSelect(e, leadId) {
   if (newStatus) moveLeadToStatus(leadId, newStatus);
   e.target.value = '';
 }
+
+setInterval(()=>{if(document.getElementById('page-kanban')?.classList.contains('active')&&!document.hidden)renderKanban();},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&document.getElementById('page-kanban')?.classList.contains('active'))renderKanban();});
 
 function formatDuration(ms) {
   const min = Math.floor(ms / 60000);
@@ -3072,6 +3121,7 @@ async function changeLeadStatus(id, newStatus) {
       tempoMsg = ' · ficou ' + formatDuration(ms) + ' em "' + oldLabel + '"';
     }
     lead.status = newStatus;
+    lead.status_changed_at=new Date().toISOString();
     addHistory(id, `Movido de "${oldLabel}" → "${newLabel}"${tempoMsg}`, 'move');
     saveToLocal();
     refreshAll();
@@ -4797,6 +4847,10 @@ async function salvarEdicaoLead() {
   }
 
   // Atualiza localmente
+  if(updates.status!==lead.status){
+    addHistory(id,`Movido de "${STATUS_LABELS[lead.status]||lead.status}" → "${STATUS_LABELS[updates.status]||updates.status}"`,'move');
+    lead.status_changed_at=new Date().toISOString();
+  }
   Object.assign(lead, updates);
   addHistory(id, `Lead editado: dados atualizados`, 'edit');
   saveToLocal();
