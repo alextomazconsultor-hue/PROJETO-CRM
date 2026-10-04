@@ -750,6 +750,7 @@ html.light .pill-atendimento{color:#6743b5}
 </div></div></div>
 <div class="modal-overlay" id="sitePreviewModal"><div class="modal form-modal" style="max-width:650px"><div class="modal-head"><div class="modal-name">Prévia do empreendimento</div><button class="modal-close" onclick="closeModal('sitePreviewModal')">×</button></div><div class="modal-body" id="sitePreviewBody"></div></div></div>
 <div class="modal-overlay" id="siteSettingsModal"><div class="modal form-modal" style="max-width:480px"><div class="modal-head"><div class="modal-name">Contato e responsável do site</div><button class="modal-close" onclick="closeModal('siteSettingsModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><div class="form-field"><label class="form-label" for="ss_whatsapp">WhatsApp geral (com 55 e DDD)</label><input class="form-input" id="ss_whatsapp" type="tel"></div><div class="form-field"><label class="form-label" for="ss_corretor">Corretor para os cadastros sem indicação</label><select class="form-input" id="ss_corretor"></select></div><div class="material-meta">Links individuais direcionam o cadastro ao corretor identificado no link. O contato geral é usado quando não houver WhatsApp individual cadastrado.</div><button class="btn btn-primary" id="siteSettingsSaveBtn" onclick="saveSiteSettings()">Salvar configurações</button></div></div></div>
+<div class="modal-overlay" id="materialEmpModal"><div class="modal form-modal" style="max-width:440px"><div class="modal-head"><div class="modal-name">Criar empreendimento</div><button type="button" class="modal-close" onclick="closeModal('materialEmpModal')">×</button></div><form class="modal-body" onsubmit="event.preventDefault();saveMaterialEmp()" style="display:flex;flex-direction:column;gap:14px"><div class="form-field"><label class="form-label" for="materialEmpName">Nome do empreendimento</label><input class="form-input" id="materialEmpName" required maxlength="180" placeholder="Ex.: Ayra" autocomplete="off"></div><div class="material-meta">O empreendimento ficará disponível nos materiais e no cadastro de leads.</div><div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn btn-secondary" onclick="closeModal('materialEmpModal')">Cancelar</button><button type="submit" class="btn btn-primary" id="materialEmpSave">Criar empreendimento</button></div></form></div></div>
 <!-- MATERIAL DE APOIO: CADASTRO -->
 <div class="modal-overlay" id="materialEditorModal"><div class="modal form-modal" style="max-width:560px"><div class="modal-head"><div class="modal-name" id="materialEditorTitle">Adicionar material</div><button type="button" class="modal-close" onclick="closeModal('materialEditorModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
   <div class="form-field"><label class="form-label" for="m_title">Título</label><input class="form-input" id="m_title" maxlength="180" placeholder="Ex.: Apresentação Scenarium"></div>
@@ -1215,7 +1216,7 @@ CREATE TABLE historico (
       <!-- MATERIAL DE APOIO -->
       <div class="page" id="page-materiais">
         <div class="chart-card" style="margin-bottom:18px"><div class="chart-title">📁 Materiais da Exclusive Imóveis</div><p style="font-size:13px;color:var(--text-secondary);margin:8px 0 16px">Apresentações, plantas, fotos, vídeos e tabelas para apoiar o atendimento.</p>
-          <div class="agenda-toolbar"><input id="materialSearch" class="form-input" type="search" placeholder="Buscar material…" aria-label="Buscar material" oninput="renderMaterials()" style="flex:1"><select id="materialEmpFilter" class="form-input" aria-label="Filtrar por empreendimento" onchange="renderMaterials()"></select><select id="materialCategoryFilter" class="form-input" aria-label="Filtrar por tipo" onchange="renderMaterials()"><option value="">Todos os tipos</option></select><button type="button" class="btn btn-secondary" onclick="loadMaterials()">Atualizar</button><button type="button" id="materialAddBtn" class="btn btn-primary" onclick="openMaterialEditor()">+ Adicionar material</button></div>
+          <div class="agenda-toolbar"><input id="materialSearch" class="form-input" type="search" placeholder="Buscar material…" aria-label="Buscar material" oninput="renderMaterials()" style="flex:1"><select id="materialEmpFilter" class="form-input" aria-label="Filtrar por empreendimento" onchange="renderMaterials()"></select><select id="materialCategoryFilter" class="form-input" aria-label="Filtrar por tipo" onchange="renderMaterials()"><option value="">Todos os tipos</option></select><button type="button" class="btn btn-secondary" onclick="loadMaterials()">Atualizar</button><button type="button" id="materialEmpAddBtn" class="btn btn-secondary" onclick="openMaterialEmp()">+ Criar empreendimento</button><button type="button" id="materialAddBtn" class="btn btn-primary" onclick="openMaterialEditor()">+ Adicionar material</button></div>
           <div id="materialCount" class="material-meta" role="status"></div>
         </div>
         <div id="materialList"></div>
@@ -3669,6 +3670,7 @@ function filteredMaterials(items,search,emp,category) {
 function renderMaterials() {
   const list=document.getElementById('materialList');if(!list)return;
   document.getElementById('materialAddBtn').style.display=isGestorOrAdmin()?'inline-flex':'none';
+  document.getElementById('materialEmpAddBtn').style.display=isGestorOrAdmin()?'inline-flex':'none';
   const filter=document.getElementById('materialEmpFilter'),current=filter.value;
   filter.innerHTML='<option value="">Todos os empreendimentos</option><option value="__geral__">Materiais gerais</option>'+materialEmpNames().map(e=>`<option value="${agentEscape(e)}">${agentEscape(e)}</option>`).join('');filter.value=current;
   const category=document.getElementById('materialCategoryFilter'),selected=category.value;
@@ -3678,7 +3680,7 @@ function renderMaterials() {
   if(materialsState.error){count.textContent=materialsState.error;list.innerHTML='';return;}
   const items=filteredMaterials(materialsState.items,document.getElementById('materialSearch').value,filter.value,category.value);
   count.textContent=`${items.length} ${items.length===1?'material encontrado':'materiais encontrados'} · ${materialsState.items.length} no total`;
-  if(!items.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-title">${materialsState.items.length?'Nenhum material corresponde aos filtros':'Sua central de materiais está pronta'}</div><div class="empty-desc">${materialsState.items.length?'Ajuste a busca ou os filtros.':isGestorOrAdmin()?'Clique em Adicionar material para cadastrar o primeiro arquivo ou link.':'Os materiais aparecerão aqui quando a gestão os cadastrar.'}</div></div>`;return;}
+  if(!items.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-title">${materialsState.items.length?'Nenhum material corresponde aos filtros':filter.value&&filter.value!=='__geral__'?agentEscape(filter.value)+' — sem materiais':'Sua central de materiais está pronta'}</div><div class="empty-desc">${materialsState.items.length?'Ajuste a busca ou os filtros.':isGestorOrAdmin()?'Clique em Adicionar material para cadastrar o primeiro arquivo ou link.':'Os materiais aparecerão aqui quando a gestão os cadastrar.'}</div></div>`;return;}
   const groups=new Map();items.forEach(m=>{const emp=m.empreendimento||'Materiais gerais';if(!groups.has(emp))groups.set(emp,[]);groups.get(emp).push(m);});
   list.innerHTML=[...groups].map(([emp,rows])=>{
     const folders=new Map();
@@ -3689,6 +3691,35 @@ function renderMaterials() {
     }).join('')}</section>`;
   }).join('');
 }
+let materialEmpSaving=false;
+function openMaterialEmp() {
+  if(!isGestorOrAdmin())return;
+  document.getElementById('materialEmpName').value='';
+  openModal('materialEmpModal');
+  document.getElementById('materialEmpName').focus();
+}
+async function saveMaterialEmp() {
+  if(!isGestorOrAdmin()||materialEmpSaving)return;
+  const name=document.getElementById('materialEmpName').value.trim().replace(/\s+/g,' ');
+  if(!name||name.length>180){toast('Informe o nome do empreendimento','error');return;}
+  const normalized=x=>x.trim().toLocaleLowerCase('pt-BR');
+  if(materialEmpNames().some(x=>normalized(x)===normalized(name))){toast('Empreendimento já cadastrado','error');return;}
+  if(!APP.supabase||!APP.sbConnected){toast('Conecte o CRM para salvar o empreendimento para a equipe.','error');return;}
+  const button=document.getElementById('materialEmpSave');materialEmpSaving=true;button.disabled=true;button.textContent='Salvando…';
+  try {
+    const {data:existing,error:readError}=await APP.supabase.from('empreendimentos').select('nome');
+    if(readError)throw readError;
+    if((existing||[]).some(x=>normalized(x.nome)===normalized(name))){toast('Empreendimento já cadastrado','error');return;}
+    const {data,error}=await APP.supabase.from('empreendimentos').insert([{nome:name}]).select('nome').single();
+    if(error||!data?.nome)throw error||new Error('Cadastro não confirmado');
+    APP.empreendimentos=[...new Set([...(existing||[]).map(x=>x.nome),...APP.empreendimentos,data.nome])].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    saveToLocal();renderEmpList();renderEmpSelect();renderKanbanEmpFilterBar();
+    document.getElementById('materialSearch').value='';document.getElementById('materialCategoryFilter').value='';
+    renderMaterials();document.getElementById('materialEmpFilter').value=data.nome;renderMaterials();
+    closeModal('materialEmpModal');toast('Empreendimento criado! Agora adicione os materiais.','success');
+  }catch(error){console.error('Criar empreendimento:',error);toast('Não foi possível salvar o empreendimento. Tente novamente.','error');}
+  finally{materialEmpSaving=false;button.disabled=false;button.textContent='Criar empreendimento';}
+}
 function toggleMaterialSource() {
   const file=document.getElementById('m_source').value==='file';
   document.getElementById('m_fileField').style.display=file?'':'none';document.getElementById('m_urlField').style.display=file?'none':'';
@@ -3698,7 +3729,7 @@ function openMaterialEditor(id=null) {
   const material=materialsState.items.find(m=>m.id===id);if(id&&!material)return;
   materialsState.editingId=id;
   document.getElementById('materialEditorTitle').textContent=id?'Editar material':'Adicionar material';
-  document.getElementById('m_title').value=material?.titulo||'';document.getElementById('m_emp').value=material?.empreendimento||'';document.getElementById('m_description').value=material?.descricao||'';
+  document.getElementById('m_title').value=material?.titulo||'';document.getElementById('m_emp').value=material?.empreendimento||(document.getElementById('materialEmpFilter').value==='__geral__'?'':document.getElementById('materialEmpFilter').value);document.getElementById('m_description').value=material?.descricao||'';
   document.getElementById('m_category').innerHTML=Object.entries(MATERIAL_CATEGORIES).map(([k,l])=>`<option value="${k}">${l}</option>`).join('');document.getElementById('m_category').value=material?.categoria||'apresentacao';
   document.getElementById('materialEmpOptions').innerHTML=materialEmpNames().map(e=>`<option value="${agentEscape(e)}"></option>`).join('');
   document.getElementById('m_source').value=material?.url?'link':'file';document.getElementById('m_file').value='';document.getElementById('m_url').value=material?.url||'';
@@ -4398,8 +4429,8 @@ function renderEmpList() {
   el.innerHTML = APP.empreendimentos.length
     ? APP.empreendimentos.map(e => `
     <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-surface);border:1px solid var(--border);border-radius:99px;padding:5px 12px 5px 10px;font-size:13px">
-      🏢 ${e}
-      <button onclick="removeEmpreendimento('${e.replace(/'/g, "\\'")}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px">×</button>
+      🏢 ${agentEscape(e)}
+      <button onclick="removeEmpreendimento(${agentEscape(JSON.stringify(e))})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px">×</button>
     </div>`).join('')
     : '<div style="color:var(--text-muted);font-size:13px">Nenhum empreendimento cadastrado.</div>';
 }
@@ -4409,7 +4440,7 @@ function renderEmpSelect() {
   if (!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">Selecione...</option>' +
-    APP.empreendimentos.map(e => `<option value="${e}" ${cur===e?'selected':''}>${e}</option>`).join('');
+    APP.empreendimentos.map(e => `<option value="${agentEscape(e)}" ${cur===e?'selected':''}>${agentEscape(e)}</option>`).join('');
 }
 
 function renderKanbanEmpFilterBar() {
