@@ -551,6 +551,12 @@ html.light .pill-atendimento{color:#6743b5}
 @media(max-width:1100px){.dashboard-date{margin-left:0} .dashboard-quick-actions{margin-left:auto} .dashboard-radar-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){#page-dashboard .dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-radar-primary{grid-template-columns:1fr}.dashboard-toolbar{padding:12px}.dashboard-quick-actions{margin-left:0}.dashboard-quick-actions .btn{padding:8px 10px;font-size:12px}.dashboard-scope{width:100%}.dashboard-scope select{flex:1;width:auto}.dashboard-radar-secondary{gap:10px}.dashboard-date{font-size:11px}}
 
+.dashboard-period-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px;font-size:12px;color:var(--text-secondary)}
+.dashboard-period-bar>select{width:175px}
+.dashboard-custom-dates{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dashboard-custom-dates input{width:150px}
+.dashboard-period-note{color:var(--text-muted);font-size:11px;line-height:1.5}
+@media(max-width:700px){.dashboard-period-note{width:100%}.dashboard-custom-dates input{width:135px}}
 </style>
 </head>
 <body>
@@ -1137,6 +1143,11 @@ CREATE TABLE historico (
           <div class="dashboard-scope" id="dashboardFilterBar"><label for="dashboardBroker">Visão da equipe</label><select class="form-input" id="dashboardBroker" onchange="renderDashboard()"></select></div>
           <span class="dashboard-date" id="dashboardDate"></span>
           <div class="dashboard-quick-actions"><button class="btn btn-primary" onclick="openModal('addLeadModal')">+ Novo lead</button><button class="btn btn-secondary" onclick="openModal('addTaskModal')">+ Agendar retorno</button><button class="btn btn-secondary" onclick="dashboardNavigate('kanban')">Abrir Kanban</button></div>
+        </div>
+        <div class="dashboard-period-bar">
+          <label for="dashboardPeriod">Período</label><select class="form-input" id="dashboardPeriod" onchange="setDashboardPeriod(this.value)"><option value="all">Todo o período</option><option value="today">Hoje</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este mês</option><option value="custom">Personalizado</option></select>
+          <div id="dashboardCustomDates" class="dashboard-custom-dates" style="display:none"><label for="dashboardStart">De</label><input class="form-input" type="date" id="dashboardStart" onchange="renderDashboard()"><label for="dashboardEnd">Até</label><input class="form-input" type="date" id="dashboardEnd" onchange="renderDashboard()"></div>
+          <span class="dashboard-period-note" id="dashboardPeriodHint" role="status"></span>
         </div>
         <div class="metrics-grid dashboard-metrics">
           <div class="metric-card purple"><div class="metric-label">Leads ativos</div><div class="metric-value" id="m-total">0</div><div class="metric-change">Em andamento no funil</div><div class="metric-icon">👥</div></div>
@@ -2446,14 +2457,51 @@ function renderDashboardFilter() {
   select.innerHTML='<option value="">Equipe inteira</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
   select.value=isGestorOrAdmin()?current:'';
 }
+function dashboardDateKey(value){
+  const date=new Date(value);if(Number.isNaN(date.getTime()))return '';
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
+  const part=type=>parts.find(p=>p.type===type).value;
+  return part('year')+'-'+part('month')+'-'+part('day');
+}
+function dashboardPeriodRange(now=new Date()){
+  const period=document.getElementById('dashboardPeriod')?.value||'all';
+  const today=dashboardDateKey(now);
+  if(period==='all')return {start:'',end:''};
+  if(period==='custom')return {start:document.getElementById('dashboardStart').value,end:document.getElementById('dashboardEnd').value};
+  if(period==='month')return {start:today.slice(0,7)+'-01',end:today};
+  const date=new Date(today+'T12:00:00Z');
+  date.setUTCDate(date.getUTCDate()-(period==='7days'?6:period==='30days'?29:0));
+  return {start:date.toISOString().slice(0,10),end:today};
+}
+function dashboardInPeriod(value,range=dashboardPeriodRange()){
+  if(range.start&&range.end&&range.start>range.end)return false;
+  if(!range.start&&!range.end)return true;
+  const key=dashboardDateKey(value);
+  return !!key&&(!range.start||key>=range.start)&&(!range.end||key<=range.end);
+}
+function setDashboardPeriod(value){
+  document.getElementById('dashboardCustomDates').style.display=value==='custom'?'flex':'none';
+  renderDashboard();
+}
+function renderDashboardPeriod(){
+  const range=dashboardPeriodRange(),hint=document.getElementById('dashboardPeriodHint');
+  const invalid=range.start&&range.end&&range.start>range.end;
+  hint.textContent=invalid?'A data inicial deve ser anterior à data final.':'Leads: data de cadastro · Tarefas: data do agendamento · Status e valores atuais dos leads selecionados.';
+  hint.style.color=invalid?'var(--danger)':'var(--text-muted)';
+}
 function getDashboardLeads() {
   const broker=isGestorOrAdmin()?document.getElementById('dashboardBroker')?.value:'';
-  return getLeadsDoUsuario().filter(l=>!broker||l.corretor===broker);
+  const range=dashboardPeriodRange();
+  return getLeadsDoUsuario().filter(l=>(!broker||l.corretor===broker)&&dashboardInPeriod(l.created_at,range));
 }
-function getDashboardTasks() {
+function getDashboardScopedTasks() {
   const manager=isGestorOrAdmin();
   const broker=manager?document.getElementById('dashboardBroker')?.value:APP.user?.corretor_ref;
   return getTasksDoUsuario().filter(t=>manager&&!broker||(t.corretor||agendaLeadForTask(t)?.corretor)===broker);
+}
+function getDashboardTasks(){
+  const range=dashboardPeriodRange();
+  return getDashboardScopedTasks().filter(t=>dashboardInPeriod(t.data_hora,range));
 }
 function dashboardNavigate(name) {
   const nav=[...document.querySelectorAll('.nav-item')].find(el=>(el.getAttribute('onclick')||'').includes("'"+name+"'"));
@@ -2467,6 +2515,7 @@ function renderDashboardUpcoming(){
 }
 function renderDashboard() {
   renderDashboardFilter();
+  renderDashboardPeriod();
   renderAlertsPanel();
   const leads = getDashboardLeads();
   const active=leads.filter(l=>!['fechada','perdido'].includes(l.status));
@@ -3970,7 +4019,9 @@ function renderAlertsPanel() {
   const panel=document.getElementById('alertsPanel');
   if(!panel)return;
   const now=new Date();
-  const radar=getRadarData(getDashboardLeads(),getDashboardTasks(),APP.history,now,radarStaleDays);
+  const radar=getRadarData(getDashboardLeads(),getDashboardScopedTasks(),APP.history,now,radarStaleDays);
+  const range=dashboardPeriodRange();
+  ['overdue','returns','visits'].forEach(key=>radar[key]=radar[key].filter(t=>dashboardInPeriod(t.data_hora,range)));
   const scope=isGestorOrAdmin()?(document.getElementById('dashboardBroker').value||'Equipe inteira'):(APP.user?.corretor_ref||'Meus atendimentos');
   const taskRow=t=>`<button type="button" class="radar-row" onclick="openTaskDetail('${t.id}')">${agentEscape(agendaLeadName(t))}<small>${agentEscape(t.titulo||'Tarefa')} · ${agentEscape(new Date(t.data_hora).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))} · ${agentEscape(t.corretor||agendaLeadForTask(t)?.corretor||'Sem corretor')}</small></button>`;
   const leadRow=l=>`<button type="button" class="radar-row" onclick="openLeadDetail('${l.id}')">${agentEscape(l.nome)}<small>${agentEscape(l.empreendimento||'Sem empreendimento')} · ${agentEscape(l.corretor||'Sem corretor')} · Sem contato registrado</small></button>`;
