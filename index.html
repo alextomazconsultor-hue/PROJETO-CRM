@@ -557,6 +557,8 @@ html.light .pill-atendimento{color:#6743b5}
 .dashboard-custom-dates input{width:150px}
 .dashboard-period-note{color:var(--text-muted);font-size:11px;line-height:1.5}
 @media(max-width:700px){.dashboard-period-note{width:100%}.dashboard-custom-dates input{width:135px}}
+#sequenceManagerModal,#sequenceResultModal{z-index:1000}
+.sequence-step .form-input{margin-bottom:8px}
 .followup-modal{max-width:1000px;width:calc(100% - 28px)}
 .followup-layout{display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr);gap:18px;margin-top:12px;align-items:start}
 .followup-block{padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;min-width:0;overflow-wrap:anywhere}
@@ -674,7 +676,10 @@ html.light .pill-atendimento{color:#6743b5}
 </div>
 
 <!-- FOLLOW-UP: HISTÓRICO E SEQUÊNCIA -->
-<div class="modal-overlay" id="followupModal"><div class="modal followup-modal"><div class="modal-head"><div><div class="modal-name" id="followupName">Acompanhamento do lead</div><div class="modal-sub" id="followupSubtitle"></div></div><button type="button" class="modal-close" onclick="closeModal('followupModal')">×</button></div><div class="modal-body"><div id="followupLoadStatus" class="material-meta" role="status"></div><div class="followup-layout"><div><div class="followup-block"><div class="modal-section-title">Contexto do atendimento</div><div id="followupContext"></div><div class="followup-buttons"><button type="button" class="btn btn-secondary btn-sm" onclick="followupOpenLead()">Abrir cadastro</button><button type="button" class="btn btn-secondary btn-sm" onclick="followupSchedule()">Agendar retorno</button><button type="button" class="btn btn-secondary btn-sm" onclick="openFollowup(followupState.leadId)">Atualizar histórico</button></div></div><div class="followup-block"><div class="modal-section-title">Sequência de acompanhamento</div><div id="followupSequenceInfo"></div><label class="form-label" for="followupSequenceSelect">Escolher sequência</label><select class="form-input" id="followupSequenceSelect" onchange="renderFollowupSequencePreview()"></select><div id="followupSequencePreview" class="material-meta" style="margin:10px 0"></div><button type="button" class="btn btn-primary btn-sm" id="followupSequenceSave" onclick="saveFollowupSequence()">Vincular sequência</button><div class="followup-buttons" id="followupSequenceActions"></div></div><div class="followup-block"><label class="form-label" for="followupNote">Adicionar anotação</label><textarea class="note-input" id="followupNote" maxlength="4000" placeholder="Interesse, objeções, o que foi combinado…"></textarea><button type="button" class="btn btn-secondary btn-sm" id="followupNoteSave" onclick="saveFollowupNote()">Salvar anotação</button></div></div><div class="followup-block"><div class="followup-history-head"><div class="modal-section-title">Histórico completo</div><select class="form-input" id="followupHistoryFilter" onchange="renderFollowupHistory()" aria-label="Filtrar histórico"><option value="">Todos os registros</option><option value="contact">Contatos</option><option value="note">Anotações</option><option value="move">Mudanças de etapa</option><option value="task">Tarefas</option></select></div><p class="material-meta">Registros do CRM, do mais recente ao mais antigo. Conversas externas aparecem quando registradas aqui.</p><div class="timeline followup-history" id="followupHistory"></div></div></div></div></div></div>
+<div class="modal-overlay" id="sequenceManagerModal"><div class="modal form-modal" style="max-width:650px"><div class="modal-head"><div class="modal-name">Sequências de Follow-up</div><button type="button" class="modal-close" onclick="closeModal('sequenceManagerModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><details><summary>Sequências disponíveis</summary><div id="sequenceCatalog" class="material-meta" style="margin-top:10px"></div></details><div class="modal-section-title">Criar nova sequência</div><div class="form-field"><label class="form-label" for="sequenceName">Nome</label><input class="form-input" id="sequenceName" maxlength="180" placeholder="Ex.: Sequência AYRA"></div><div class="form-field"><label class="form-label" for="sequenceDescription">Descrição (opcional)</label><textarea class="form-input" id="sequenceDescription" maxlength="2000" placeholder="Quando utilizar esta sequência"></textarea></div><p class="material-meta">A primeira data poderá ser ajustada ao vincular o lead. Os demais intervalos contam desde a conclusão do contato anterior. As ações geram tarefas para o corretor.</p><div id="sequenceSteps"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addSequenceStep()">+ Adicionar passo</button><button type="button" class="btn btn-primary" id="sequenceCreateSave" onclick="saveNewSequence()">Criar sequência</button></div></div></div>
+<div class="modal-overlay" id="sequenceResultModal"><div class="modal form-modal" style="max-width:520px"><div class="modal-head"><div class="modal-name" id="sequenceResultTitle">Resultado do Follow-up</div><button type="button" class="modal-close" onclick="closeModal('sequenceResultModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><p class="material-meta" id="sequenceResultGuide"></p><div class="form-field"><label class="form-label" for="sequenceAction">Como foi o contato?</label><select class="form-input" id="sequenceAction"><option value="">Selecione</option><option value="message">Mensagem</option><option value="call">Ligação</option><option value="audio">Áudio</option><option value="visit">Visita</option><option value="contact">Outro contato</option></select></div><div class="form-field"><label class="form-label" for="sequenceOutcome">Resultado</label><select class="form-input" id="sequenceOutcome" onchange="sequenceResultFields()"><option value="">Selecione</option><option>Não respondeu</option><option>Respondeu</option><option>Pediu mais tempo</option><option>Sem interesse</option></select><p class="material-meta" style="margin-top:6px" id="sequenceOutcomeHint"></p></div><div class="form-field" id="sequenceResponseField"><label class="form-label" for="sequenceResponseStage">Próxima etapa</label><select class="form-input" id="sequenceResponseStage"><option value="atendimento">Atendimento</option><option value="visita">Visita agendada</option><option value="proposta">Proposta</option></select></div><div class="form-field" id="sequenceReturnField"><label class="form-label" for="sequenceReturnDate">Data combinada</label><input class="form-input" id="sequenceReturnDate" type="datetime-local"></div><div class="form-field"><label class="form-label" id="sequenceNoteLabel" for="sequenceNote">Anotação (opcional)</label><textarea class="form-input" id="sequenceNote" maxlength="4000"></textarea></div><button type="button" class="btn btn-primary" id="sequenceResultSave" onclick="saveSequenceResult()">Salvar resultado</button></div></div></div>
+
+<div class="modal-overlay" id="followupModal"><div class="modal followup-modal"><div class="modal-head"><div><div class="modal-name" id="followupName">Acompanhamento do lead</div><div class="modal-sub" id="followupSubtitle"></div></div><button type="button" class="modal-close" onclick="closeModal('followupModal')">×</button></div><div class="modal-body"><div id="followupLoadStatus" class="material-meta" role="status"></div><div class="followup-layout"><div><div class="followup-block"><div class="modal-section-title">Contexto do atendimento</div><div id="followupContext"></div><div class="followup-buttons"><button type="button" class="btn btn-secondary btn-sm" onclick="followupOpenLead()">Abrir cadastro</button><button type="button" class="btn btn-secondary btn-sm" onclick="followupSchedule()">Agendar retorno</button><button type="button" class="btn btn-secondary btn-sm" onclick="openFollowup(followupState.leadId)">Atualizar histórico</button></div></div><div class="followup-block"><div class="modal-section-title">Sequência de acompanhamento</div><div id="followupSequenceInfo"></div><label class="form-label" for="followupSequenceSelect">Escolher sequência</label><select class="form-input" id="followupSequenceSelect" onchange="onFollowupSequenceChange()"></select><div id="followupSequencePreview" class="material-meta" style="margin:10px 0"></div><label class="form-label" for="followupStartDate">Data do primeiro contato / retomada</label><input class="form-input" type="datetime-local" id="followupStartDate" style="margin-bottom:10px"><button type="button" class="btn btn-secondary btn-sm" id="followupCreateSequenceBtn" onclick="openSequenceManager()" style="margin-bottom:10px">+ Criar sequência</button><p class="material-meta" style="margin-bottom:10px">Ao iniciar, o lead vai para Follow-up. Substituir a sequência encerra as tarefas pendentes da anterior.</p><button type="button" class="btn btn-primary btn-sm" id="followupSequenceSave" onclick="saveFollowupSequence()">Vincular sequência</button><div class="followup-buttons" id="followupSequenceActions"></div></div><div class="followup-block"><label class="form-label" for="followupNote">Adicionar anotação</label><textarea class="note-input" id="followupNote" maxlength="4000" placeholder="Interesse, objeções, o que foi combinado…"></textarea><button type="button" class="btn btn-secondary btn-sm" id="followupNoteSave" onclick="saveFollowupNote()">Salvar anotação</button></div></div><div class="followup-block"><div class="followup-history-head"><div class="modal-section-title">Histórico completo</div><select class="form-input" id="followupHistoryFilter" onchange="renderFollowupHistory()" aria-label="Filtrar histórico"><option value="">Todos os registros</option><option value="contact">Contatos</option><option value="note">Anotações</option><option value="move">Mudanças de etapa</option><option value="task">Tarefas</option></select></div><p class="material-meta">Registros do CRM, do mais recente ao mais antigo. Conversas externas aparecem quando registradas aqui.</p><div class="timeline followup-history" id="followupHistory"></div></div></div></div></div></div>
 <!-- LEAD DETAIL MODAL -->
 <div class="modal-overlay" id="leadModal">
   <div class="modal">
@@ -1224,7 +1229,7 @@ CREATE TABLE historico (
           <div class="kanban-toolbar">
             <div class="kanban-contact-search"><span aria-hidden="true">🔍</span><input id="kanbanContactSearch" type="search" aria-label="Buscar contato no Pipeline por nome ou últimos quatro números do telefone" placeholder="Nome ou 4 últimos números" oninput="setKanbanSearch(this.value)"><button type="button" onclick="clearKanbanSearch()" aria-label="Limpar busca do Pipeline">Limpar</button></div>
             <div class="kanban-filter-bar" id="kanbanFilterBar"></div>
-            <div class="kanban-filter-bar" id="kanbanEmpFilterBar"></div>
+            <div class="kanban-filter-bar" id="kanbanEmpFilterBar"></div><button type="button" class="btn btn-secondary btn-sm" id="sequenceManagerBtn" onclick="openSequenceManager()">Sequências de Follow-up</button>
           </div>
           <div id="kanbanSearchStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--text-muted);flex-shrink:0"></div>
           <!-- RESUMO + EDITAR ETAPAS -->
@@ -1538,8 +1543,10 @@ async function loadTasksFromSB() {
         notas: t.notas || '',
         concluida: t.concluida,
         resultado: t.resultado || '',
-        concluida_em: t.concluida_em || null
+        concluida_em: t.concluida_em || null,
+        followup_lead_id:t.followup_lead_id,followup_run:t.followup_run,followup_step:t.followup_step
       }));
+      await loadFollowupCatalog();
       saveToLocal();
       refreshAll();
     }
@@ -1631,6 +1638,7 @@ async function updateLeadInSB(id, data) {
       throw error;
     }
     await loadLeadsFromSB();
+    if(Object.prototype.hasOwnProperty.call(data,'status')||Object.prototype.hasOwnProperty.call(data,'corretor'))await loadTasksFromSB();
   } catch(e) {
     console.error('UPDATE catch:', e);
   }
@@ -2728,6 +2736,7 @@ function renderKanban() {
   // Filtra leads pelo corretor selecionado
   const filteredLeads=getKanbanContacts();
   const priorityNow=Date.now(),priorityTasks=kanbanTaskIndex(getLeadsDoUsuario(),getTasksDoUsuario());
+  document.getElementById('sequenceManagerBtn').style.display=isGestorOrAdmin()?'':'none';
   const searchInput=document.getElementById('kanbanContactSearch');
   if(searchInput.value!==APP.kanbanSearch)searchInput.value=APP.kanbanSearch||'';
   document.getElementById('kanbanSearchStatus').textContent=APP.kanbanSearch?.trim() ? (filteredLeads.length ? `${filteredLeads.length} contato(s) encontrado(s) nos filtros selecionados` : 'Nenhum contato encontrado. Confira a busca e os filtros de corretor e empreendimento.') : '';
@@ -2771,6 +2780,7 @@ function renderKanban() {
           ${priority.kind!=='normal'?`<button type="button" class="kanban-priority-indicator" title="${agentEscape(priority.title)}" aria-label="${agentEscape(priority.title)}" onclick="event.stopPropagation();toast(this.title,\'info\')"></button>`:''}
           <div class="kanban-card-name">${l.nome}</div>
           ${isFollowupStage(l.status)?`<button type="button" class="btn btn-secondary btn-sm followup-card-button" onclick="event.stopPropagation();openFollowup('${l.id}')">📋 Histórico e sequência</button>`:''}
+          ${isFollowupStage(l.status)?followupCardSummary(l):''}
           <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
           <div class="kanban-card-detail">🏢 ${l.empreendimento||' '}</div>
           <div class="kanban-card-detail">📍 ${l.cidade||' '}</div>
@@ -2904,6 +2914,8 @@ async function openFollowup(id){
   Object.assign(followupState,{leadId:id,events:followupEvents(lead,APP.history[id]||[],getTasksDoUsuario()),sequences:[],enrollment:null,loading:true,error:''});
   document.getElementById('followupName').textContent=lead.nome;
   document.getElementById('followupSubtitle').textContent=(lead.empreendimento||'Sem empreendimento')+' · '+(lead.corretor||'Sem corretor');
+  document.getElementById('followupStartDate').value=sequenceLocalDate();
+  document.getElementById('followupCreateSequenceBtn').style.display=isGestorOrAdmin()?'':'none';
   document.getElementById('followupNote').value='';document.getElementById('followupHistoryFilter').value='';
   renderFollowup();openModal('followupModal');
   try {
@@ -2914,9 +2926,10 @@ async function openFollowup(id){
     const {data:enrollment,error}=await APP.supabase.from('followup_leads').select('*').eq('lead_id',id).maybeSingle();
     if(error)throw error;if(request!==followupState.request)return;
     const history=histories.map(h=>({id:h.id,text:h.texto||'',type:h.tipo||'note',date:h.created_at})).sort((a,b)=>new Date(a.date)-new Date(b.date));
-    APP.history[id]=history;saveToLocal();
+    APP.history[id]=history;APP.tasks=tasks;saveToLocal();
     followupState.events=followupEvents(lead,history,tasks);
     followupState.sequences=sequences;followupState.enrollment=enrollment;
+    APP.followupSequences=sequences;APP.followupEnrollments=(APP.followupEnrollments||[]).filter(e=>e.lead_id!==id);if(enrollment)APP.followupEnrollments.push(enrollment);refreshAll();
   }catch(error){if(request===followupState.request)followupState.error='Não foi possível atualizar todos os dados. Exibindo os registros já carregados. Clique em Atualizar histórico para tentar novamente.';console.error('Follow-up:',error);}
   finally{if(request===followupState.request){followupState.loading=false;renderFollowup();}}
 }
@@ -2930,14 +2943,10 @@ function renderFollowup(){
   select.innerHTML='<option value="">Selecione uma sequência</option>'+available.map(s=>`<option value="${s.id}">${agentEscape(s.nome)}${!s.ativa?' (inativa)':''}</option>`).join('');
   select.value=selected;select.disabled=followupState.loading||!!followupState.error||!available.length;
   const sequence=followupState.sequences.find(s=>s.id===selected);
-  document.getElementById('followupSequenceInfo').innerHTML=current?`<p style="font-size:12px;margin-bottom:12px"><strong>${agentEscape(sequence?.nome||'Sequência vinculada')}</strong><br>Estado: ${{ativo:'Ativo',pausado:'Pausado',concluido:'Concluído'}[current.estado]||''} · Vinculado em ${formatDateTime(current.iniciado_em)}</p>`:`<p class="material-meta" style="margin-bottom:12px">${available.length?'Este lead ainda não está em uma sequência.':'As sequências serão criadas na próxima etapa. O histórico já pode ser consultado e você pode agendar retornos.'}</p>`;
-  document.getElementById('followupSequenceActions').innerHTML=current&&!followupState.loading&&!followupState.error?`<button class="btn btn-secondary btn-sm" onclick="setFollowupEnrollmentState('${current.estado==='ativo'?'pausado':'ativo'}')">${current.estado==='ativo'?'Pausar':'Retomar'}</button><button class="btn btn-secondary btn-sm" onclick="setFollowupEnrollmentState('concluido')">Concluir acompanhamento</button>`:'';
+  document.getElementById('followupSequenceInfo').innerHTML=current?`<p style="font-size:12px;margin-bottom:12px"><strong>${agentEscape(current.nome_snapshot||sequence?.nome||'Sequência vinculada')}</strong><br>Estado: ${{ativo:'Ativo',pausado:'Pausado',concluido:'Concluído'}[current.estado]||''}${current.estado==='ativo'?' · Passo '+(current.etapa_atual+1)+'/'+current.passos_snapshot.length:''} · Vinculado em ${formatDateTime(current.iniciado_em)}</p>`:`<p class="material-meta" style="margin-bottom:12px">${available.length?'Este lead ainda não está em uma sequência.':'Nenhuma sequência ativa disponível. A gestão pode criar uma nova sequência.'}</p>`;
+  const pending=APP.tasks.find(t=>current&&t.followup_run===current.run_id&&t.followup_step===current.etapa_atual&&!t.concluida);
+  document.getElementById('followupSequenceActions').innerHTML=current&&!followupState.loading&&!followupState.error?`${current.estado==='ativo'?`<button class="btn btn-secondary btn-sm" ${followupState.saving?'disabled':''} onclick="setFollowupEnrollmentState('pausado')">Pausar</button>`:current.estado==='pausado'?`<button class="btn btn-secondary btn-sm" ${followupState.saving?'disabled':''} onclick="setFollowupEnrollmentState('ativo')">Retomar na data escolhida</button>`:''}${current.estado!=='concluido'?`<button class="btn btn-secondary btn-sm" ${followupState.saving?'disabled':''} onclick="setFollowupEnrollmentState('concluido')">Concluir acompanhamento</button>`:''}${pending?`<p class="material-meta">Próximo contato: ${agentEscape(pending.titulo)} · ${formatDateTime(pending.data_hora)}</p><button class="btn btn-primary btn-sm" onclick="openTaskResult('${pending.id}')">Registrar resultado do contato</button>`:''}`:'';
   renderFollowupSequencePreview();renderFollowupHistory();
-}
-function renderFollowupSequencePreview(){
-  const selected=document.getElementById('followupSequenceSelect').value,sequence=followupState.sequences.find(s=>s.id===selected);
-  document.getElementById('followupSequencePreview').textContent=sequence?(sequence.descricao||'')+' · '+(sequence.passos?.length||0)+' passos previstos. O vínculo organiza o acompanhamento; os agendamentos continuam manuais nesta primeira versão.':'';
-  document.getElementById('followupSequenceSave').disabled=followupState.loading||followupState.saving||!!followupState.error||!sequence?.ativa||!sequence?.passos?.length||selected===followupState.enrollment?.sequencia_id;
 }
 function renderFollowupHistory(){
   const filter=document.getElementById('followupHistoryFilter').value;
@@ -2957,29 +2966,88 @@ async function saveFollowupNote(){
   }catch(error){console.error(error);toast('Não foi possível salvar a anotação','error');}
   finally{followupState.saving=false;document.getElementById('followupNoteSave').disabled=false;}
 }
+function sequenceLocalDate(days=1){
+ const d=new Date();d.setDate(d.getDate()+days);d.setHours(10,0,0,0);if(d<=new Date())d.setTime(Date.now()+3600000);
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+async function loadFollowupCatalog(){
+ if(!APP.supabase||!APP.sbConnected)return;
+ try{const [sequences,enrollments]=await Promise.all([followupFetchAll('followup_sequencias',q=>q.order('nome').order('id')),followupFetchAll('followup_leads',q=>q.order('lead_id'))]);APP.followupSequences=sequences;APP.followupEnrollments=enrollments;}
+ catch(e){console.error('Sequências:',e);APP.followupSequences=[];APP.followupEnrollments=[];}
+}
+function followupCardSummary(lead){
+ const e=(APP.followupEnrollments||[]).find(e=>e.lead_id===lead.id);if(!e)return '';
+ const task=APP.tasks.find(t=>t.followup_run===e.run_id&&t.followup_step===e.etapa_atual&&!t.concluida);
+ return `<div class="material-meta" style="margin-top:6px">${agentEscape(e.nome_snapshot||'Sequência')} · ${e.estado==='ativo'?'Passo '+(e.etapa_atual+1)+'/'+e.passos_snapshot.length:e.estado==='pausado'?'Pausada':'Concluída'}${task?'<br>Próximo: '+agentEscape(formatDateTime(task.data_hora)):''}</div>`;
+}
+function followupChosenDate(){const value=document.getElementById('followupStartDate').value;return value&&!Number.isNaN(new Date(value).getTime())?new Date(value).toISOString():null;}
+function onFollowupSequenceChange(){const seq=followupState.sequences.find(s=>s.id===document.getElementById('followupSequenceSelect').value);document.getElementById('followupStartDate').value=sequenceLocalDate(Number(seq?.passos?.[0]?.dias)||1);renderFollowupSequencePreview();}
+function renderFollowupSequencePreview(){
+ const selected=document.getElementById('followupSequenceSelect').value,sequence=followupState.sequences.find(s=>s.id===selected);
+ document.getElementById('followupSequencePreview').innerHTML=sequence?`<p>${agentEscape(sequence.descricao||'')}</p><ol style="padding-left:20px;margin-top:8px">${sequence.passos.map((p,i)=>`<li>${agentEscape(p.titulo)} · ${i?'após '+p.dias+' dia(s) do contato anterior':'primeira data escolhida abaixo'}</li>`).join('')}</ol>`:'';
+ const current=followupState.enrollment;
+ document.getElementById('followupSequenceSave').disabled=followupState.loading||followupState.saving||!!followupState.error||!sequence?.ativa||!sequence?.passos?.length||(selected===current?.sequencia_id&&current?.estado!=='concluido');
+ document.getElementById('followupSequenceSave').textContent=current?.estado==='concluido'?'Iniciar nova sequência':current?'Substituir sequência':'Iniciar sequência';
+}
+async function followupRefreshData(id){await Promise.all([loadLeadsFromSB(),loadTasksFromSB(),loadHistoryFromSB()]);if(followupState.leadId===id&&document.getElementById('followupModal').classList.contains('open'))await openFollowup(id);refreshAll();}
 async function saveFollowupSequence(){
-  const id=followupState.leadId,selected=document.getElementById('followupSequenceSelect').value;
-  const sequence=followupState.sequences.find(s=>s.id===selected&&s.ativa&&s.passos?.length);
-  if(!sequence||!followupAccessibleLead(id)||followupState.saving||followupState.loading||followupState.error)return;
-  if(!APP.supabase||!APP.sbConnected)return;
-  followupState.saving=true;renderFollowupSequencePreview();
-  try{
-    const fields={lead_id:id,sequencia_id:selected,estado:'ativo',etapa_atual:0,iniciado_em:new Date().toISOString(),updated_at:new Date().toISOString()};
-    const {data,error}=await APP.supabase.from('followup_leads').upsert(fields,{onConflict:'lead_id'}).select('lead_id').single();
-    if(error||!data)throw error||Error('Vínculo não confirmado');
-    addHistory(id,'Vinculado à sequência de follow-up: '+sequence.nome,'note');saveToLocal();toast('Sequência vinculada','success');
-    if(followupState.leadId===id)await openFollowup(id);
-  }catch(error){console.error(error);toast('Não foi possível vincular a sequência','error');}
-  finally{followupState.saving=false;renderFollowupSequencePreview();}
+ const id=followupState.leadId,selected=document.getElementById('followupSequenceSelect').value,date=followupChosenDate();
+ if(!followupAccessibleLead(id)||followupState.saving||followupState.loading||followupState.error)return;
+ if(!date||new Date(date)<=new Date()){toast('Escolha uma data futura para o primeiro contato','error');return;}
+ if(!APP.supabase||!APP.sbConnected){toast('Conecte o CRM para iniciar a sequência','error');return;}
+ followupState.saving=true;renderFollowupSequencePreview();
+ try{const {error}=await APP.supabase.rpc('crm_followup_start',{p_lead:id,p_sequence:selected,p_date:date});if(error)throw error;await followupRefreshData(id);toast('Sequência iniciada e primeira tarefa agendada','success');}
+ catch(e){toast(e.message||'Não foi possível iniciar a sequência','error');}
+ finally{followupState.saving=false;renderFollowup();}
 }
 async function setFollowupEnrollmentState(estado){
-  const id=followupState.leadId;if(!['ativo','pausado','concluido'].includes(estado)||!followupAccessibleLead(id)||followupState.saving||!followupState.enrollment)return;
-  followupState.saving=true;
-  try{const {data,error}=await APP.supabase.from('followup_leads').update({estado,updated_at:new Date().toISOString()}).eq('lead_id',id).select('lead_id').single();if(error||!data)throw error||Error('Não confirmado');
-    addHistory(id,'Acompanhamento da sequência: '+{ativo:'retomado',pausado:'pausado',concluido:'concluído'}[estado],'note');saveToLocal();if(followupState.leadId===id)await openFollowup(id);
-  }catch(error){console.error(error);toast('Não foi possível atualizar o acompanhamento','error');}
-  finally{followupState.saving=false;renderFollowupSequencePreview();}
+ const id=followupState.leadId;if(!followupAccessibleLead(id)||followupState.saving||!followupState.enrollment)return;
+ const date=estado==='ativo'?followupChosenDate():null;
+ if(estado==='ativo'&&(!date||new Date(date)<=new Date())){toast('Escolha a data futura para retomar','error');return;}
+ followupState.saving=true;renderFollowupSequencePreview();
+ try{const {error}=await APP.supabase.rpc('crm_followup_state',{p_lead:id,p_state:estado,p_date:date});if(error)throw error;await followupRefreshData(id);toast(estado==='ativo'?'Sequência retomada e tarefa agendada':estado==='pausado'?'Sequência pausada':'Acompanhamento concluído','success');}
+ catch(e){toast(e.message||'Não foi possível atualizar a sequência','error');}
+ finally{followupState.saving=false;renderFollowup();}
 }
+let sequenceCreating=false,sequenceStepRows=[];
+async function openSequenceManager(){
+ if(!isGestorOrAdmin()){toast('Criação de sequências disponível para a gestão','error');return;}
+ document.getElementById('sequenceName').value='';document.getElementById('sequenceDescription').value='';sequenceStepRows=[{titulo:'Enviar apresentação',dias:1,orientacao:''},{titulo:'Retomar contato',dias:2,orientacao:''}];renderSequenceSteps();openModal('sequenceManagerModal');document.getElementById('sequenceCatalog').textContent='Carregando sequências…';
+ await loadFollowupCatalog();document.getElementById('sequenceCatalog').innerHTML=(APP.followupSequences||[]).map(s=>`<div style="margin-bottom:7px"><strong>${agentEscape(s.nome)}</strong> · ${s.passos.length} passos${s.ativa?'':' · Inativa'}</div>`).join('')||'Nenhuma sequência cadastrada.';
+}
+function captureSequenceSteps(){sequenceStepRows=Array.from(document.querySelectorAll('#sequenceSteps .sequence-step')).map(row=>({titulo:row.querySelector('[data-field="titulo"]').value.trim(),dias:Number(row.querySelector('[data-field="dias"]').value),orientacao:row.querySelector('[data-field="orientacao"]').value.trim()}));}
+function addSequenceStep(){captureSequenceSteps();if(sequenceStepRows.length>=20){toast('Limite de 20 passos por sequência','error');return;}sequenceStepRows.push({titulo:'',dias:2,orientacao:''});renderSequenceSteps();}
+function removeSequenceStep(i){captureSequenceSteps();sequenceStepRows.splice(i,1);renderSequenceSteps();}
+function renderSequenceSteps(){document.getElementById('sequenceSteps').innerHTML=sequenceStepRows.map((p,i)=>`<div class="sequence-step followup-block"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong>Passo ${i+1}</strong><button type="button" class="btn btn-ghost btn-sm" onclick="removeSequenceStep(${i})" aria-label="Remover passo ${i+1}">Remover</button></div><label class="form-label">Ação</label><input data-field="titulo" class="form-input" maxlength="180" placeholder="Ex.: enviar vídeo do AYRA" value="${agentEscape(p.titulo)}"><label class="form-label">${i?'Dias após concluir o contato anterior':'Dias até o primeiro contato (sugestão)'}</label><input data-field="dias" class="form-input" type="number" min="1" max="365" step="1" value="${p.dias}"><label class="form-label">Orientação para o corretor (opcional)</label><textarea data-field="orientacao" class="form-input" maxlength="2000">${agentEscape(p.orientacao)}</textarea></div>`).join('');}
+function sequenceValidate(name,steps){
+ if(!name.trim())return 'Informe o nome da sequência';if(!steps.length||steps.length>20)return 'Crie entre 1 e 20 passos';
+ if(steps.some(p=>!p.titulo||p.titulo.length>180||!Number.isInteger(p.dias)||p.dias<1||p.dias>365||p.orientacao.length>2000))return 'Cada passo precisa de uma ação e intervalo de 1 a 365 dias';return '';
+}
+async function saveNewSequence(){
+ if(sequenceCreating||!isGestorOrAdmin())return;captureSequenceSteps();const nome=document.getElementById('sequenceName').value.trim(),descricao=document.getElementById('sequenceDescription').value.trim(),validation=sequenceValidate(nome,sequenceStepRows);
+ if(validation){toast(validation,'error');return;}if(!APP.supabase||!APP.sbConnected){toast('Conecte o CRM para criar a sequência','error');return;}
+ if((APP.followupSequences||[]).some(s=>s.nome.trim().toLocaleLowerCase()===nome.toLocaleLowerCase())){toast('Já existe uma sequência com esse nome','error');return;}
+ sequenceCreating=true;document.getElementById('sequenceCreateSave').disabled=true;
+ try{const {data,error}=await APP.supabase.from('followup_sequencias').insert({nome,descricao,passos:sequenceStepRows,ativa:true,created_by:APP.user.id}).select('id').single();if(error||!data)throw error||Error('Criação não confirmada');await loadFollowupCatalog();closeModal('sequenceManagerModal');if(followupState.leadId&&document.getElementById('followupModal').classList.contains('open')){await openFollowup(followupState.leadId);document.getElementById('followupSequenceSelect').value=data.id;onFollowupSequenceChange();}toast('Sequência criada e disponível para a equipe','success');}
+ catch(e){toast(e.message||'Não foi possível criar a sequência','error');}finally{sequenceCreating=false;document.getElementById('sequenceCreateSave').disabled=false;}
+}
+let sequenceResultTaskId=null,sequenceResultSaving=false;
+function openSequenceResult(task){
+ sequenceResultTaskId=task.id;document.getElementById('sequenceResultTitle').textContent=task.titulo+' · '+agendaLeadName(task);document.getElementById('sequenceResultGuide').textContent=task.notas||'';
+ ['sequenceOutcome','sequenceAction','sequenceNote','sequenceReturnDate'].forEach(id=>document.getElementById(id).value='');document.getElementById('sequenceResponseStage').value='atendimento';sequenceResultFields();closeModal('taskDetailModal');openModal('sequenceResultModal');
+}
+function sequenceResultFields(){const outcome=document.getElementById('sequenceOutcome').value;document.getElementById('sequenceReturnField').style.display=outcome==='Pediu mais tempo'?'':'none';document.getElementById('sequenceResponseField').style.display=outcome==='Respondeu'?'':'none';document.getElementById('sequenceNoteLabel').textContent=outcome==='Sem interesse'?'Motivo do descarte (obrigatório)':'Anotação (opcional)';document.getElementById('sequenceOutcomeHint').textContent={'Não respondeu':'O próximo passo será agendado pelo intervalo da sequência. No último passo, o acompanhamento será concluído para revisão.','Respondeu':'A sequência será pausada e o lead seguirá para a etapa escolhida.','Pediu mais tempo':'O passo atual será reagendado para a data combinada.','Sem interesse':'O lead será descartado com o motivo registrado, encerrando a sequência.'}[outcome]||'';}
+async function saveSequenceResult(){
+ if(sequenceResultSaving)return;const task=APP.tasks.find(t=>t.id===sequenceResultTaskId);if(!task||task.concluida)return;
+ const outcome=document.getElementById('sequenceOutcome').value,action=document.getElementById('sequenceAction').value,note=document.getElementById('sequenceNote').value.trim(),date=document.getElementById('sequenceReturnDate').value;
+ if(!outcome||!action){toast('Selecione como foi o contato e o resultado','error');return;}if(outcome==='Sem interesse'&&!note){toast('Informe o motivo do descarte','error');return;}
+ if(outcome==='Pediu mais tempo'&&(!date||!Number.isFinite(new Date(date).getTime())||new Date(date)<=new Date())){toast('Escolha a data futura combinada','error');return;}
+ if(!APP.supabase||!APP.sbConnected){toast('Conecte o CRM para registrar o resultado','error');return;}
+ sequenceResultSaving=true;document.getElementById('sequenceResultSave').disabled=true;
+ try{const {error}=await APP.supabase.rpc('crm_followup_complete',{p_task:task.id,p_outcome:outcome,p_action:action,p_note:note,p_date:outcome==='Pediu mais tempo'?new Date(date).toISOString():null,p_stage:document.getElementById('sequenceResponseStage').value});if(error)throw error;closeModal('sequenceResultModal');await followupRefreshData(task.followup_lead_id);toast('Resultado registrado e acompanhamento atualizado','success');}
+ catch(e){toast(e.message||'Não foi possível registrar o resultado','error');}finally{sequenceResultSaving=false;document.getElementById('sequenceResultSave').disabled=false;}
+}
+
 
 // -- LEAD DETAIL --
 const VIP_AYRA_STAGES = [
@@ -4464,6 +4532,7 @@ async function toggleTask(id) {
   const task = APP.tasks.find(t => t.id === id);
   if (!task) return;
   if (!task.concluida) { openTaskResult(id); return; }
+  if(task.followup_run){toast('Retome ou inicie a sequência pelo acompanhamento do lead','info');return;}
   if (APP.supabase && APP.sbConnected) {
     const { data, error } = await APP.supabase.from('tarefas').update({ concluida:false, resultado:null, concluida_em:null }).eq('id',id).select('id');
     if (error || !data?.length) { toast('Não foi possível reabrir a tarefa','error'); return; }
@@ -4476,6 +4545,7 @@ let agendaCompletingTaskId = null;
 function openTaskResult(id) {
   const task = APP.tasks.find(t=>t.id===id);
   if (!task || task.concluida) return;
+  if(task.followup_run){openSequenceResult(task);return;}
   agendaCompletingTaskId = id;
   document.getElementById('taskResultTitle').textContent = task.titulo + (agendaLeadName(task) ? ' · '+agendaLeadName(task) : '');
   ['taskOutcome','taskOutcomeNote','taskNextTitle','taskNextDate','taskNextChoice'].forEach(key=>document.getElementById(key).value='');
@@ -4569,6 +4639,7 @@ async function completeTaskWithOutcome() {
 }
 
 function deleteTask(id) {
+  if(APP.tasks.find(t=>t.id===id)?.followup_run){toast('Encerre ou substitua o acompanhamento na tela de Follow-up','info');return;}
   APP.tasks = APP.tasks.filter(t => t.id !== id);
   if (APP.supabase && APP.sbConnected) APP.supabase.from('tarefas').delete().eq('id', id).then(() => {});
   saveToLocal();
