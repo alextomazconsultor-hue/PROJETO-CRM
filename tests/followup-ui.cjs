@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const html=fs.readFileSync(process.argv[2]||'crm-sequences.html','utf8');
+const html=fs.readFileSync(process.argv[2]||'index.html','utf8');
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
 const names=[...html.matchAll(/(?:async )?function (\w+)\s*\(/g)].map(x=>x[1]);assert.equal(new Set(names).size,names.length,'Duplicate functions');
 const ids=[...html.matchAll(/\bid="([A-Za-z][\w-]*)"/g)].map(x=>x[1]);
