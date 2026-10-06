@@ -1,0 +1,26 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const html=fs.readFileSync(process.argv[2]||'crm-sequences.html','utf8');
+for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
+const names=[...html.matchAll(/(?:async )?function (\w+)\s*\(/g)].map(x=>x[1]);assert.equal(new Set(names).size,names.length,'Duplicate functions');
+const ids=[...html.matchAll(/\bid="([A-Za-z][\w-]*)"/g)].map(x=>x[1]);
+for(const name of ['sequenceManagerModal','sequenceResultModal','sequenceName','sequenceSteps','followupStartDate'])assert.equal(ids.filter(x=>x===name).length,1,'Missing/duplicate '+name);
+const elements=new Map();const el=id=>{if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',style:{},classList:{contains:()=>false}});return elements.get(id)};
+const calls=[],messages=[];let refreshed=0;
+const ctx={console,Date,Number,Array,document:{getElementById:el,querySelectorAll:()=>[]},APP:{tasks:[],user:{id:'admin'},supabase:{rpc:async(name,args)=>{calls.push({name,args});return {data:{},error:null}}},sbConnected:true},followupState:{leadId:'lead',sequences:[],enrollment:null,saving:false,loading:false,error:''},toast:m=>messages.push(m),agentEscape:s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'),isGestorOrAdmin:()=>true,followupAccessibleLead:()=>({id:'lead'}),openModal:()=>{},closeModal:()=>{},renderFollowup:()=>{},loadLeadsFromSB:async()=>{},loadTasksFromSB:async()=>{},loadHistoryFromSB:async()=>{},refreshAll:()=>refreshed++,agendaLeadName:()=> 'Teste',formatDateTime:d=>d};
+vm.createContext(ctx);const a=html.indexOf('function sequenceLocalDate('),b=html.indexOf('// -- LEAD DETAIL --',a);vm.runInContext(html.slice(a,b),ctx);
+vm.runInContext('followupRefreshData=async()=>{refreshAll()}',ctx);
+(async()=>{
+assert(ctx.sequenceValidate('',[{titulo:'Ação',dias:1,orientacao:''}]));assert(ctx.sequenceValidate('AYRA',[]));assert(ctx.sequenceValidate('AYRA',[{titulo:'Ação',dias:1.5,orientacao:''}]));assert.equal(ctx.sequenceValidate('AYRA',[{titulo:'Enviar vídeo',dias:2,orientacao:''}]),'');
+assert(new Date(ctx.sequenceLocalDate(1))>new Date());
+ctx.APP.followupEnrollments=[{lead_id:'lead',nome_snapshot:'<img src=x>',estado:'ativo',etapa_atual:0,passos_snapshot:[{},{}],run_id:'run'}];ctx.APP.tasks=[{id:'task',followup_run:'run',followup_step:0,followup_lead_id:'lead',data_hora:new Date(Date.now()+86400000).toISOString(),concluida:false}];
+const card=ctx.followupCardSummary({id:'lead'});assert(card.includes('&lt;img'));assert(card.includes('Passo 1/2'));assert(card.includes('Próximo:'));
+ctx.followupState.sequences=[{id:'seq',nome:'AYRA',ativa:true,descricao:'<b>teste</b>',passos:[{titulo:'<script>x</script>',dias:1}]}];el('followupSequenceSelect').value='seq';ctx.renderFollowupSequencePreview();assert(el('followupSequencePreview').innerHTML.includes('&lt;script&gt;'));assert.equal(el('followupSequenceSave').disabled,false);
+el('followupStartDate').value='2020-01-01T10:00';await ctx.saveFollowupSequence();assert.equal(calls.length,0);
+el('followupStartDate').value=ctx.sequenceLocalDate(1);await ctx.saveFollowupSequence();assert.equal(calls[0].name,'crm_followup_start');assert.equal(calls[0].args.p_sequence,'seq');assert.equal(ctx.followupState.saving,false);
+vm.runInContext("sequenceResultTaskId='task'",ctx);el('sequenceAction').value='message';el('sequenceOutcome').value='Sem interesse';el('sequenceNote').value='';await ctx.saveSequenceResult();assert.equal(calls.length,1);
+el('sequenceNote').value='Não pretende comprar';await ctx.saveSequenceResult();assert.equal(calls[1].name,'crm_followup_complete');assert.equal(calls[1].args.p_note,'Não pretende comprar');
+ctx.sequenceResultFields();assert.equal(el('sequenceReturnField').style.display,'none');assert.equal(el('sequenceNoteLabel').textContent,'Motivo do descarte (obrigatório)');
+el('sequenceOutcome').value='Pediu mais tempo';ctx.sequenceResultFields();assert.equal(el('sequenceReturnField').style.display,'');el('sequenceReturnDate').value='';await ctx.saveSequenceResult();assert.equal(calls.length,2);
+el('sequenceReturnDate').value=ctx.sequenceLocalDate(5);await ctx.saveSequenceResult();assert.equal(calls.length,3);assert(calls[2].args.p_date);
+console.log('Passed: script syntax, unique UI IDs, validation, escaping, card summary, first date, RPC arguments, discard reason and rescheduling.');
+})().catch(e=>{console.error(e);process.exitCode=1});
