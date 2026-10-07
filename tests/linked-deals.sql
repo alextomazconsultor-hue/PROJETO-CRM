@@ -1,0 +1,42 @@
+begin;
+do $$
+declare broker uuid; broker_name text; source_id uuid; duplicate_id uuid; foreign_id uuid; first public.leads; created public.leads; again public.leads; denied boolean; target_enterprise text; target_stage text;
+begin
+ select id,coalesce(corretor_ref,nome) into broker,broker_name from public.usuarios where perfil='corretor' limit 1;
+ select nome into target_enterprise from public.empreendimentos where nome='Orla';
+ select id into target_stage from public.etapas where id='novo';
+ insert into public.leads(nome,corretor,status) values('__LINKED_DEAL_OTHER__','__OTHER__','novo') returning id into foreign_id;
+ perform set_config('request.jwt.claim.sub',broker::text,true);
+ execute 'set local role authenticated';
+ insert into public.leads(nome,telefone,email,cidade,origem,empreendimento,corretor,status,observacoes,valor_negociacao)
+ values('__LINKED_DEAL_TEST__','47900000000','teste@example.invalid','Penha','Teste','AYRA',broker_name,'atendimento','Observação original',500000) returning * into first;
+ source_id:=first.id;
+ insert into public.historico(lead_id,texto,tipo) values(source_id,'Histórico original','message');
+ insert into public.tarefas(titulo,lead_rel,corretor,data_hora) values('Tarefa original',first.nome,broker_name,now()+interval '1 day');
+ duplicate_id:=gen_random_uuid();
+ created:=public.crm_new_deal(source_id,duplicate_id,target_enterprise,broker_name,target_stage,600000,'Observação do novo negócio');
+ assert created.id<>first.id and created.cliente_grupo=first.cliente_grupo,'Client relation missing';
+ assert created.nome=first.nome and created.telefone=first.telefone and created.email=first.email and created.cidade=first.cidade,'Contacts not copied';
+ assert created.empreendimento='Orla' and created.valor_negociacao=600000 and created.status='novo' and created.observacoes='Observação do novo negócio','Deal fields incorrect';
+ assert created.vip_ayra_etapa is null,'VIP copied incorrectly';
+ assert (select status='atendimento' and empreendimento='AYRA' and valor_negociacao=500000 and observacoes='Observação original' from public.leads where id=source_id),'Source changed';
+ assert (select count(*)=0 from public.tarefas where lead_rel=created.id::text),'Tasks copied incorrectly';
+ assert (select count(*)=1 from public.tarefas where lead_rel=source_id::text),'Legacy source task not preserved';
+ assert (select count(*)=1 from public.historico where lead_id=created.id and tipo='create'),'Missing independent history';
+ assert not exists(select 1 from public.followup_leads where lead_id=created.id),'Followup copied incorrectly';
+ again:=public.crm_new_deal(source_id,duplicate_id,target_enterprise,broker_name,target_stage,600000,'Observação do novo negócio');
+ assert again.id=created.id,'Retry created different card';
+ assert (select count(*)=2 from public.leads where cliente_grupo=created.cliente_grupo),'Duplicate created on retry';
+ assert (select count(*)=1 from public.historico where lead_id=created.id),'Retry duplicated history';
+ insert into public.leads(nome,telefone,corretor,status) values(first.nome,first.telefone,broker_name,'novo') returning id into duplicate_id;
+ assert (select cliente_grupo<>created.cliente_grupo from public.leads where id=duplicate_id),'Unrelated cards grouped by name or phone';
+ denied:=false;begin perform public.crm_new_deal(foreign_id,gen_random_uuid(),target_enterprise,broker_name,target_stage,0,'');exception when others then denied:=true;end;
+ assert denied,'Foreign source accessible';
+ denied:=false;begin perform public.crm_new_deal(source_id,gen_random_uuid(),target_enterprise,'__OTHER__',target_stage,0,'');exception when others then denied:=true;end;
+ assert denied,'Broker assigned unauthorized owner';
+ denied:=false;begin perform public.crm_new_deal(source_id,gen_random_uuid(),target_enterprise,broker_name,target_stage,-1,'');exception when others then denied:=true;end;
+ assert denied,'Negative value accepted';
+ execute 'reset role';
+end $$;
+rollback;
+select 'Passed: explicit linking, copied contacts, separate stages/values/history/tasks/followup, legacy tasks, idempotency, no automatic merging, permissions and invalid values. Test data rolled back.' as verification;
