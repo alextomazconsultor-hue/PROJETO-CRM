@@ -559,6 +559,11 @@ html.light .pill-atendimento{color:#6743b5}
 @media(max-width:700px){.dashboard-period-note{width:100%}.dashboard-custom-dates input{width:135px}}
 #sequenceManagerModal,#sequenceResultModal{z-index:1000}
 .sequence-step .form-input{margin-bottom:8px}
+#newDealModal,#clientHistoryModal{z-index:1001}
+.new-deal-card-button{width:100%;justify-content:center;margin-top:6px;font-size:10px}
+.linked-deals-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.linked-deal-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px}
+.linked-deal-row strong{font-size:12px}.linked-deal-row small{display:block;font-size:11px;color:var(--text-muted);margin-top:3px}
 .followup-modal{max-width:1000px;width:calc(100% - 28px)}
 .followup-layout{display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr);gap:18px;margin-top:12px;align-items:start}
 .followup-block{padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;min-width:0;overflow-wrap:anywhere}
@@ -679,7 +684,10 @@ html.light .pill-atendimento{color:#6743b5}
 <div class="modal-overlay" id="sequenceManagerModal"><div class="modal form-modal" style="max-width:650px"><div class="modal-head"><div class="modal-name">Sequências de Follow-up</div><button type="button" class="modal-close" onclick="closeModal('sequenceManagerModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><details><summary>Sequências disponíveis</summary><div id="sequenceCatalog" class="material-meta" style="margin-top:10px"></div></details><div class="modal-section-title">Criar nova sequência</div><div class="form-field"><label class="form-label" for="sequenceName">Nome</label><input class="form-input" id="sequenceName" maxlength="180" placeholder="Ex.: Sequência AYRA"></div><div class="form-field"><label class="form-label" for="sequenceDescription">Descrição (opcional)</label><textarea class="form-input" id="sequenceDescription" maxlength="2000" placeholder="Quando utilizar esta sequência"></textarea></div><p class="material-meta">A primeira data poderá ser ajustada ao vincular o lead. Os demais intervalos contam desde a conclusão do contato anterior. As ações geram tarefas para o corretor.</p><div id="sequenceSteps"></div><button type="button" class="btn btn-secondary btn-sm" onclick="addSequenceStep()">+ Adicionar passo</button><button type="button" class="btn btn-primary" id="sequenceCreateSave" onclick="saveNewSequence()">Criar sequência</button></div></div></div>
 <div class="modal-overlay" id="sequenceResultModal"><div class="modal form-modal" style="max-width:520px"><div class="modal-head"><div class="modal-name" id="sequenceResultTitle">Resultado do Follow-up</div><button type="button" class="modal-close" onclick="closeModal('sequenceResultModal')">×</button></div><div class="modal-body" style="display:flex;flex-direction:column;gap:12px"><p class="material-meta" id="sequenceResultGuide"></p><div class="form-field"><label class="form-label" for="sequenceAction">Como foi o contato?</label><select class="form-input" id="sequenceAction"><option value="">Selecione</option><option value="message">Mensagem</option><option value="call">Ligação</option><option value="audio">Áudio</option><option value="visit">Visita</option><option value="contact">Outro contato</option></select></div><div class="form-field"><label class="form-label" for="sequenceOutcome">Resultado</label><select class="form-input" id="sequenceOutcome" onchange="sequenceResultFields()"><option value="">Selecione</option><option>Não respondeu</option><option>Respondeu</option><option>Pediu mais tempo</option><option>Sem interesse</option></select><p class="material-meta" style="margin-top:6px" id="sequenceOutcomeHint"></p></div><div class="form-field" id="sequenceResponseField"><label class="form-label" for="sequenceResponseStage">Próxima etapa</label><select class="form-input" id="sequenceResponseStage"><option value="atendimento">Atendimento</option><option value="visita">Visita agendada</option><option value="proposta">Proposta</option></select></div><div class="form-field" id="sequenceReturnField"><label class="form-label" for="sequenceReturnDate">Data combinada</label><input class="form-input" id="sequenceReturnDate" type="datetime-local"></div><div class="form-field"><label class="form-label" id="sequenceNoteLabel" for="sequenceNote">Anotação (opcional)</label><textarea class="form-input" id="sequenceNote" maxlength="4000"></textarea></div><button type="button" class="btn btn-primary" id="sequenceResultSave" onclick="saveSequenceResult()">Salvar resultado</button></div></div></div>
 
-<div class="modal-overlay" id="followupModal"><div class="modal followup-modal"><div class="modal-head"><div><div class="modal-name" id="followupName">Acompanhamento do lead</div><div class="modal-sub" id="followupSubtitle"></div></div><button type="button" class="modal-close" onclick="closeModal('followupModal')">×</button></div><div class="modal-body"><div id="followupLoadStatus" class="material-meta" role="status"></div><div class="followup-layout"><div><div class="followup-block"><div class="modal-section-title">Contexto do atendimento</div><div id="followupContext"></div><div class="followup-buttons"><button type="button" class="btn btn-secondary btn-sm" onclick="followupOpenLead()">Abrir cadastro</button><button type="button" class="btn btn-secondary btn-sm" onclick="followupSchedule()">Agendar retorno</button><button type="button" class="btn btn-secondary btn-sm" onclick="openFollowup(followupState.leadId)">Atualizar histórico</button></div></div><div class="followup-block"><div class="modal-section-title">Sequência de acompanhamento</div><div id="followupSequenceInfo"></div><label class="form-label" for="followupSequenceSelect">Escolher sequência</label><select class="form-input" id="followupSequenceSelect" onchange="onFollowupSequenceChange()"></select><div id="followupSequencePreview" class="material-meta" style="margin:10px 0"></div><label class="form-label" for="followupStartDate">Data do primeiro contato / retomada</label><input class="form-input" type="datetime-local" id="followupStartDate" style="margin-bottom:10px"><button type="button" class="btn btn-secondary btn-sm" id="followupCreateSequenceBtn" onclick="openSequenceManager()" style="margin-bottom:10px">+ Criar sequência</button><p class="material-meta" style="margin-bottom:10px">Ao iniciar, o lead vai para Follow-up. Substituir a sequência encerra as tarefas pendentes da anterior.</p><button type="button" class="btn btn-primary btn-sm" id="followupSequenceSave" onclick="saveFollowupSequence()">Vincular sequência</button><div class="followup-buttons" id="followupSequenceActions"></div></div><div class="followup-block"><label class="form-label" for="followupNote">Adicionar anotação</label><textarea class="note-input" id="followupNote" maxlength="4000" placeholder="Interesse, objeções, o que foi combinado…"></textarea><button type="button" class="btn btn-secondary btn-sm" id="followupNoteSave" onclick="saveFollowupNote()">Salvar anotação</button></div></div><div class="followup-block"><div class="followup-history-head"><div class="modal-section-title">Histórico completo</div><select class="form-input" id="followupHistoryFilter" onchange="renderFollowupHistory()" aria-label="Filtrar histórico"><option value="">Todos os registros</option><option value="contact">Contatos</option><option value="note">Anotações</option><option value="move">Mudanças de etapa</option><option value="task">Tarefas</option></select></div><p class="material-meta">Registros do CRM, do mais recente ao mais antigo. Conversas externas aparecem quando registradas aqui.</p><div class="timeline followup-history" id="followupHistory"></div></div></div></div></div></div>
+<div class="modal-overlay" id="newDealModal"><div class="modal form-modal" style="max-width:540px"><div class="modal-head"><div><div class="modal-name">Novo negócio para o cliente</div><div class="modal-sub" id="newDealClient"></div></div><button type="button" class="modal-close" onclick="closeModal('newDealModal')">×</button></div><form class="modal-body" onsubmit="event.preventDefault();saveNewDeal()" style="display:flex;flex-direction:column;gap:12px"><p class="material-meta">Os dados de contato serão aproveitados. Este negócio terá etapa, tarefas e follow-up próprios.</p><div class="form-field"><label class="form-label" for="newDealEnterprise">Empreendimento</label><select class="form-input" id="newDealEnterprise" required></select></div><div class="form-field" id="newDealBrokerField"><label class="form-label" for="newDealBroker">Corretor responsável</label><select class="form-input" id="newDealBroker" required></select></div><div class="form-field"><label class="form-label" for="newDealStage">Etapa inicial</label><select class="form-input" id="newDealStage" required></select></div><div class="form-field"><label class="form-label" for="newDealValue">Valor da negociação (R$)</label><input class="form-input" id="newDealValue" type="number" min="0" max="999999999999.99" step="0.01" value="0"><p class="material-meta">Informe 0 se o valor ainda não estiver definido.</p></div><div class="form-field"><label class="form-label" for="newDealNote">Observação deste negócio (opcional)</label><textarea class="form-input" id="newDealNote" maxlength="4000"></textarea></div><button type="submit" class="btn btn-primary" id="newDealSave">Criar negócio</button></form></div></div>
+<div class="modal-overlay" id="clientHistoryModal"><div class="modal followup-modal"><div class="modal-head"><div><div class="modal-name" id="clientHistoryName">Histórico completo do cliente</div><div class="modal-sub">Registros dos negócios vinculados aos quais você tem acesso</div></div><button type="button" class="modal-close" onclick="closeModal('clientHistoryModal')">×</button></div><div class="modal-body"><div class="followup-history-head"><label class="form-label" for="clientHistoryFilter">Negócio</label><select class="form-input" id="clientHistoryFilter" onchange="renderClientHistory()"></select><button type="button" class="btn btn-secondary btn-sm" onclick="openClientHistory(clientHistoryState.leadId)">Atualizar</button></div><div class="material-meta" id="clientHistoryStatus" role="status" style="margin:10px 0"></div><div id="clientHistoryTimeline" class="timeline followup-history"></div></div></div></div>
+
+<div class="modal-overlay" id="followupModal"><div class="modal followup-modal"><div class="modal-head"><div><div class="modal-name" id="followupName">Acompanhamento do lead</div><div class="modal-sub" id="followupSubtitle"></div></div><button type="button" class="modal-close" onclick="closeModal('followupModal')">×</button></div><div class="modal-body"><div id="followupLoadStatus" class="material-meta" role="status"></div><div class="followup-layout"><div><div class="followup-block"><div class="modal-section-title">Contexto do atendimento</div><div id="followupContext"></div><div class="followup-buttons"><button type="button" class="btn btn-secondary btn-sm" onclick="openClientHistory(followupState.leadId)">Histórico completo do cliente</button><button type="button" class="btn btn-secondary btn-sm" onclick="followupOpenLead()">Abrir cadastro</button><button type="button" class="btn btn-secondary btn-sm" onclick="followupSchedule()">Agendar retorno</button><button type="button" class="btn btn-secondary btn-sm" onclick="openFollowup(followupState.leadId)">Atualizar histórico</button></div></div><div class="followup-block"><div class="modal-section-title">Sequência de acompanhamento</div><div id="followupSequenceInfo"></div><label class="form-label" for="followupSequenceSelect">Escolher sequência</label><select class="form-input" id="followupSequenceSelect" onchange="onFollowupSequenceChange()"></select><div id="followupSequencePreview" class="material-meta" style="margin:10px 0"></div><label class="form-label" for="followupStartDate">Data do primeiro contato / retomada</label><input class="form-input" type="datetime-local" id="followupStartDate" style="margin-bottom:10px"><button type="button" class="btn btn-secondary btn-sm" id="followupCreateSequenceBtn" onclick="openSequenceManager()" style="margin-bottom:10px">+ Criar sequência</button><p class="material-meta" style="margin-bottom:10px">Ao iniciar, o lead vai para Follow-up. Substituir a sequência encerra as tarefas pendentes da anterior.</p><button type="button" class="btn btn-primary btn-sm" id="followupSequenceSave" onclick="saveFollowupSequence()">Vincular sequência</button><div class="followup-buttons" id="followupSequenceActions"></div></div><div class="followup-block"><label class="form-label" for="followupNote">Adicionar anotação</label><textarea class="note-input" id="followupNote" maxlength="4000" placeholder="Interesse, objeções, o que foi combinado…"></textarea><button type="button" class="btn btn-secondary btn-sm" id="followupNoteSave" onclick="saveFollowupNote()">Salvar anotação</button></div></div><div class="followup-block"><div class="followup-history-head"><div class="modal-section-title">Histórico completo</div><select class="form-input" id="followupHistoryFilter" onchange="renderFollowupHistory()" aria-label="Filtrar histórico"><option value="">Todos os registros</option><option value="contact">Contatos</option><option value="note">Anotações</option><option value="move">Mudanças de etapa</option><option value="task">Tarefas</option></select></div><p class="material-meta">Registros do CRM, do mais recente ao mais antigo. Conversas externas aparecem quando registradas aqui.</p><div class="timeline followup-history" id="followupHistory"></div></div></div></div></div></div>
 <!-- LEAD DETAIL MODAL -->
 <div class="modal-overlay" id="leadModal">
   <div class="modal">
@@ -695,8 +703,9 @@ html.light .pill-atendimento{color:#6743b5}
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px" id="modalActions"></div>
       <div class="modal-grid" id="modalGrid"></div>
       <div style="margin-bottom:20px">
+        <div class="followup-block" id="linkedDealsPanel"></div><div id="linkedDealsStatus" class="material-meta" role="status"></div>
         <div class="modal-section-title">Timeline de Atendimento</div>
-        <div class="timeline" id="modalTimeline"></div>
+      <div class="timeline" id="modalTimeline"></div>
       </div>
       <div>
         <div class="modal-section-title">Adicionar Anotação</div>
@@ -2781,6 +2790,7 @@ function renderKanban() {
           <div class="kanban-card-name">${l.nome}</div>
           ${isFollowupStage(l.status)?`<button type="button" class="btn btn-secondary btn-sm followup-card-button" onclick="event.stopPropagation();openFollowup('${l.id}')">📋 Histórico e sequência</button>`:''}
           ${isFollowupStage(l.status)?followupCardSummary(l):''}
+          <button type="button" class="btn btn-secondary btn-sm new-deal-card-button" onclick="event.stopPropagation();openNewDeal('${l.id}')">+ Novo negócio</button>
           <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
           <div class="kanban-card-detail">🏢 ${l.empreendimento||' '}</div>
           <div class="kanban-card-detail">📍 ${l.cidade||' '}</div>
@@ -3049,6 +3059,77 @@ async function saveSequenceResult(){
 }
 
 
+const newDealState={sourceId:null,requestId:null,saving:false};
+const clientHistoryState={leadId:null,events:[],request:0};
+function accessibleDeal(id){return getLeadsDoUsuario().find(l=>l.id===id);}
+function linkedClientDeals(lead){return getLeadsDoUsuario().filter(l=>l.id===lead.id||(lead.cliente_grupo&&l.cliente_grupo===lead.cliente_grupo));}
+function dealCaption(lead){return (lead.empreendimento||'Sem empreendimento')+' · '+(STATUS_LABELS[lead.status]||lead.status||'Sem etapa');}
+function renderLinkedDeals(lead,target='linkedDealsPanel'){
+ const el=document.getElementById(target);if(!el)return;
+ const deals=linkedClientDeals(lead);
+ el.innerHTML=`<div class="modal-section-title">Negócios deste cliente</div><div class="linked-deals-list">${deals.map(l=>`<div class="linked-deal-row"><div><strong>${agentEscape(l.empreendimento||'Sem empreendimento')}</strong><small>${agentEscape(STATUS_LABELS[l.status]||l.status)} · ${agentEscape(l.corretor||'Sem corretor')}${l.id===lead.id?' · Este negócio':''}</small></div>${l.id!==lead.id?`<button type="button" class="btn btn-secondary btn-sm" onclick="openLinkedDeal('${l.id}')">Abrir negócio</button>`:''}</div>`).join('')}</div><div class="followup-buttons"><button type="button" class="btn btn-secondary btn-sm" onclick="openNewDeal('${lead.id}')">+ Novo negócio</button><button type="button" class="btn btn-secondary btn-sm" onclick="openClientHistory('${lead.id}')">Histórico completo do cliente</button></div>`;
+}
+async function fetchLinkedDeals(lead){
+ if(!lead.cliente_grupo||!APP.supabase||!APP.sbConnected)return linkedClientDeals(lead);
+ const rows=await followupFetchAll('leads',q=>q.eq('cliente_grupo',lead.cliente_grupo).order('created_at',{ascending:true}).order('id'));
+ APP.leads=APP.leads.filter(l=>l.cliente_grupo!==lead.cliente_grupo);
+ rows.forEach(row=>{const i=APP.leads.findIndex(l=>l.id===row.id);if(i<0)APP.leads.push(row);else APP.leads[i]=row;});
+ if(!rows.some(l=>l.id===lead.id))throw Error('Negócio indisponível para seu acesso');
+ return linkedClientDeals(lead);
+}
+async function refreshLinkedDeals(id){
+ const lead=accessibleDeal(id);if(!lead)return;
+ try{await fetchLinkedDeals(lead);if(APP.currentLead===id)renderLinkedDeals(accessibleDeal(id)||lead);}
+ catch(e){console.error('Negócios vinculados:',e);if(APP.currentLead===id)document.getElementById('linkedDealsStatus').textContent='Não foi possível atualizar os negócios vinculados. Reabra o cadastro para tentar novamente.';}
+}
+function openLinkedDeal(id){if(!accessibleDeal(id)){toast('Negócio indisponível para seu acesso','error');return;}closeModal('clientHistoryModal');closeModal('followupModal');openLeadDetail(id);}
+function openNewDeal(id){
+ if(newDealState.saving)return;const lead=accessibleDeal(id);if(!lead){toast('Negócio indisponível para seu acesso','error');return;}
+ if(!APP.sbConnected||!APP.supabase){toast('Conecte o CRM para criar um negócio vinculado','error');return;}
+ Object.assign(newDealState,{sourceId:id,requestId:crypto.randomUUID()});
+ document.getElementById('newDealClient').textContent=lead.nome+' · '+(lead.telefone||lead.email||'Sem contato informado');
+ const enterprises=Array.from(new Set(APP.empreendimentos||[]));
+ document.getElementById('newDealEnterprise').innerHTML='<option value="">Selecione o empreendimento</option>'+enterprises.map(e=>`<option value="${agentEscape(e)}">${agentEscape(e)}</option>`).join('');
+ document.getElementById('newDealEnterprise').value='';
+ document.getElementById('newDealBroker').innerHTML=APP.brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
+ document.getElementById('newDealBroker').value=isGestorOrAdmin()?lead.corretor:APP.user?.corretor_ref;
+ document.getElementById('newDealBrokerField').style.display=isGestorOrAdmin()?'':'none';
+ document.getElementById('newDealStage').innerHTML=APP.stages.map(s=>`<option value="${agentEscape(s.id)}">${agentEscape(s.label)}</option>`).join('');document.getElementById('newDealStage').value=APP.stages.some(s=>s.id==='novo')?'novo':APP.stages[0]?.id||'';
+ document.getElementById('newDealValue').value='0';document.getElementById('newDealNote').value='';document.getElementById('newDealSave').disabled=false;openModal('newDealModal');
+}
+async function saveNewDeal(){
+ if(newDealState.saving)return;const source=accessibleDeal(newDealState.sourceId);if(!source)return;
+ const enterprise=document.getElementById('newDealEnterprise').value,broker=isGestorOrAdmin()?document.getElementById('newDealBroker').value:APP.user?.corretor_ref,stage=document.getElementById('newDealStage').value;
+ const value=readDealValue('newDealValue');if(value===null)return;
+ if(!enterprise||!broker||!stage){toast('Selecione empreendimento, corretor e etapa','error');return;}
+ if(!APP.supabase||!APP.sbConnected){toast('Conecte o CRM para criar o negócio','error');return;}
+ const requestId=newDealState.requestId;newDealState.saving=true;document.getElementById('newDealSave').disabled=true;
+ try{
+  const {data,error}=await APP.supabase.rpc('crm_new_deal',{p_source:source.id,p_id:requestId,p_enterprise:enterprise,p_broker:broker,p_stage:stage,p_value:value,p_note:document.getElementById('newDealNote').value.trim()});if(error)throw error;
+  const created=Array.isArray(data)?data[0]:data;if(!created?.id)throw Error('Criação não confirmada');
+  const index=APP.leads.findIndex(l=>l.id===created.id);if(index<0)APP.leads.unshift(created);else APP.leads[index]=created;
+  await Promise.all([loadHistoryFromSB(),loadTasksFromSB()]);saveToLocal();refreshAll();updateBadges();closeModal('newDealModal');closeModal('followupModal');openLeadDetail(created.id);
+  toast('Novo negócio criado em '+created.empreendimento,'success');
+ }catch(e){console.error('Novo negócio:',e);toast(e.message||'Não foi possível criar o negócio','error');}
+ finally{newDealState.saving=false;document.getElementById('newDealSave').disabled=false;}
+}
+function renderClientHistory(){
+ const filter=document.getElementById('clientHistoryFilter').value;
+ const events=clientHistoryState.events.filter(e=>!filter||e.leadId===filter);
+ document.getElementById('clientHistoryTimeline').innerHTML=events.length?events.map(e=>`<div class="timeline-item"><div class="timeline-dot">${e.type==='task'?'📅':e.type==='move'?'🔄':'📝'}</div><div class="timeline-content"><button type="button" class="btn btn-ghost btn-sm" style="padding:2px 0" onclick="openLinkedDeal('${e.leadId}')">${agentEscape(e.caption)} → Abrir negócio</button><div class="timeline-text followup-entry-text">${agentEscape(e.text)}</div><div class="timeline-date">${formatDateTime(e.date)}</div></div></div>`).join(''):'<p class="material-meta">Nenhum registro para este negócio.</p>';
+}
+async function openClientHistory(id){
+ const lead=accessibleDeal(id);if(!lead)return;const request=++clientHistoryState.request;
+ clientHistoryState.leadId=id;clientHistoryState.events=[];document.getElementById('clientHistoryName').textContent=lead.nome+' · Histórico completo';document.getElementById('clientHistoryStatus').textContent='Carregando os registros dos negócios vinculados…';document.getElementById('clientHistoryFilter').innerHTML='<option value="">Todos os negócios</option>';renderClientHistory();openModal('clientHistoryModal');
+ try{
+  if(!APP.supabase||!APP.sbConnected)throw Error('Sem conexão');const deals=await fetchLinkedDeals(lead);if(request!==clientHistoryState.request)return;
+  const ids=deals.map(l=>l.id);const [histories,tasks]=await Promise.all([followupFetchAll('historico',q=>q.in('lead_id',ids).order('created_at',{ascending:false}).order('id')),followupFetchAll('tarefas',q=>q.order('data_hora',{ascending:false}).order('id'))]);if(request!==clientHistoryState.request)return;
+  clientHistoryState.events=deals.flatMap(l=>followupEvents(l,histories.filter(h=>h.lead_id===l.id).map(h=>({text:h.texto,type:h.tipo,date:h.created_at})),tasks).map(e=>({...e,leadId:l.id,caption:dealCaption(l)}))).sort((a,b)=>(new Date(b.date)||0)-(new Date(a.date)||0));
+  document.getElementById('clientHistoryFilter').innerHTML='<option value="">Todos os negócios</option>'+deals.map(l=>`<option value="${l.id}">${agentEscape(dealCaption(l))}</option>`).join('');document.getElementById('clientHistoryStatus').textContent=deals.length+' negócio(s) vinculado(s) · '+clientHistoryState.events.length+' registros';renderClientHistory();
+ }catch(e){if(request===clientHistoryState.request)document.getElementById('clientHistoryStatus').textContent='Não foi possível carregar o histórico completo. Clique em Atualizar para tentar novamente.';console.error('Histórico do cliente:',e);}
+}
+
+
 // -- LEAD DETAIL --
 const VIP_AYRA_STAGES = [
   {id:'aceitou',label:'Aceitou o convite'},
@@ -3122,6 +3203,7 @@ function openLeadDetail(id) {
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
     <button class="btn btn-secondary btn-sm" onclick="openLeadAction('${lead.id}')">📞 Registrar ação</button>
     <button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${lead.id}')">📅 Agendar follow-up</button>
+    <button class="btn btn-secondary btn-sm" onclick="openNewDeal('${lead.id}')">+ Novo negócio</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirSimuladorLead('${lead.id}')" style="gap:5px;border-color:rgba(139,92,246,.45);color:var(--purple-light)">🧮 Criar fluxo</button>
     <span class="pill pill-${lead.status}" style="padding:6px 14px;font-size:12px">${STATUS_LABELS[lead.status]}</span>
@@ -3152,6 +3234,7 @@ function openLeadDetail(id) {
     <div class="info-row" style="grid-column:1/-1"><div class="info-label">Observações</div><div class="info-value">${lead.observacoes||'—'}</div></div>
   `;
 
+  renderLinkedDeals(lead);document.getElementById('linkedDealsStatus').textContent='';refreshLinkedDeals(id);
   const hist = APP.history[id] || [];
   document.getElementById('modalTimeline').innerHTML = hist.length ? hist.map(h => `
     <div class="timeline-item">
