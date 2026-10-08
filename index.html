@@ -710,6 +710,15 @@ html.light .pill-atendimento{color:#6743b5}
     <div class="modal-body">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px" id="modalActions"></div>
       <div class="modal-grid" id="modalGrid"></div>
+      <section style="margin-bottom:24px">
+        <div class="modal-section-title">Documentos do cliente</div>
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer">📎 Anexar documentos
+          <input id="clientDocumentInput" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple style="display:none" onchange="uploadClientDocuments(this)">
+        </label>
+        <div class="material-meta" style="margin:8px 0">PDF ou imagens · Até 20 MB por arquivo</div>
+        <div id="clientDocumentStatus" role="status" aria-live="polite"></div>
+        <div id="clientDocumentList"></div>
+      </section>
       <div style="margin-bottom:20px">
         <div class="followup-block" id="linkedDealsPanel"></div><div id="linkedDealsStatus" class="material-meta" role="status"></div>
         <div class="modal-section-title">Timeline de Atendimento</div>
@@ -3240,6 +3249,7 @@ function openLeadDetail(id) {
   const lead = APP.leads.find(l => l.id === id);
   if (!lead) return;
   APP.currentLead = id;
+  loadClientDocuments(id);
 
   document.getElementById('modalName').textContent = lead.nome;
   document.getElementById('modalSub').textContent = `${lead.empreendimento||' '}   ${lead.cidade||' '}`;
@@ -5422,5 +5432,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<script src="documents.js"></script>
 </body>
 </html>
+
