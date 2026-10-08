@@ -495,6 +495,12 @@ html.light .pill-atendimento{color:#6743b5}
 #page-kanban .kanban-contact-search{margin:0;flex:1 1 260px;max-width:none;width:auto;padding:7px 10px}
 #page-kanban .kanban-filter-bar{padding:0!important;gap:6px;flex-wrap:nowrap;min-width:0}
 .kanban-filter-select{width:185px;max-width:100%;height:36px;padding:6px 9px;font-size:14px}
+.kanban-period-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.kanban-period-controls>label,.kanban-period-custom label{font-size:11px;color:var(--text-muted);white-space:nowrap}
+.kanban-period-custom{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.kanban-period-custom input{width:134px;height:36px;padding:6px 8px;font-size:12px}
+#kanbanPeriodHint{font-size:11px;color:var(--text-muted);line-height:1.4;flex-shrink:0}
+@media(max-width:768px){.kanban-period-controls{flex:1 1 100%}.kanban-period-controls>select{flex:1 1 160px;max-width:220px}.kanban-period-custom{flex:1 1 100%}.kanban-period-custom input{flex:1;min-width:0;max-width:160px}}
 #kanbanSearchStatus:empty{display:none}
 #page-kanban .kanban-wrap{min-height:0;padding:8px 0 6px;gap:10px;align-items:stretch}
 #page-kanban .kanban-col{flex:0 0 250px;width:250px;min-width:250px;min-height:0}
@@ -1238,8 +1244,25 @@ CREATE TABLE historico (
           <div class="kanban-toolbar">
             <div class="kanban-contact-search"><span aria-hidden="true">🔍</span><input id="kanbanContactSearch" type="search" aria-label="Buscar contato no Pipeline por nome ou últimos quatro números do telefone" placeholder="Nome ou 4 últimos números" oninput="setKanbanSearch(this.value)"><button type="button" onclick="clearKanbanSearch()" aria-label="Limpar busca do Pipeline">Limpar</button></div>
             <div class="kanban-filter-bar" id="kanbanFilterBar"></div>
-            <div class="kanban-filter-bar" id="kanbanEmpFilterBar"></div><button type="button" class="btn btn-secondary btn-sm" id="sequenceManagerBtn" onclick="openSequenceManager()">Sequências de Follow-up</button>
+            <div class="kanban-filter-bar" id="kanbanEmpFilterBar"></div>
+            <div class="kanban-period-controls" aria-label="Filtrar pipeline por período de cadastro">
+              <label for="kanbanPeriod">Período</label>
+              <select id="kanbanPeriod" class="form-input kanban-filter-select" onchange="setKanbanPeriod(this.value)" aria-label="Filtrar Kanban por período de cadastro">
+                <option value="all">Todo o período</option>
+                <option value="today">Hoje</option>
+                <option value="7days">Últimos 7 dias</option>
+                <option value="30days">Últimos 30 dias</option>
+                <option value="month">Este mês</option>
+                <option value="custom">Personalizado</option>
+              </select>
+              <div class="kanban-period-custom" id="kanbanCustomDates" style="display:none">
+                <label for="kanbanStart">De</label><input class="form-input" type="date" id="kanbanStart" onchange="updateKanbanPeriod()" aria-label="Data inicial de cadastro">
+                <label for="kanbanEnd">Até</label><input class="form-input" type="date" id="kanbanEnd" onchange="updateKanbanPeriod()" aria-label="Data final de cadastro">
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="sequenceManagerBtn" onclick="openSequenceManager()">Sequências de Follow-up</button>
           </div>
+          <div id="kanbanPeriodHint" role="status" aria-live="polite"></div>
           <div id="kanbanSearchStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--text-muted);flex-shrink:0"></div>
           <!-- RESUMO + EDITAR ETAPAS -->
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:4px 0">
@@ -2670,11 +2693,30 @@ function filterByStatus(s, el) {
 
 // -- BUSCA E FILTROS DO PIPELINE --
 function kanbanNormalize(value) { return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR'); }
-function filterKanbanContacts(leads,{broker='todos',emp='todos',search=''}={}) {
+function kanbanPeriodRange(now=new Date()) {
+  const period=document.getElementById('kanbanPeriod')?.value||'all';
+  const today=dashboardDateKey(now);
+  if(period==='all')return {start:'',end:''};
+  if(period==='custom')return {start:document.getElementById('kanbanStart')?.value||'',end:document.getElementById('kanbanEnd')?.value||''};
+  if(period==='month')return {start:today.slice(0,7)+'-01',end:today};
+  const date=new Date(today+'T12:00:00Z');
+  date.setUTCDate(date.getUTCDate()-(period==='7days'?6:period==='30days'?29:0));
+  return {start:date.toISOString().slice(0,10),end:today};
+}
+function setKanbanPeriod(value) {
+  document.getElementById('kanbanCustomDates').style.display=value==='custom'?'flex':'none';
+  updateKanbanPeriod();
+}
+function updateKanbanPeriod() {
+  renderKanbanFilterBar();
+  renderKanbanEmpFilterBar();
+  renderKanban();
+}
+function filterKanbanContacts(leads,{broker='todos',emp='todos',search='',range=kanbanPeriodRange()}={}) {
   const query=String(search||'').trim();
   const nameQuery=kanbanNormalize(query);
   const phoneQuery=/^[+\d\s().-]+$/.test(query)?query.replace(/\D/g,''):'';
-  return leads.filter(l=>(broker==='todos'||l.corretor===broker)&&(emp==='todos'||l.empreendimento===emp)&&(!query||kanbanNormalize(l.nome).includes(nameQuery)||(phoneQuery.length>=4&&String(l.telefone||'').replace(/\D/g,'').endsWith(phoneQuery))));
+  return leads.filter(l=>dashboardInPeriod(l.created_at,range)&&(broker==='todos'||l.corretor===broker)&&(emp==='todos'||l.empreendimento===emp)&&(!query||kanbanNormalize(l.nome).includes(nameQuery)||(phoneQuery.length>=4&&String(l.telefone||'').replace(/\D/g,'').endsWith(phoneQuery))));
 }
 function getKanbanContacts(overrides={}) {
   return filterKanbanContacts(getLeadsDoUsuario(),{broker:isGestorOrAdmin()?APP.kanbanBrokerFilter:APP.user?.corretor_ref,emp:APP.kanbanEmpFilter,search:APP.kanbanSearch,...overrides});
@@ -2744,11 +2786,16 @@ function renderKanban() {
 
   // Filtra leads pelo corretor selecionado
   const filteredLeads=getKanbanContacts();
+  const dateRange=kanbanPeriodRange();
+  const invalidPeriod=!!(dateRange.start&&dateRange.end&&dateRange.start>dateRange.end);
+  const periodHint=document.getElementById('kanbanPeriodHint');
+  periodHint.textContent=invalidPeriod?'A data inicial deve ser anterior à data final.':'Período pela data de cadastro dos leads.';
+  periodHint.style.color=invalidPeriod?'var(--danger)':'var(--text-muted)';
   const priorityNow=Date.now(),priorityTasks=kanbanTaskIndex(getLeadsDoUsuario(),getTasksDoUsuario());
   document.getElementById('sequenceManagerBtn').style.display=isGestorOrAdmin()?'':'none';
   const searchInput=document.getElementById('kanbanContactSearch');
   if(searchInput.value!==APP.kanbanSearch)searchInput.value=APP.kanbanSearch||'';
-  document.getElementById('kanbanSearchStatus').textContent=APP.kanbanSearch?.trim() ? (filteredLeads.length ? `${filteredLeads.length} contato(s) encontrado(s) nos filtros selecionados` : 'Nenhum contato encontrado. Confira a busca e os filtros de corretor e empreendimento.') : '';
+  document.getElementById('kanbanSearchStatus').textContent=APP.kanbanSearch?.trim() ? (filteredLeads.length ? `${filteredLeads.length} contato(s) encontrado(s) nos filtros selecionados` : 'Nenhum contato encontrado. Confira a busca e os filtros de corretor, empreendimento e período.') : '';
 
   // Resumo
   const summary = document.getElementById('kanbanSummary');
@@ -2768,7 +2815,7 @@ function renderKanban() {
     <div class="kanban-summary-divider"></div>
     <div class="kanban-summary-item">🔴 <strong>${perdidos}</strong> perdidos</div>
     <div class="kanban-summary-item" title="Soma dos valores de todos os contatos que você pode acessar, em todas as etapas">Total do CRM: <strong>${formatDealValue(totalCRM)}</strong></div>
-    <div class="kanban-summary-item" title="Soma dos contatos nos filtros de corretor, empreendimento e busca">Total nos filtros: <strong>${formatDealValue(totalFiltered)}</strong></div>
+    <div class="kanban-summary-item" title="Soma dos contatos nos filtros de corretor, empreendimento, busca e período de cadastro">Total nos filtros: <strong>${formatDealValue(totalFiltered)}</strong></div>
   `;
 
   wrap.innerHTML = statuses.map(s => {
@@ -2819,7 +2866,7 @@ function renderKanban() {
         </div>
         <div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(leads))}</div>
         <div style="height:3px;border-radius:99px;background:${colColors[s]};margin:0 10px 8px;opacity:0.5"></div>
-        <div class="kanban-cards">${cards||'<div style="padding:12px 8px;text-align:center;font-size:11px;color:var(--text-muted)">'+(APP.kanbanSearch?.trim()?'Nenhum resultado nesta etapa':'Arraste aqui')+'</div>'}</div>
+        <div class="kanban-cards">${cards||'<div style="padding:12px 8px;text-align:center;font-size:11px;color:var(--text-muted)">'+((APP.kanbanSearch?.trim()||document.getElementById('kanbanPeriod')?.value!=='all'||APP.kanbanEmpFilter!=='todos')?'Nenhum lead neste filtro':'Arraste aqui')+'</div>'}</div>
       </div>
     `;
   }).join('');
