@@ -567,6 +567,8 @@ html.light .pill-atendimento{color:#6743b5}
 .sequence-step .form-input{margin-bottom:8px}
 #newDealModal,#clientHistoryModal{z-index:1001}
 .new-deal-card-button{width:100%;justify-content:center;margin-top:6px;font-size:10px}
+.kanban-quick-actions{display:flex;gap:6px;margin-top:8px}
+.kanban-quick-actions .btn{flex:1;min-width:0;justify-content:center;padding:6px 4px;font-size:10px;white-space:normal}
 .linked-deals-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .linked-deal-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px}
 .linked-deal-row strong{font-size:12px}.linked-deal-row small{display:block;font-size:11px;color:var(--text-muted);margin-top:3px}
@@ -2837,7 +2839,10 @@ function renderKanban() {
           <div class="kanban-card-name">${l.nome}</div>
           ${isFollowupStage(l.status)?`<button type="button" class="btn btn-secondary btn-sm followup-card-button" onclick="event.stopPropagation();openFollowup('${l.id}')">📋 Histórico e sequência</button>`:''}
           ${isFollowupStage(l.status)?followupCardSummary(l):''}
-          <button type="button" class="btn btn-secondary btn-sm new-deal-card-button" onclick="event.stopPropagation();openNewDeal('${l.id}')">+ Novo negócio</button>
+          <div class="kanban-quick-actions">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();scheduleLeadVisit('${l.id}')">📅 Agendar visita</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openNewDeal('${l.id}')">+ Novo negócio</button>
+          </div>
           <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
           <div class="kanban-card-detail">🏢 ${l.empreendimento||' '}</div>
           <div class="kanban-card-detail">📍 ${l.cidade||' '}</div>
@@ -4612,6 +4617,12 @@ function scheduleLeadTask(leadId) {
   document.getElementById('t_titulo').value = 'Retomar contato';
   document.getElementById('t_corretor').value = lead.corretor || APP.user?.corretor_ref || '';
   document.getElementById('t_data').focus();
+}
+
+function scheduleLeadVisit(leadId) {
+  if (!APP.leads.some(l => l.id === leadId)) return;
+  scheduleLeadTask(leadId);
+  document.getElementById('t_titulo').value = 'Visita';
 }
 
 let agendaTaskLeadId = null;
