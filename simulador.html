@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <style>
 :root{--bg:#0a0a0f;--surface:#111118;--card:#16161f;--card2:#1c1c28;--border:rgba(120,80,220,.18);--border2:rgba(140,90,255,.36);--purple:#8b5cf6;--purple2:#a78bfa;--text:#f0eeff;--muted:#9490b0;--dim:#5a5575;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--gold:#c39a6b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:880px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn{padding:5px 9px;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer}.mini-btn:hover{color:var(--purple2);border-color:var(--border2)}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.status-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.metric strong{font-size:21px}.missing{margin-top:10px;padding:16px;border-radius:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28)}.missing small{display:block;color:#fcd34d;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.missing strong{font-size:27px;color:#fcd34d}.missing.ok{background:rgba(16,185,129,.09);border-color:rgba(16,185,129,.28)}.missing.ok small,.missing.ok strong{color:#6ee7b7}.suggestions{margin-top:12px;display:grid;gap:8px}.suggestion{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid rgba(245,158,11,.25);border-radius:10px}.suggestion span{font-size:12px;line-height:1.4}.suggestion button{flex-shrink:0}.reinforcements{margin-top:10px}.reinforcement{display:grid;grid-template-columns:1.1fr .85fr .75fr .65fr .75fr auto;gap:8px;align-items:end;margin:8px 0;padding:10px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px}.reinforcement .remove{background:none;border:none;color:#f87171;cursor:pointer;padding:10px}.client-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.client-info{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}.client-info small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.client-info b{font-size:14px}.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:22px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.flow-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}.flow-line:last-child{border-bottom:0}.flow-line span{color:var(--muted)}.flow-line b{text-align:right}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}.recent-row{margin-bottom:14px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:880px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn{padding:5px 9px;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer}.mini-btn:hover{color:var(--purple2);border-color:var(--border2)}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.status-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.metric strong{font-size:21px}.missing{margin-top:10px;padding:16px;border-radius:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28)}.missing small{display:block;color:#fcd34d;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.missing strong{font-size:27px;color:#fcd34d}.missing.ok{background:rgba(16,185,129,.09);border-color:rgba(16,185,129,.28)}.missing.ok small,.missing.ok strong{color:#6ee7b7}.suggestions{margin-top:12px;display:grid;gap:8px}.suggestion{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid rgba(245,158,11,.25);border-radius:10px}.suggestion span{font-size:12px;line-height:1.4}.suggestion button{flex-shrink:0}.reinforcements{margin-top:10px}.reinforcement{display:grid;grid-template-columns:1.1fr .85fr .75fr .65fr auto;gap:8px;align-items:end;margin:8px 0;padding:10px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px}.reinforcement .remove{background:none;border:none;color:#f87171;cursor:pointer;padding:10px}.client-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.client-info{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}.client-info small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.client-info b{font-size:14px}.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:22px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.flow-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}.flow-line:last-child{border-bottom:0}.flow-line span{color:var(--muted)}.flow-line b{text-align:right}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}.recent-row{margin-bottom:14px}
 @media(max-width:620px){.shell{padding:12px}.grid2,.status-grid,.summary,.client-head{grid-template-columns:1fr}.reinforcement{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}}
 body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
 @media print{body{background:#fff;color:#111}.top,.steps,.recent-row,.actions,.nav,#loading{display:none!important}.shell{max-width:none;padding:0}.section{display:none!important}#sec3{display:block!important}.card{background:#fff;color:#111;border:1px solid #ddd}.big,.flow{background:#fff;color:#111;border-color:#ddd}.hint,.flow-line span,.card-title{color:#666}.oktxt{color:#0a7a52}.goldtxt{color:#8a673f}.alert.ok{color:#176244;background:#effaf5;border-color:#bfe8d4}}
@@ -85,7 +85,7 @@ body.light .toolbar{background:#fff}
           <div class="field"><label>E-mail</label><input type="email" id="clienteEmail" placeholder="cliente@email.com"></div>
           <div class="field"><label>Empreendimento</label><input id="empreendimento" list="empList" placeholder="Nome do empreendimento"><datalist id="empList"></datalist></div>
           <div class="field"><label>Unidade</label><input id="unidade" placeholder="Ex.: 1204 A"></div>
-          <div class="field"><label>Valor da proposta</label><input type="text" inputmode="decimal" id="valorTotal" placeholder="500.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
+          <div class="field"><label>Valor do imóvel</label><input type="text" inputmode="decimal" id="valorTotal" placeholder="500.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
           <div class="field"><label>% mínimo até as chaves</label><input type="number" id="percMinimo" value="30" min="0" max="100" step="0.1" oninput="atualizarStatus()"><span class="hint">Há tolerância de até 0,2 ponto percentual.</span></div>
         </div>
       </div>
@@ -97,7 +97,6 @@ body.light .toolbar{background:#fff}
         <div class="card-title">Condições de pagamento</div>
         <div class="grid2">
           <div class="field"><label>Entrada</label><input type="text" inputmode="decimal" id="entradaValor" placeholder="50.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
-          <div class="field"><label for="entradaNum">Dividir entrada em quantas vezes?</label><input id="entradaNum" type="number" min="1" step="1" value="1" oninput="atualizarStatus()"></div>
           <div class="field"><label>Valor da parcela</label><input type="text" inputmode="decimal" id="parcelaValor" placeholder="3.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
           <div class="field"><label>Número de parcelas</label><input type="number" id="parcelaNum" min="0" placeholder="36" oninput="atualizarStatus()"><span class="hint">O CRM usa exatamente a quantidade digitada.</span></div>
           <div class="field"><label>Pós-chaves</label><label class="toggle"><input type="checkbox" id="posChavesCheck" onchange="togglePos();atualizarStatus()"> Parcelar o saldo restante</label></div>
@@ -125,7 +124,6 @@ body.light .toolbar{background:#fff}
         </div>
       </div>
 
-<div class="card"><div class="card-title">Percentual por período</div><div class="field"><label for="tabelaValor">Preço original da tabela</label><input id="tabelaValor" type="text" min="0" step="any" value="" placeholder="Mesmo valor da proposta" oninput="atualizarStatus()"></div><p class="hint">Confira se a proposta recebe o percentual esperado em cada período. Base inicial AYRA: 35% até as chaves. Para outros empreendimentos, ajuste a referência nas opções avançadas.</p><div class="field" style="margin-top:12px"><label for="fluxoDataBase">Data do primeiro pagamento</label><input id="fluxoDataBase" type="date" onchange="atualizarStatus()"></div><div id="vplResultado" class="flow" aria-live="polite"></div><details style="margin-top:16px"><summary style="cursor:pointer;color:var(--muted);font-size:13px">Opções avançadas</summary><p class="hint">Mês 0 é o primeiro pagamento da entrada. Os prazos são contados a partir dele. O valor da entrada é o total, dividido em pagamentos mensais.</p><div class="grid2"><div class="field"><label for="mensalInicio">Primeira mensal: mês</label><input id="mensalInicio" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="mesChaves">Chaves: mês (vazio = nº de parcelas)</label><input id="mesChaves" type="number" min="0" step="any" value="" oninput="atualizarStatus()"></div><div class="field"><label for="taxaVpl">Taxa de desconto (% ao mês)</label><input id="taxaVpl" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaEntrada">Entrada da tabela (%)</label><input id="tabelaEntrada" type="number" min="0" step="any" value="10" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaMensais">Mensais da tabela (%)</label><input id="tabelaMensais" type="number" min="0" step="any" value="15" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaQtd">Quantidade de mensais da tabela</label><input id="tabelaQtd" type="number" min="0" step="any" value="47" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaInicio">Primeira mensal da tabela: mês</label><input id="tabelaInicio" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaReforcos">Reforços da tabela (%)</label><input id="tabelaReforcos" type="number" min="0" step="any" value="10" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefQtd">Quantidade de reforços da tabela</label><input id="tabelaRefQtd" type="number" min="0" step="any" value="7" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefInicio">Primeiro reforço da tabela: mês</label><input id="tabelaRefInicio" type="number" min="0" step="any" value="7" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefIntervalo">Intervalo dos reforços da tabela (meses)</label><input id="tabelaRefIntervalo" type="number" min="0" step="any" value="6" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaChaves">Chaves da tabela: mês</label><input id="tabelaChaves" type="number" min="0" step="any" value="48" oninput="atualizarStatus()"></div></div></details></div>
       <div class="nav"><button class="btn ghost" onclick="goStep(1)">← Voltar</button><button class="btn primary" onclick="fecharFluxo()">Fechar fluxo →</button></div>
     </section>
 
@@ -241,7 +239,6 @@ function addReforco(data={}){
     '<div class="field"><label>Periodicidade</label><select id="rp-'+id+'" onchange="toggleRefOutro('+id+')"><option value="semestral" '+(periodo==='semestral'?'selected':'')+'>Semestral</option><option value="anual" '+(periodo==='anual'?'selected':'')+'>Anual</option><option value="outro" '+(periodo==='outro'?'selected':'')+'>Outro</option></select></div>'+
     '<div class="field '+(periodo==='outro'?'':'hidden')+'"><label>A cada (meses)</label><input type="number" id="ri-'+id+'" min="1" value="'+intervalo+'" placeholder="Ex.: 8" oninput="atualizarStatus()"></div>'+ 
     '<div class="field"><label>Nº de balões</label><input type="number" id="rq-'+id+'" min="1" step="1" value="'+(data.quantidade||'')+'" placeholder="Todos" oninput="atualizarStatus()"></div>'+
-    '<div class="field"><label>Primeiro reforço: mês</label><input type="number" id="rs-'+id+'" min="1" value="'+(data.inicio||'')+'" placeholder="Igual ao intervalo" oninput="atualizarStatus()"></div>'+
     '<button class="remove" onclick="removerReforco('+id+')">×</button>';
   $('reforcos').appendChild(row);
   atualizarStatus();
@@ -251,18 +248,18 @@ function getRefPlans(){
   return [...document.querySelectorAll('.reinforcement')].map(el=>{
     const id=el.id.split('-')[1],periodo=$('rp-'+id)?.value||'anual';
     const intervalo=periodo==='semestral'?6:periodo==='anual'?12:parseInt($('ri-'+id)?.value)||0;
-    return{valor:parseBRL($('rv-'+id)?.value),periodo,intervalo,inicio:parseInt($('rs-'+id)?.value)||intervalo,quantidade:parseInt($('rq-'+id)?.value)||0};
+    return{valor:parseBRL($('rv-'+id)?.value),periodo,intervalo,quantidade:parseInt($('rq-'+id)?.value)||0};
   }).filter(p=>p.valor>0)
 }
 function periodoLabel(p){return p.periodo==='semestral'?'semestral':p.periodo==='anual'?'anual':'a cada '+p.intervalo+' meses'}
 function gerarReforcos(qtd,plans){
-  const ultimoMesPermitido=Math.min(Math.max(qtd-1,0),600);
+  const ultimoMesPermitido=Math.max(qtd-6,0);
   const events=[],summaries=[];
   let invalid=false;
   plans.forEach((p,pi)=>{
-    if(!p.intervalo||p.intervalo<1||p.inicio<1){invalid=true;return}
+    if(!p.intervalo||p.intervalo<1){invalid=true;return}
     const meses=[];
-    for(let m=p.inicio||p.intervalo;m<=ultimoMesPermitido;m+=p.intervalo)meses.push(m);
+    for(let m=p.intervalo;m<=ultimoMesPermitido;m+=p.intervalo)meses.push(m);
     if(!meses.length || (p.quantidade>0 && (!Number.isInteger(p.quantidade)||p.quantidade>meses.length))){invalid=true;return}
     if(p.quantidade>0)meses.length=p.quantidade;
     meses.forEach((m,idx)=>events.push({tipo:'reforco',mes:m,label:'Reforço '+(idx+1)+'/'+meses.length,valor:p.valor,competencia:'Mês '+m,planIndex:pi}));
@@ -280,9 +277,7 @@ function validarBasico(){
 
 function buildPostPlan(saldo){
   if(!$('posChavesCheck').checked||saldo<=0)return{enabled:false,valid:true,events:[],summary:'Saldo pago nas chaves'};
-  const requested=Number($('posChavesNum').value);
-  if(!Number.isInteger(requested)||requested<1||requested>600)return{enabled:true,valid:false,events:[],summary:'Informe de 1 a 600 parcelas inteiras'};
-  const qtd=requested;
+  const qtd=Math.max(int('posChavesNum'),1);
   const totalCentavos=Math.round(saldo*100);
   const baseCentavos=Math.floor(totalCentavos/qtd);
   const resto=totalCentavos-(baseCentavos*qtd);
@@ -296,10 +291,7 @@ function buildPostPlan(saldo){
 
 function calcular(){
   const total=brl('valorTotal'),entrada=brl('entradaValor'),mensal=brl('parcelaValor'),qtd=int('parcelaNum'),plans=getRefPlans(),meta=num('percMinimo');
-  const chaves=$('mesChaves').value===''?qtd:int('mesChaves');
-  const inicio=int('mensalInicio'),nEntrada=int('entradaNum');
-  const timingOk=Number.isInteger(Number($('mensalInicio').value))&&inicio>=0&&nEntrada>=1&&Number.isInteger(Number($('entradaNum').value))&&qtd>=0&&Number.isInteger(Number($('parcelaNum').value))&&chaves>=Math.max(nEntrada-1,inicio+Math.max(qtd-1,0))&&chaves<=600&&Number.isInteger(Number($('mesChaves').value||qtd))&&[total,entrada,mensal,meta].every(Number.isFinite)&&total>0&&entrada>=0&&mensal>=0&&meta>=0&&meta<=100;
-  const refData=gerarReforcos(chaves,plans);
+  const refData=gerarReforcos(qtd,plans);
   const totalRefs=refData.events.reduce((s,e)=>s+e.valor,0);
   const totalPre=entrada+(mensal*qtd)+totalRefs;
   const percPre=total?totalPre/total*100:0;
@@ -310,69 +302,24 @@ function calcular(){
   const faltaAceite=Math.max(total*limiteAceite/100-totalPre,0);
   const diferencaDentroTolerancia=metaOk&&percPre<meta;
   const post=buildPostPlan(saldo);
-  let ready=metaOk&&excesso===0&&post.valid&&!refData.invalid&&timingOk;
+  const ready=metaOk&&excesso===0&&post.valid&&!refData.invalid;
 
   let events=[];
-  if(entrada>0&&nEntrada>0&&nEntrada<=600){const cents=Math.round(entrada*100),base=Math.floor(cents/nEntrada);for(let x=0;x<nEntrada;x++)events.push({tipo:'entrada',mes:x,label:'Entrada '+(x+1)+'/'+nEntrada,valor:(base+(x<cents% nEntrada?1:0))/100,competencia:'Mês '+x});}
-  for(let x=1;x<=Math.min(qtd,600);x++)if(mensal>0)events.push({tipo:'parcela',mes:inicio+x-1,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x});
+  if(entrada>0)events.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato'});
+  for(let x=1;x<=qtd;x++)if(mensal>0)events.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x});
   events.push(...refData.events);
   events.sort((a,b)=>a.mes-b.mes||(a.tipo==='reforco'?1:-1));
 
   let acum=0;
   const fluxo=events.map(e=>{acum+=e.valor;return{...e,acumulado:acum,percentual:pct(total?acum/total*100:0)}});
   if(post.enabled){
-    fluxo.push({tipo:'chaves',mes:chaves,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
-    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,mes:chaves+e.mes,acumulado:acum,percentual:pct(total?acum/total*100:0)})})
+    fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
+    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,mes:qtd+e.mes,acumulado:acum,percentual:pct(total?acum/total*100:0)})})
   }else{
-    acum+=saldo;fluxo.push({tipo:'chaves',mes:chaves,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
+    acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
   }
 
-  const resultado={total,entrada,mensal,qtd,chaves,inicio,nEntrada,timingOk,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo};
-  resultado.periodos=compararPeriodos(resultado);resultado.ready=ready&&resultado.periodos.valid&&resultado.periodos.ok;return resultado;
-}
-
-
-const VPL_FIELDS=['fluxoDataBase','entradaNum', 'mensalInicio', 'mesChaves', 'taxaVpl', 'tabelaValor', 'tabelaEntrada', 'tabelaMensais', 'tabelaQtd', 'tabelaInicio', 'tabelaReforcos', 'tabelaRefQtd', 'tabelaRefInicio', 'tabelaRefIntervalo', 'tabelaChaves'];
-const VPL_DEFAULTS={'fluxoDataBase':'2026-11-05','entradaNum': '1', 'mensalInicio': '1', 'mesChaves': '', 'taxaVpl': '1', 'tabelaValor': '', 'tabelaEntrada': '10', 'tabelaMensais': '15', 'tabelaQtd': '47', 'tabelaInicio': '1', 'tabelaReforcos': '10', 'tabelaRefQtd': '7', 'tabelaRefInicio': '7', 'tabelaRefIntervalo': '6', 'tabelaChaves': '48'};
-function resetVpl(saved={}){VPL_FIELDS.forEach(id=>setv(id,saved?.[id]??VPL_DEFAULTS[id]));}
-function valorPresente(events,taxa){return events.reduce((s,e)=>s+e.valor/Math.pow(1+taxa,e.mes),0);}
-function compararVpl(c){
-  const taxa=num('taxaVpl')/100,valor=brl('tabelaValor')||c.total;
-  const ent=num('tabelaEntrada'),mens=num('tabelaMensais'),ref=num('tabelaReforcos');
-  const qtd=int('tabelaQtd'),inicio=int('tabelaInicio'),rq=int('tabelaRefQtd'),ri=int('tabelaRefInicio'),intervalo=int('tabelaRefIntervalo'),chaves=int('tabelaChaves');
-  const inteiros=['tabelaQtd','tabelaInicio','tabelaRefQtd','tabelaRefInicio','tabelaRefIntervalo','tabelaChaves'];
-  if(['taxaVpl','tabelaEntrada','tabelaMensais','tabelaReforcos'].some(id=>$(id).value==='')||!c.timingOk||c.refData.invalid||c.excesso>0||!c.post.valid||valor<=0||!Number.isFinite(taxa)||taxa<0||[ent,mens,ref].some(x=>x<0)||ent+mens+ref>100||inteiros.some(id=>$(id).value===''||!Number.isInteger(Number($(id).value))||num(id)<0||num(id)>600)||qtd<1||intervalo<1||chaves<inicio+qtd-1||(ref>0&&(rq<1||ri+(rq-1)*intervalo>chaves)))return{valid:false};
-  const events=[{tipo:'entrada',mes:0,valor:valor*ent/100},{tipo:'chaves',mes:chaves,valor:valor*(100-ent-mens-ref)/100}];
-  // Excel rounds installments to cents and puts rounding residue into the entry.
-  const mensal=Math.round(valor*mens/100/qtd*100)/100,reforco=rq?Math.round(valor*ref/100/rq*100)/100:0;
-  events[0].valor=valor-events[1].valor-mensal*qtd-reforco*rq;
-  for(let x=0;x<qtd;x++)events.push({tipo:'parcela',mes:inicio+x,valor:mensal});
-  for(let x=0;x<rq;x++)events.push({tipo:'reforco',mes:ri+x*intervalo,valor:reforco});
-  const tabela=valorPresente(events,taxa),proposta=valorPresente(c.fluxo,taxa),diferenca=proposta-tabela;
-  return{valid:true,events,valorTabela:valor,taxa,tabela,proposta,diferenca,percentual:tabela?diferenca/tabela*100:0,ajusteEntrada:Math.max(-diferenca,0),ajusteChaves:Math.max(-diferenca,0)*Math.pow(1+taxa,c.chaves),percentualTabela:ent+mens+ref};
-}
-function compararPeriodos(c){
-  const base=compararVpl(c),data=$('fluxoDataBase').value;
-  if(!base.valid||!/^\d{4}-\d{2}-\d{2}$/.test(data))return{valid:false,ok:false,rows:[]};
-  const [ano,mes]=data.split('-').map(Number),rows=[];
-  const fim=Math.max(c.chaves,int('tabelaChaves'));
-  for(let m=0;m<fim;m++){
-    const absoluto=ano*12+mes-1+m,y=Math.floor(absoluto/12),month=absoluto%12,sem=month<6?1:2,key=y+'-'+sem;
-    let row=rows[rows.length-1];
-    if(!row||row.key!==key){row={key,label:sem+'º semestre de '+y,esperado:0,proposta:0};rows.push(row);}
-    row.esperado+=base.events.filter(e=>e.tipo!=='chaves'&&e.mes===m).reduce((t,e)=>t+e.valor,0);
-    row.proposta+=c.fluxo.filter(e=>!['chaves','poschaves'].includes(e.tipo)&&e.mes===m).reduce((t,e)=>t+e.valor,0);
-  }
-  rows.forEach(r=>{r.percEsperado=r.esperado/base.valorTabela*100;r.percProposta=r.proposta/c.total*100;r.falta=Math.max(Math.round((r.percEsperado/100*c.total-r.proposta)*100)/100,0);r.ok=r.falta<0.01;});
-  const esperado=rows.reduce((t,r)=>t+r.percEsperado,0),proposta=rows.reduce((t,r)=>t+r.percProposta,0);
-  return{valid:true,ok:rows.every(r=>r.ok),rows,esperado,proposta};
-}
-function renderVpl(c){
-  const p=compararPeriodos(c);
-  if(!p.valid){$('vplResultado').textContent='Informe a data do primeiro pagamento e confira as condições da proposta e da tabela.';return;}
-  const percent=v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
-  const titulo=p.ok?'Percentuais fechados em todos os períodos':'Atenção: há período abaixo do esperado';
-  $('vplResultado').innerHTML='<strong class="'+(p.ok?'oktxt':'goldtxt')+'">'+titulo+'</strong><div style="overflow-x:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left"><thead><tr><th>Período</th><th>Esperado</th><th>Proposta</th><th>Falta receber</th></tr></thead><tbody>'+p.rows.map(r=>'<tr style="border-top:1px solid var(--border)"><td style="padding:10px 6px 10px 0">'+esc(r.label)+'</td><td>'+percent(r.percEsperado)+'</td><td>'+percent(r.percProposta)+'</td><td class="'+(r.ok?'oktxt':'goldtxt')+'">'+(r.ok?'Fechado':money(r.falta))+'</td></tr>').join('')+'<tr style="border-top:1px solid var(--border);font-weight:bold"><td style="padding-top:12px">Total até as chaves</td><td>'+percent(p.esperado)+'</td><td>'+percent(p.proposta)+'</td><td>'+(p.ok?'Fechado':'Ajustar períodos')+'</td></tr></tbody></table></div><p class="hint">Percentuais do valor total de cada fluxo, sem CUB. Cada período é conferido separadamente. O excesso de um período não compensa a falta em outro. O primeiro e o último semestre podem ser parciais.</p>';
+  return{total,entrada,mensal,qtd,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
 }
 
 function sugerirAjustes(c){
@@ -447,20 +394,18 @@ function mostrarSugestoes(c){
   if(maxSemestral)atualizarSugestaoBaloes();
 }
 function atualizarStatus(){
-  const c=calcular();lastCalc=c;renderVpl(c);
+  const c=calcular();lastCalc=c;
   $('statusPerc').textContent=pct(c.percPre);$('statusPerc').className=c.metaOk?'oktxt':'badtxt';
   $('statusSaldoPerc').textContent=pct(c.saldoPerc);
   const box=$('missingBox');
   mostrarSugestoes(c);
-  if(!c.timingOk){$('missingLabel').textContent='Ajuste os meses de pagamento';$('missingValue').textContent='Prazo inválido';$('missingHint').textContent='A entrada e as mensais devem terminar até as chaves. Use quantidades inteiras e prazo de até 600 meses.';return;}
   if(c.refData.invalid){
     box.className='missing';
     $('missingLabel').textContent='Ajuste os reforços';
     $('missingValue').textContent='Período inválido';
-    $('missingHint').textContent='O último balão deve ocorrer antes das chaves. Com '+c.qtd+' parcelas, o último mês permitido é '+Math.max(c.chaves-1,0)+'. Confira também se a quantidade cabe no período escolhido.';
+    $('missingHint').textContent='O último balão deve ocorrer pelo menos 6 meses antes da última parcela. Com '+c.qtd+' parcelas, o último mês permitido é '+Math.max(c.qtd-6,0)+'. Confira também se a quantidade cabe no período escolhido.';
     return;
   }
-  if(c.metaOk&&(!c.periodos.valid||!c.periodos.ok)){box.className='missing';$('missingLabel').textContent='Confira os períodos';$('missingValue').textContent=c.periodos.valid?'Há percentual abaixo da base':'Informe a data inicial';$('missingHint').textContent='O total pode atingir a meta e ainda faltar recebimento em um período. Veja a comparação abaixo.';return;}
   if(c.metaOk){
     box.className='missing ok';
     $('missingLabel').textContent=c.diferencaDentroTolerancia?'Fechado dentro da tolerância':'Percentual fechado';
@@ -479,13 +424,10 @@ function atualizarStatus(){
 function fecharFluxo(){
   if(!validarBasico())return;
   const c=calcular();lastCalc=c;atualizarStatus();
-  if(!c.timingOk){alert('Confira a quantidade de pagamentos e os meses de vencimento.');return}
-  if(c.refData.invalid){alert('Ajuste os reforços. O último balão deve ocorrer antes das chaves.');return}
+  if(c.refData.invalid){alert('Ajuste os reforços. O último balão deve ocorrer pelo menos 6 meses antes da última parcela.');return}
   if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima. Veja as sugestões de parcela ou balão abaixo.');return}
   if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
   if(!c.post.valid){alert('Não foi possível dividir o saldo pós-chaves com essa quantidade de parcelas.');return}
-  if(!c.periodos.valid){alert('Informe a data do primeiro pagamento e confira a base da tabela.');return}
-  if(!c.periodos.ok){const r=c.periodos.rows.find(r=>!r.ok);alert(r.label+': faltam '+money(r.falta)+' para atingir o percentual esperado. Confira a tabela por período.');return}
   renderResultado(c)
 }
 
@@ -498,8 +440,7 @@ function renderResultado(c){
   $('rSaldoValue').textContent=money(c.saldo)+' de saldo';
 
   const lines=[];
-  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)+' em '+c.nEntrada+' pagamento(s) mensais, a partir do mês 0']);
-  lines.push(['Vencimentos','Mensais a partir do mês '+c.inicio+' · chaves no mês '+c.chaves]);
+  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)]);
   if(c.mensal>0&&c.qtd>0)lines.push(['Parcelamento',c.qtd+'x '+money(c.mensal)]);
   c.refData.summaries.forEach((r,idx)=>lines.push(['Reforços'+(c.refData.summaries.length>1?' '+(idx+1):''),r.qtd+'x '+money(r.valor)+' · '+periodoLabel(r)]));
   lines.push(['Total pago até as chaves',money(c.totalPre)+' · '+pct(c.percPre)]);
@@ -511,10 +452,10 @@ function renderResultado(c){
   goStep(3)
 }
 
-function formData(){return{vplForm:Object.fromEntries(VPL_FIELDS.map(id=>[id,$(id).value])),leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refPlans:getRefPlans()}}
+function formData(){return{leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refPlans:getRefPlans()}}
 function payload(c){
   const corretor=(leads.find(l=>l.id===$('leadSelect').value)?.corretor)||(profile.corretor_ref||profile.nome);
-  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{periodos:c.periodos,vpl:compararVpl(c),cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,reforcosPlanos:c.refData.summaries,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
+  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,reforcosPlanos:c.refData.summaries,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
 }
 
 async function salvarRascunho(silent=false){
@@ -603,8 +544,8 @@ function criarDocumentoPDF(c){
     '</div>'+
     '<div style="border:1px solid #e7e2da;border-radius:14px;padding:18px;margin-bottom:12px">'+
       '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:12px">Forma de pagamento</div>'+
-      (c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Entrada</span><b>'+money(c.entrada)+' em '+c.nEntrada+' pagamento(s), desde o mês 0</b></div>':'')+
-      (c.mensal>0&&c.qtd>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Parcelamento</span><b>'+c.qtd+'x '+money(c.mensal)+' · início mês '+c.inicio+'</b></div>':'')+
+      (c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Entrada</span><b>'+money(c.entrada)+'</b></div>':'')+
+      (c.mensal>0&&c.qtd>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Parcelamento</span><b>'+c.qtd+'x '+money(c.mensal)+'</b></div>':'')+
       refRows+posRow+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
@@ -654,7 +595,6 @@ function setv(id,v){if($(id))$(id).value=v??''}
 function abrirSalva(id){
   if(!id)return;const s=simulacoes.find(x=>x.id===id);if(!s)return;currentId=s.id;currentToken=s.share_token;const f=s.dados?.form||{};
   setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('clienteEmail',f.clienteEmail||leads.find(l=>l.id===(f.leadId||s.lead_id))?.email||'');setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',formatBRLValue(parseBRL(f.valorTotal||s.valor_total)));setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor?formatBRLValue(parseBRL(f.entradaValor)):'');setv('parcelaValor',f.parcelaValor?formatBRLValue(parseBRL(f.parcelaValor)):'');setv('parcelaNum',f.parcelaNum||'');
-  resetVpl(f.vplForm);
   $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);$('reforcos').innerHTML='';refCount=0;
   const oldRefs=Array.isArray(f.refs)?f.refs:[];const plans=Array.isArray(f.refPlans)?f.refPlans:[];
   if(plans.length)plans.forEach(p=>addReforco(p));
@@ -688,12 +628,9 @@ async function apagarFluxoSalvo(){
 }
 
 function novaSimulacao(){
-  resetVpl();
   currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','clienteEmail','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação';atualizarBotaoApagar()
 }
 if(localStorage.getItem('3ps_fluxo_tema')==='claro')document.body.classList.add('light');
-$('fluxoDataBase').value=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
-VPL_DEFAULTS.fluxoDataBase=$('fluxoDataBase').value;
 init();
 </script>
 </body>
