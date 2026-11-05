@@ -125,7 +125,7 @@ body.light .toolbar{background:#fff}
         </div>
       </div>
 
-<div class="card"><div class="card-title">Sua proposta comparada à tabela</div><div class="field"><label for="tabelaValor">Preço original da tabela</label><input id="tabelaValor" type="text" min="0" step="any" value="" placeholder="Mesmo valor da proposta" oninput="atualizarStatus()"></div><p class="hint">Referência inicial: AYRA · taxa de 1% ao mês. Para outro empreendimento, ajuste a referência abaixo.</p><div id="vplResultado" class="flow" aria-live="polite"></div><details style="margin-top:16px"><summary style="cursor:pointer;color:var(--muted);font-size:13px">Opções avançadas</summary><p class="hint">Mês 0 é o primeiro pagamento da entrada. Os prazos são contados a partir dele. O valor da entrada é o total, dividido em pagamentos mensais.</p><div class="grid2"><div class="field"><label for="mensalInicio">Primeira mensal: mês</label><input id="mensalInicio" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="mesChaves">Chaves: mês (vazio = nº de parcelas)</label><input id="mesChaves" type="number" min="0" step="any" value="" oninput="atualizarStatus()"></div><div class="field"><label for="taxaVpl">Taxa de desconto (% ao mês)</label><input id="taxaVpl" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaEntrada">Entrada da tabela (%)</label><input id="tabelaEntrada" type="number" min="0" step="any" value="10" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaMensais">Mensais da tabela (%)</label><input id="tabelaMensais" type="number" min="0" step="any" value="15" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaQtd">Quantidade de mensais da tabela</label><input id="tabelaQtd" type="number" min="0" step="any" value="47" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaInicio">Primeira mensal da tabela: mês</label><input id="tabelaInicio" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaReforcos">Reforços da tabela (%)</label><input id="tabelaReforcos" type="number" min="0" step="any" value="10" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefQtd">Quantidade de reforços da tabela</label><input id="tabelaRefQtd" type="number" min="0" step="any" value="7" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefInicio">Primeiro reforço da tabela: mês</label><input id="tabelaRefInicio" type="number" min="0" step="any" value="7" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefIntervalo">Intervalo dos reforços da tabela (meses)</label><input id="tabelaRefIntervalo" type="number" min="0" step="any" value="6" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaChaves">Chaves da tabela: mês</label><input id="tabelaChaves" type="number" min="0" step="any" value="48" oninput="atualizarStatus()"></div></div></details></div>
+<div class="card"><div class="card-title">Percentual por período</div><div class="field"><label for="tabelaValor">Preço original da tabela</label><input id="tabelaValor" type="text" min="0" step="any" value="" placeholder="Mesmo valor da proposta" oninput="atualizarStatus()"></div><p class="hint">Confira se a proposta recebe o percentual esperado em cada período. Base inicial AYRA: 35% até as chaves. Para outros empreendimentos, ajuste a referência nas opções avançadas.</p><div class="field" style="margin-top:12px"><label for="fluxoDataBase">Data do primeiro pagamento</label><input id="fluxoDataBase" type="date" onchange="atualizarStatus()"></div><div id="vplResultado" class="flow" aria-live="polite"></div><details style="margin-top:16px"><summary style="cursor:pointer;color:var(--muted);font-size:13px">Opções avançadas</summary><p class="hint">Mês 0 é o primeiro pagamento da entrada. Os prazos são contados a partir dele. O valor da entrada é o total, dividido em pagamentos mensais.</p><div class="grid2"><div class="field"><label for="mensalInicio">Primeira mensal: mês</label><input id="mensalInicio" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="mesChaves">Chaves: mês (vazio = nº de parcelas)</label><input id="mesChaves" type="number" min="0" step="any" value="" oninput="atualizarStatus()"></div><div class="field"><label for="taxaVpl">Taxa de desconto (% ao mês)</label><input id="taxaVpl" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaEntrada">Entrada da tabela (%)</label><input id="tabelaEntrada" type="number" min="0" step="any" value="10" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaMensais">Mensais da tabela (%)</label><input id="tabelaMensais" type="number" min="0" step="any" value="15" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaQtd">Quantidade de mensais da tabela</label><input id="tabelaQtd" type="number" min="0" step="any" value="47" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaInicio">Primeira mensal da tabela: mês</label><input id="tabelaInicio" type="number" min="0" step="any" value="1" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaReforcos">Reforços da tabela (%)</label><input id="tabelaReforcos" type="number" min="0" step="any" value="10" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefQtd">Quantidade de reforços da tabela</label><input id="tabelaRefQtd" type="number" min="0" step="any" value="7" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefInicio">Primeiro reforço da tabela: mês</label><input id="tabelaRefInicio" type="number" min="0" step="any" value="7" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaRefIntervalo">Intervalo dos reforços da tabela (meses)</label><input id="tabelaRefIntervalo" type="number" min="0" step="any" value="6" oninput="atualizarStatus()"></div><div class="field"><label for="tabelaChaves">Chaves da tabela: mês</label><input id="tabelaChaves" type="number" min="0" step="any" value="48" oninput="atualizarStatus()"></div></div></details></div>
       <div class="nav"><button class="btn ghost" onclick="goStep(1)">← Voltar</button><button class="btn primary" onclick="fecharFluxo()">Fechar fluxo →</button></div>
     </section>
 
@@ -256,7 +256,7 @@ function getRefPlans(){
 }
 function periodoLabel(p){return p.periodo==='semestral'?'semestral':p.periodo==='anual'?'anual':'a cada '+p.intervalo+' meses'}
 function gerarReforcos(qtd,plans){
-  const ultimoMesPermitido=Math.min(Math.max(qtd-6,0),600);
+  const ultimoMesPermitido=Math.min(Math.max(qtd-1,0),600);
   const events=[],summaries=[];
   let invalid=false;
   plans.forEach((p,pi)=>{
@@ -310,7 +310,7 @@ function calcular(){
   const faltaAceite=Math.max(total*limiteAceite/100-totalPre,0);
   const diferencaDentroTolerancia=metaOk&&percPre<meta;
   const post=buildPostPlan(saldo);
-  const ready=metaOk&&excesso===0&&post.valid&&!refData.invalid&&timingOk;
+  let ready=metaOk&&excesso===0&&post.valid&&!refData.invalid&&timingOk;
 
   let events=[];
   if(entrada>0&&nEntrada>0&&nEntrada<=600){const cents=Math.round(entrada*100),base=Math.floor(cents/nEntrada);for(let x=0;x<nEntrada;x++)events.push({tipo:'entrada',mes:x,label:'Entrada '+(x+1)+'/'+nEntrada,valor:(base+(x<cents% nEntrada?1:0))/100,competencia:'Mês '+x});}
@@ -327,12 +327,13 @@ function calcular(){
     acum+=saldo;fluxo.push({tipo:'chaves',mes:chaves,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
   }
 
-  return{total,entrada,mensal,qtd,chaves,inicio,nEntrada,timingOk,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
+  const resultado={total,entrada,mensal,qtd,chaves,inicio,nEntrada,timingOk,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo};
+  resultado.periodos=compararPeriodos(resultado);resultado.ready=ready&&resultado.periodos.valid&&resultado.periodos.ok;return resultado;
 }
 
 
-const VPL_FIELDS=['entradaNum', 'mensalInicio', 'mesChaves', 'taxaVpl', 'tabelaValor', 'tabelaEntrada', 'tabelaMensais', 'tabelaQtd', 'tabelaInicio', 'tabelaReforcos', 'tabelaRefQtd', 'tabelaRefInicio', 'tabelaRefIntervalo', 'tabelaChaves'];
-const VPL_DEFAULTS={'entradaNum': '1', 'mensalInicio': '1', 'mesChaves': '', 'taxaVpl': '1', 'tabelaValor': '', 'tabelaEntrada': '10', 'tabelaMensais': '15', 'tabelaQtd': '47', 'tabelaInicio': '1', 'tabelaReforcos': '10', 'tabelaRefQtd': '7', 'tabelaRefInicio': '7', 'tabelaRefIntervalo': '6', 'tabelaChaves': '48'};
+const VPL_FIELDS=['fluxoDataBase','entradaNum', 'mensalInicio', 'mesChaves', 'taxaVpl', 'tabelaValor', 'tabelaEntrada', 'tabelaMensais', 'tabelaQtd', 'tabelaInicio', 'tabelaReforcos', 'tabelaRefQtd', 'tabelaRefInicio', 'tabelaRefIntervalo', 'tabelaChaves'];
+const VPL_DEFAULTS={'fluxoDataBase':'2026-11-05','entradaNum': '1', 'mensalInicio': '1', 'mesChaves': '', 'taxaVpl': '1', 'tabelaValor': '', 'tabelaEntrada': '10', 'tabelaMensais': '15', 'tabelaQtd': '47', 'tabelaInicio': '1', 'tabelaReforcos': '10', 'tabelaRefQtd': '7', 'tabelaRefInicio': '7', 'tabelaRefIntervalo': '6', 'tabelaChaves': '48'};
 function resetVpl(saved={}){VPL_FIELDS.forEach(id=>setv(id,saved?.[id]??VPL_DEFAULTS[id]));}
 function valorPresente(events,taxa){return events.reduce((s,e)=>s+e.valor/Math.pow(1+taxa,e.mes),0);}
 function compararVpl(c){
@@ -341,24 +342,37 @@ function compararVpl(c){
   const qtd=int('tabelaQtd'),inicio=int('tabelaInicio'),rq=int('tabelaRefQtd'),ri=int('tabelaRefInicio'),intervalo=int('tabelaRefIntervalo'),chaves=int('tabelaChaves');
   const inteiros=['tabelaQtd','tabelaInicio','tabelaRefQtd','tabelaRefInicio','tabelaRefIntervalo','tabelaChaves'];
   if(['taxaVpl','tabelaEntrada','tabelaMensais','tabelaReforcos'].some(id=>$(id).value==='')||!c.timingOk||c.refData.invalid||c.excesso>0||!c.post.valid||valor<=0||!Number.isFinite(taxa)||taxa<0||[ent,mens,ref].some(x=>x<0)||ent+mens+ref>100||inteiros.some(id=>$(id).value===''||!Number.isInteger(Number($(id).value))||num(id)<0||num(id)>600)||qtd<1||intervalo<1||chaves<inicio+qtd-1||(ref>0&&(rq<1||ri+(rq-1)*intervalo>chaves)))return{valid:false};
-  const events=[{mes:0,valor:valor*ent/100},{mes:chaves,valor:valor*(100-ent-mens-ref)/100}];
+  const events=[{tipo:'entrada',mes:0,valor:valor*ent/100},{tipo:'chaves',mes:chaves,valor:valor*(100-ent-mens-ref)/100}];
   // Excel rounds installments to cents and puts rounding residue into the entry.
   const mensal=Math.round(valor*mens/100/qtd*100)/100,reforco=rq?Math.round(valor*ref/100/rq*100)/100:0;
   events[0].valor=valor-events[1].valor-mensal*qtd-reforco*rq;
-  for(let x=0;x<qtd;x++)events.push({mes:inicio+x,valor:mensal});
-  for(let x=0;x<rq;x++)events.push({mes:ri+x*intervalo,valor:reforco});
+  for(let x=0;x<qtd;x++)events.push({tipo:'parcela',mes:inicio+x,valor:mensal});
+  for(let x=0;x<rq;x++)events.push({tipo:'reforco',mes:ri+x*intervalo,valor:reforco});
   const tabela=valorPresente(events,taxa),proposta=valorPresente(c.fluxo,taxa),diferenca=proposta-tabela;
-  return{valid:true,taxa,tabela,proposta,diferenca,percentual:tabela?diferenca/tabela*100:0,ajusteEntrada:Math.max(-diferenca,0),ajusteChaves:Math.max(-diferenca,0)*Math.pow(1+taxa,c.chaves),percentualTabela:ent+mens+ref};
+  return{valid:true,events,valorTabela:valor,taxa,tabela,proposta,diferenca,percentual:tabela?diferenca/tabela*100:0,ajusteEntrada:Math.max(-diferenca,0),ajusteChaves:Math.max(-diferenca,0)*Math.pow(1+taxa,c.chaves),percentualTabela:ent+mens+ref};
+}
+function compararPeriodos(c){
+  const base=compararVpl(c),data=$('fluxoDataBase').value;
+  if(!base.valid||!/^\d{4}-\d{2}-\d{2}$/.test(data))return{valid:false,ok:false,rows:[]};
+  const [ano,mes]=data.split('-').map(Number),rows=[];
+  const fim=Math.max(c.chaves,int('tabelaChaves'));
+  for(let m=0;m<fim;m++){
+    const absoluto=ano*12+mes-1+m,y=Math.floor(absoluto/12),month=absoluto%12,sem=month<6?1:2,key=y+'-'+sem;
+    let row=rows[rows.length-1];
+    if(!row||row.key!==key){row={key,label:sem+'º semestre de '+y,esperado:0,proposta:0};rows.push(row);}
+    row.esperado+=base.events.filter(e=>e.tipo!=='chaves'&&e.mes===m).reduce((t,e)=>t+e.valor,0);
+    row.proposta+=c.fluxo.filter(e=>!['chaves','poschaves'].includes(e.tipo)&&e.mes===m).reduce((t,e)=>t+e.valor,0);
+  }
+  rows.forEach(r=>{r.percEsperado=r.esperado/base.valorTabela*100;r.percProposta=r.proposta/c.total*100;r.falta=Math.max(Math.round((r.percEsperado/100*c.total-r.proposta)*100)/100,0);r.ok=r.falta<0.01;});
+  const esperado=rows.reduce((t,r)=>t+r.percEsperado,0),proposta=rows.reduce((t,r)=>t+r.percProposta,0);
+  return{valid:true,ok:rows.every(r=>r.ok),rows,esperado,proposta};
 }
 function renderVpl(c){
-  const v=compararVpl(c);
-  if(!v.valid){$('vplResultado').textContent='Preencha o valor do imóvel e confira os prazos, percentuais e quantidades dos dois fluxos.';return;}
-  const positivo=v.diferenca>=-0.005;
-  const titulo=positivo?'VPL igual ou acima da tabela':'VPL abaixo da tabela';
-  const detalhe=positivo?'A proposta mantém o valor presente do fluxo de referência.':'Para igualar o VPL, acrescente '+money(v.ajusteEntrada)+' no primeiro pagamento.';
-  const rows=[['VPL da tabela',money(v.tabela)],['VPL da proposta',money(v.proposta)],['Diferença',money(v.diferenca)+' ('+pct(v.percentual)+')'],['Pago até as chaves: tabela / proposta',pct(v.percentualTabela)+' / '+pct(c.percPre)]];
-  $('vplResultado').innerHTML='<strong class="'+(positivo?'oktxt':'goldtxt')+'">'+titulo+'</strong><p style="font-size:13px;line-height:1.5">'+esc(detalhe)+'</p><details><summary style="cursor:pointer;font-size:12px;color:var(--muted)">Ver os valores do cálculo</summary>'+rows.map(r=>'<div class="flow-line"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+'</details><p class="hint">Comparação sem CUB. Igualar o VPL acrescentando valor aumenta o preço total. Sujeito à análise da construtora.</p>';
-
+  const p=compararPeriodos(c);
+  if(!p.valid){$('vplResultado').textContent='Informe a data do primeiro pagamento e confira as condições da proposta e da tabela.';return;}
+  const percent=v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  const titulo=p.ok?'Percentuais fechados em todos os períodos':'Atenção: há período abaixo do esperado';
+  $('vplResultado').innerHTML='<strong class="'+(p.ok?'oktxt':'goldtxt')+'">'+titulo+'</strong><div style="overflow-x:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left"><thead><tr><th>Período</th><th>Esperado</th><th>Proposta</th><th>Falta receber</th></tr></thead><tbody>'+p.rows.map(r=>'<tr style="border-top:1px solid var(--border)"><td style="padding:10px 6px 10px 0">'+esc(r.label)+'</td><td>'+percent(r.percEsperado)+'</td><td>'+percent(r.percProposta)+'</td><td class="'+(r.ok?'oktxt':'goldtxt')+'">'+(r.ok?'Fechado':money(r.falta))+'</td></tr>').join('')+'<tr style="border-top:1px solid var(--border);font-weight:bold"><td style="padding-top:12px">Total até as chaves</td><td>'+percent(p.esperado)+'</td><td>'+percent(p.proposta)+'</td><td>'+(p.ok?'Fechado':'Ajustar períodos')+'</td></tr></tbody></table></div><p class="hint">Percentuais do valor total de cada fluxo, sem CUB. Cada período é conferido separadamente. O excesso de um período não compensa a falta em outro. O primeiro e o último semestre podem ser parciais.</p>';
 }
 
 function sugerirAjustes(c){
@@ -443,9 +457,10 @@ function atualizarStatus(){
     box.className='missing';
     $('missingLabel').textContent='Ajuste os reforços';
     $('missingValue').textContent='Período inválido';
-    $('missingHint').textContent='O último balão deve ocorrer pelo menos 6 meses antes da última parcela. Com '+c.qtd+' parcelas, o último mês permitido é '+Math.max(c.qtd-6,0)+'. Confira também se a quantidade cabe no período escolhido.';
+    $('missingHint').textContent='O último balão deve ocorrer antes das chaves. Com '+c.qtd+' parcelas, o último mês permitido é '+Math.max(c.chaves-1,0)+'. Confira também se a quantidade cabe no período escolhido.';
     return;
   }
+  if(c.metaOk&&(!c.periodos.valid||!c.periodos.ok)){box.className='missing';$('missingLabel').textContent='Confira os períodos';$('missingValue').textContent=c.periodos.valid?'Há percentual abaixo da base':'Informe a data inicial';$('missingHint').textContent='O total pode atingir a meta e ainda faltar recebimento em um período. Veja a comparação abaixo.';return;}
   if(c.metaOk){
     box.className='missing ok';
     $('missingLabel').textContent=c.diferencaDentroTolerancia?'Fechado dentro da tolerância':'Percentual fechado';
@@ -465,10 +480,12 @@ function fecharFluxo(){
   if(!validarBasico())return;
   const c=calcular();lastCalc=c;atualizarStatus();
   if(!c.timingOk){alert('Confira a quantidade de pagamentos e os meses de vencimento.');return}
-  if(c.refData.invalid){alert('Ajuste os reforços. O último balão deve ocorrer pelo menos 6 meses antes da última parcela.');return}
+  if(c.refData.invalid){alert('Ajuste os reforços. O último balão deve ocorrer antes das chaves.');return}
   if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima. Veja as sugestões de parcela ou balão abaixo.');return}
   if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
   if(!c.post.valid){alert('Não foi possível dividir o saldo pós-chaves com essa quantidade de parcelas.');return}
+  if(!c.periodos.valid){alert('Informe a data do primeiro pagamento e confira a base da tabela.');return}
+  if(!c.periodos.ok){const r=c.periodos.rows.find(r=>!r.ok);alert(r.label+': faltam '+money(r.falta)+' para atingir o percentual esperado. Confira a tabela por período.');return}
   renderResultado(c)
 }
 
@@ -497,7 +514,7 @@ function renderResultado(c){
 function formData(){return{vplForm:Object.fromEntries(VPL_FIELDS.map(id=>[id,$(id).value])),leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refPlans:getRefPlans()}}
 function payload(c){
   const corretor=(leads.find(l=>l.id===$('leadSelect').value)?.corretor)||(profile.corretor_ref||profile.nome);
-  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{vpl:compararVpl(c),cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,reforcosPlanos:c.refData.summaries,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
+  return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{periodos:c.periodos,vpl:compararVpl(c),cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,reforcosPlanos:c.refData.summaries,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
 }
 
 async function salvarRascunho(silent=false){
@@ -675,6 +692,8 @@ function novaSimulacao(){
   currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','clienteEmail','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação';atualizarBotaoApagar()
 }
 if(localStorage.getItem('3ps_fluxo_tema')==='claro')document.body.classList.add('light');
+$('fluxoDataBase').value=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
+VPL_DEFAULTS.fluxoDataBase=$('fluxoDataBase').value;
 init();
 </script>
 </body>
