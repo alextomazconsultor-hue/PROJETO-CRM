@@ -146,10 +146,12 @@ body.light .toolbar{background:#fff}
         <div class="actions">
           <button class="btn primary" onclick="salvarRascunho()">💾 Salvar no CRM</button>
           <button class="btn" onclick="exportarPDF()">📄 Exportar PDF</button>
+          <button class="btn" id="saveClientDocumentBtn" onclick="exportarPDF('documentos')">Salvar nos documentos do cliente</button>
           <button class="btn ok" id="emailBtn" onclick="enviarEmail()">✉️ Enviar por e-mail</button>
           <button class="btn ok" id="whatsappBtn" onclick="enviarWhatsApp()">💬 Enviar por WhatsApp</button>
           <button class="btn" onclick="imprimirFluxo()">🖨️ Imprimir</button>
         </div>
+        <div class="hint" id="clientDocumentSaveStatus" role="status" style="margin-top:10px"></div>
         <div class="hint" id="publicLinkInfo" style="margin-top:10px"></div>
       </div>
     </section>
@@ -556,9 +558,17 @@ function criarDocumentoPDF(c){
   return root;
 }
 
-async function exportarPDF(){
+let clientDocumentSaving=false;
+async function exportarPDF(destino='download'){
+  const arquivar=destino==='documentos';
+  if(arquivar&&clientDocumentSaving)return;
   const c=calcular();if(!c.ready){fecharFluxo();return}
-  const source=criarDocumentoPDF(c);
+  const leadId=$('leadSelect').value;
+  const lead=leads.find(l=>l.id===leadId);
+  if(arquivar&&!lead){alert('Selecione o cliente no campo Lead, na etapa Imóvel, para salvar nos documentos dele.');return}
+  const button=$('saveClientDocumentBtn'),status=$('clientDocumentSaveStatus');
+  if(arquivar){clientDocumentSaving=true;button.disabled=true;status.textContent='Gerando PDF e salvando nos documentos de '+lead.nome+'...';}
+  let source;
   const cliente=($('clienteNome').value||'Cliente').replace(/[^a-zA-ZÀ-ÿ0-9_-]+/g,'_');
   const emp=($('empreendimento').value||'Proposta').replace(/[^a-zA-ZÀ-ÿ0-9_-]+/g,'_');
   const opt={
@@ -570,14 +580,29 @@ async function exportarPDF(){
     pagebreak:{mode:['avoid-all','css','legacy']}
   };
   try{
+    source=criarDocumentoPDF(c);
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    await html2pdf().set(opt).from(source).save();
-    toast('✓ PDF exportado');
+    const worker=html2pdf().set(opt).from(source);
+    if(arquivar){
+      const blob=await worker.outputPdf('blob');
+      if(!blob||!blob.size||blob.size>20*1024*1024)throw new Error('O PDF deve ter até 20 MB.');
+      const nome=opt.filename.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_').slice(-160);
+      const path=leadId+'/'+crypto.randomUUID()+'--'+nome;
+      const {error}=await sb.storage.from('crm-documentos').upload(path,blob,{contentType:'application/pdf',upsert:false});
+      if(error)throw error;
+      status.textContent='Fluxo salvo em Documentos no cadastro de '+lead.nome+'.';
+      toast('✓ Fluxo salvo nos documentos do cliente');
+    }else{
+      await worker.save();
+      toast('✓ PDF exportado');
+    }
   }catch(e){
     console.error(e);
-    alert('Não foi possível gerar o PDF. Tente novamente.');
+    if(arquivar)status.textContent='Não foi possível salvar nos documentos: '+(e.message||'Tente novamente.');
+    else alert('Não foi possível gerar o PDF. Tente novamente.');
   }finally{
-    source.remove();
+    source?.remove();
+    if(arquivar){clientDocumentSaving=false;button.disabled=false;}
   }
 }
 
