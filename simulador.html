@@ -253,15 +253,13 @@ function getRefPlans(){
 }
 function periodoLabel(p){return p.periodo==='semestral'?'semestral':p.periodo==='anual'?'anual':'a cada '+p.intervalo+' meses'}
 function gerarReforcos(qtd,plans){
-  const ultimoMesPermitido=Math.max(qtd-6,0);
+  const ultimoMesPermitido=Math.max(qtd,0);
   const events=[],summaries=[];
   let invalid=false;
   plans.forEach((p,pi)=>{
-    if(!p.intervalo||p.intervalo<1){invalid=true;return}
-    const meses=[];
-    for(let m=p.intervalo;m<=ultimoMesPermitido;m+=p.intervalo)meses.push(m);
-    if(!meses.length || (p.quantidade>0 && (!Number.isInteger(p.quantidade)||p.quantidade>meses.length))){invalid=true;return}
-    if(p.quantidade>0)meses.length=p.quantidade;
+    if(!Number.isInteger(p.intervalo)||p.intervalo<1||!Number.isInteger(p.quantidade)||p.quantidade<0){invalid=true;return}
+    const quantidade=p.quantidade>0?p.quantidade:Math.floor(ultimoMesPermitido/p.intervalo);
+    const meses=Array.from({length:quantidade},(_,i)=>(i+1)*p.intervalo);
     meses.forEach((m,idx)=>events.push({tipo:'reforco',mes:m,label:'Reforço '+(idx+1)+'/'+meses.length,valor:p.valor,competencia:'Mês '+m,planIndex:pi}));
     summaries.push({valor:p.valor,periodo:p.periodo,intervalo:p.intervalo,qtd:meses.length,meses});
   });
@@ -338,7 +336,7 @@ function sugerirAjustes(c){
 }
 function calcularSugestaoBaloes(c,periodo,quantidade){
   const intervalo=periodo==='anual'?12:6;
-  const maximo=Math.floor(c.refData.ultimoMesPermitido/intervalo);
+  const maximo=Math.ceil(c.refData.ultimoMesPermitido/intervalo);
   if(!maximo||!Number.isInteger(quantidade)||quantidade<1||quantidade>maximo)return null;
   const minimo=Math.ceil((c.faltaExata*100-0.000001)/quantidade);
   const maximoPorBalao=Math.floor(Math.round((c.total-c.totalPre)*100)/quantidade);
@@ -360,7 +358,7 @@ function aplicarSugestaoBalao(){
 function atualizarSugestaoBaloes(){
   if(!lastCalc||!lastSuggestion)return;
   const periodo=$('sugPeriodo')?.value||'semestral';
-  const maximo=Math.floor(lastCalc.refData.ultimoMesPermitido/(periodo==='anual'?12:6));
+  const maximo=Math.ceil(lastCalc.refData.ultimoMesPermitido/(periodo==='anual'?12:6));
   const seletor=$('sugQtd');
   if(!seletor)return;
   const escolha=Math.min(Math.max(parseInt(seletor.value)||2,1),maximo);
@@ -368,8 +366,8 @@ function atualizarSugestaoBaloes(){
   const b=calcularSugestaoBaloes(lastCalc,periodo,escolha);
   lastSuggestion.balao=b;
   $('sugBalaoResultado').textContent=b
-    ? escolha+' balão'+(escolha===1?'':'ões')+' de '+money(b.valor)+' · último no mês '+b.mesFinal+' (6 meses ou mais antes das chaves) · total até as chaves '+pct((lastCalc.totalPre+b.valor*escolha)/lastCalc.total*100)
-    :'Não há espaço para essa periodicidade antes do limite de 6 meses.';
+    ? escolha+' balão'+(escolha===1?'':'ões')+' de '+money(b.valor)+' · último no mês '+b.mesFinal+' · total até as chaves '+pct((lastCalc.totalPre+b.valor*escolha)/lastCalc.total*100)
+    :'Informe a quantidade e a periodicidade dos reforços.';
   $('sugAplicarBalao').disabled=!b;
 }
 function mostrarSugestoes(c){
@@ -378,8 +376,8 @@ function mostrarSugestoes(c){
   const qtdAnterior=parseInt($('sugQtd')?.value)||2;
   lastSuggestion=sugerirAjustes(c);
   if(!lastSuggestion){wrap.innerHTML='';return}
-  const maxSemestral=Math.floor(c.refData.ultimoMesPermitido/6);
-  const maxAnual=Math.floor(c.refData.ultimoMesPermitido/12);
+  const maxSemestral=Math.ceil(c.refData.ultimoMesPermitido/6);
+  const maxAnual=Math.ceil(c.refData.ultimoMesPermitido/12);
   if(!lastSuggestion.parcela&&!maxSemestral){wrap.innerHTML='';return}
   let html='<div class="hint">Sugestões para atingir a meta exata de '+pct(c.meta)+' (escolha uma):</div>';
   if(lastSuggestion.parcela){
@@ -402,8 +400,8 @@ function atualizarStatus(){
   if(c.refData.invalid){
     box.className='missing';
     $('missingLabel').textContent='Ajuste os reforços';
-    $('missingValue').textContent='Período inválido';
-    $('missingHint').textContent='O último balão deve ocorrer pelo menos 6 meses antes da última parcela. Com '+c.qtd+' parcelas, o último mês permitido é '+Math.max(c.qtd-6,0)+'. Confira também se a quantidade cabe no período escolhido.';
+    $('missingValue').textContent='Dados inválidos';
+    $('missingHint').textContent='Informe uma periodicidade válida e uma quantidade inteira de reforços.';
     return;
   }
   if(c.metaOk){
@@ -424,7 +422,7 @@ function atualizarStatus(){
 function fecharFluxo(){
   if(!validarBasico())return;
   const c=calcular();lastCalc=c;atualizarStatus();
-  if(c.refData.invalid){alert('Ajuste os reforços. O último balão deve ocorrer pelo menos 6 meses antes da última parcela.');return}
+  if(c.refData.invalid){alert('Confira a periodicidade e a quantidade dos reforços.');return}
   if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima. Veja as sugestões de parcela ou balão abaixo.');return}
   if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
   if(!c.post.valid){alert('Não foi possível dividir o saldo pós-chaves com essa quantidade de parcelas.');return}
