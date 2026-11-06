@@ -1326,7 +1326,7 @@ CREATE TABLE historico (
       </div>
       <!-- SIMULADOR DE FLUXO -->
       <div class="page" id="page-simulador" style="height:calc(100vh - 108px)">
-        <iframe id="simuladorFrame" title="Simulador de Fluxo" data-src="simulador.html?embed=1" style="width:100%;height:100%;border:0;border-radius:12px;background:var(--bg-base)"></iframe>
+        <iframe id="simuladorFrame" title="Simulador de Fluxo" data-src="simulador.html?v=documentos-20261106&embed=1" style="width:100%;height:100%;border:0;border-radius:12px;background:var(--bg-base)"></iframe>
       </div>
 
       <!-- EQUIPE -->
@@ -2078,7 +2078,7 @@ async function enterApp() {
   atualizarBotaoTemaCRM();
 
   if (new URLSearchParams(location.search).get('return') === 'simulador') {
-    location.replace('simulador.html');
+    location.replace('simulador.html?v=documentos-20261106');
     return;
   }
 
@@ -2240,7 +2240,7 @@ function showPage(name, el) {
   if(name==='simulador') {
     const frame = document.getElementById('simuladorFrame');
     if (window.innerWidth <= 768) {
-      location.href = 'simulador.html';
+      location.href = 'simulador.html?v=documentos-20261106';
       return;
     }
     if (frame && !frame.getAttribute('src')) frame.src = frame.dataset.src;
@@ -3317,7 +3317,7 @@ function abrirSimuladorLead(id) {
   const nav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick')?.includes("showPage('simulador'"));
   showPage('simulador', nav || null);
   const frame = document.getElementById('simuladorFrame');
-  if (frame) frame.src = 'simulador.html?embed=1&lead=' + encodeURIComponent(id);
+  if (frame) frame.src = 'simulador.html?v=documentos-20261106&embed=1&lead=' + encodeURIComponent(id);
 }
 
 async function changeLeadStatus(id, newStatus) {
