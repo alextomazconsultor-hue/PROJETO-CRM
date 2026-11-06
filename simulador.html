@@ -508,15 +508,15 @@ async function enviarWhatsApp(){
 function criarDocumentoPDF(c){
   const root=document.createElement('div');
   root.id='pdfProposalTemp';
-  root.style.position='fixed';
-  root.style.left='-10000px';
+  root.style.position='static';
+  root.style.left='auto';
   root.style.top='0';
   root.style.width='760px';
   root.style.background='#ffffff';
   root.style.color='#171717';
   root.style.padding='28px';
   root.style.fontFamily='Arial, sans-serif';
-  root.style.zIndex='-1';
+  root.style.zIndex='auto';
 
   const refRows=c.refData.summaries.map((r,idx)=>
     '<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1">'+
@@ -554,7 +554,11 @@ function criarDocumentoPDF(c){
     '</div>'+
     '<div style="font-size:10px;color:#777;line-height:1.5;margin-top:16px">Valores de parcelas e reforços poderão ser reajustados pelo CUB/SC quando previsto em contrato. Esta simulação é informativa e não substitui as condições oficiais do contrato.</div>';
 
-  document.body.appendChild(root);
+  const host=document.createElement('div');
+  host.id='pdfProposalHost';
+  host.style.cssText='position:absolute;left:-10000px;top:0;width:760px;pointer-events:none;';
+  host.appendChild(root);
+  document.body.appendChild(host);
   return root;
 }
 
@@ -577,12 +581,20 @@ async function exportarPDF(destino='download'){
     image:{type:'jpeg',quality:.98},
     html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-    pagebreak:{mode:['avoid-all','css','legacy']}
+    pagebreak:{mode:['css','legacy']}
   };
   try{
     source=criarDocumentoPDF(c);
+    if(document.fonts?.ready)await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     const worker=html2pdf().set(opt).from(source);
+    await worker.toCanvas();
+    const canvas=await worker.get('canvas');
+    if(!canvas?.width||!canvas?.height)throw new Error('Não foi possível renderizar o conteúdo do fluxo.');
+    const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    let conteudoVisivel=false;
+    for(let i=0;i<pixels.length;i+=16){if(pixels[i+3]>0&&(pixels[i]<240||pixels[i+1]<240||pixels[i+2]<240)){conteudoVisivel=true;break;}}
+    if(!conteudoVisivel)throw new Error('O PDF ficou sem conteúdo. Recarregue o simulador e tente novamente.');
     if(arquivar){
       const blob=await worker.outputPdf('blob');
       if(!blob||!blob.size||blob.size>20*1024*1024)throw new Error('O PDF deve ter até 20 MB.');
@@ -601,7 +613,8 @@ async function exportarPDF(destino='download'){
     if(arquivar)status.textContent='Não foi possível salvar nos documentos: '+(e.message||'Tente novamente.');
     else alert('Não foi possível gerar o PDF. Tente novamente.');
   }finally{
-    source?.remove();
+    if(source?.parentElement?.id==='pdfProposalHost')source.parentElement.remove();
+    else source?.remove();
     if(arquivar){clientDocumentSaving=false;button.disabled=false;}
   }
 }
