@@ -905,6 +905,23 @@ html.light .pill-atendimento{color:#6743b5}
   </div>
 </div>
 
+<div class="modal-overlay" id="vipAyraStagesModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div><div class="modal-name">✏️ Etapas do funil AYRA</div><div class="modal-sub">Edite nomes, cores e ordem das colunas</div></div>
+      <button class="modal-close" onclick="closeModal('vipAyraStagesModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="vipAyraStagesList"></div>
+      <button onclick="addVipAyraStage()" style="width:100%;margin-top:4px;padding:9px;background:transparent;border:1px dashed var(--border);border-radius:var(--radius-sm);color:var(--text-muted);font-size:13px;cursor:pointer">+ Nova etapa</button>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="closeModal('vipAyraStagesModal');vipAyraStageDraft=null">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveVipAyraStages()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SUPABASE CONFIG MODAL -->
 <div class="modal-overlay" id="vipAyraAddModal">
   <div class="modal form-modal" style="max-width:480px">
@@ -1290,9 +1307,9 @@ CREATE TABLE historico (
         <div class="agenda-toolbar">
           <input class="form-input" id="vipAyraSearch" placeholder="Buscar nome ou telefone" oninput="renderVipAyra()">
           <select class="form-input" id="vipAyraBroker" onchange="renderVipAyra()"></select>
-          <button class="btn btn-primary" onclick="openVipAyraAdd()">+ Incluir contato</button>
+          <button class="btn btn-primary" onclick="openVipAyraAdd()">+ Incluir contato</button><button class="btn btn-secondary" id="vipAyraEditStagesBtn" onclick="openVipAyraStagesModal()" style="display:none">✏️ Editar etapas</button>
         </div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px">Contatos que aceitaram o convite para o grupo VIP. Clique no card para abrir o cadastro e use o seletor para avançar a etapa.</p>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px">Contatos do grupo VIP AYRA. Mova os cards entre as colunas ou use o seletor; gestores e administradores podem editar nomes, cores e ordem das etapas.</p>
         <div id="vipAyraSummary" style="font-size:13px;margin-bottom:12px;color:var(--text-secondary)"></div>
         <div class="kanban-wrap" id="vipAyraBoard"></div>
       </div>
@@ -2119,6 +2136,7 @@ async function enterApp() {
       await migrateLocalStagesToSB();
       await loadStagesFromSB();
     }
+    await loadVipAyraStagesFromSB();
     await loadLeadsFromSB(); // leads depois das etapas
     await loadBrokersFromSB();
     await loadTasksFromSB();
@@ -3192,15 +3210,139 @@ async function openClientHistory(id){
 
 
 // -- LEAD DETAIL --
-const VIP_AYRA_STAGES = [
-  {id:'aceitou',label:'Aceitou o convite'},
-  {id:'adicionado',label:'Adicionado ao grupo'},
-  {id:'acompanhamento',label:'Em acompanhamento'},
-  {id:'interesse',label:'Interesse em unidade'},
-  {id:'negociacao',label:'Encaminhado para negociação'}
+const DEFAULT_VIP_AYRA_STAGES = [
+  {id:'aceitou',label:'Aceitou o convite',color:'#3b82f6'},
+  {id:'adicionado',label:'Adicionado ao grupo',color:'#10b981'},
+  {id:'acompanhamento',label:'Em acompanhamento',color:'#f59e0b'},
+  {id:'interesse',label:'Interesse em unidade',color:'#8b5cf6'},
+  {id:'negociacao',label:'Encaminhado para negociação',color:'#ec4899'}
 ];
+let VIP_AYRA_STAGES = DEFAULT_VIP_AYRA_STAGES.map(s=>({...s}));
+let vipAyraPersistedStages = VIP_AYRA_STAGES.map(s=>({...s}));
+let vipAyraStageDraft = null;
+let vipAyraStageDragSrc = null;
 let vipDragLead = null;
+
+async function loadVipAyraStagesFromSB() {
+  const cached = localStorage.getItem('3ps_vip_ayra_stages');
+  if (!APP.supabase || !APP.sbConnected) {
+    if (cached) { try { VIP_AYRA_STAGES = JSON.parse(cached); } catch(e) {} }
+    vipAyraPersistedStages = VIP_AYRA_STAGES.map(s=>({...s}));
+    return false;
+  }
+  try {
+    const {data,error} = await APP.supabase.from('vip_ayra_etapas').select('*').order('ordem',{ascending:true});
+    if (error) throw error;
+    if (data?.length) {
+      VIP_AYRA_STAGES = data.map(row=>({id:row.id,label:row.nome,color:row.cor||'#8b5cf6',ordem:row.ordem}));
+      vipAyraPersistedStages = VIP_AYRA_STAGES.map(s=>({...s}));
+      localStorage.setItem('3ps_vip_ayra_stages',JSON.stringify(VIP_AYRA_STAGES));
+      return true;
+    }
+    if (cached) { try { VIP_AYRA_STAGES = JSON.parse(cached); } catch(e) {} }
+  } catch(error) {
+    console.error('Não foi possível carregar as etapas VIP AYRA:',error);
+    if (cached) { try { VIP_AYRA_STAGES = JSON.parse(cached); } catch(e) {} }
+  }
+  vipAyraPersistedStages = VIP_AYRA_STAGES.map(s=>({...s}));
+  return false;
+}
+
+function openVipAyraStagesModal() {
+  if(!isGestorOrAdmin()){toast('Somente gestores e administradores podem editar as etapas.','error');return;}
+  vipAyraStageDraft=VIP_AYRA_STAGES.map(s=>({...s}));
+  renderVipAyraStagesModal();
+  openModal('vipAyraStagesModal');
+}
+function renderVipAyraStagesModal() {
+  const list=document.getElementById('vipAyraStagesList');
+  if(!list||!vipAyraStageDraft)return;
+  list.innerHTML=vipAyraStageDraft.map((s,i)=>`
+    <div class="stage-item" draggable="true" data-idx="${i}"
+      ondragstart="vipAyraStageDragSrc=this.dataset.idx;this.classList.add('dragging-stage')"
+      ondragend="this.classList.remove('dragging-stage')"
+      ondragover="event.preventDefault()" ondrop="dropVipAyraStage(event,${i})">
+      <span class="stage-drag-handle" title="Arrastar para reordenar">⠿</span>
+      <div class="stage-color-dot" style="background:${agentEscape(s.color||'#8b5cf6')}" onclick="toggleVipAyraStageColorPicker(${i})" title="Mudar cor"></div>
+      <input class="stage-name-input" value="${agentEscape(s.label)}" oninput="vipAyraStageDraft[${i}].label=this.value" placeholder="Nome da etapa">
+      ${vipAyraStageDraft.length>1?`<button class="stage-delete-btn" onclick="removeVipAyraStage(${i})" title="Excluir etapa">×</button>`:''}
+    </div>
+    <div id="vipAyraCp_${i}" style="display:none"><div class="color-picker-row">${STAGE_PALETTE.map(color=>`<div class="color-opt ${s.color===color?'selected':''}" style="background:${color}" onclick="pickVipAyraStageColor(${i},'${color}')"></div>`).join('')}</div></div>
+  `).join('');
+}
+function toggleVipAyraStageColorPicker(idx) {
+  const picker=document.getElementById('vipAyraCp_'+idx),open=picker.style.display!=='none';
+  document.querySelectorAll('[id^="vipAyraCp_"]').forEach(el=>el.style.display='none');
+  if(!open)picker.style.display='block';
+}
+function pickVipAyraStageColor(idx,color) {
+  if(!vipAyraStageDraft?.[idx])return;
+  vipAyraStageDraft[idx].color=color;
+  renderVipAyraStagesModal();
+}
+function dropVipAyraStage(event,targetIdx) {
+  event.preventDefault();
+  if(vipAyraStageDragSrc===null)return;
+  const sourceIdx=Number(vipAyraStageDragSrc);
+  if(!Number.isInteger(sourceIdx)||sourceIdx<0||sourceIdx>=vipAyraStageDraft.length||sourceIdx===targetIdx)return;
+  const [moved]=vipAyraStageDraft.splice(sourceIdx,1);
+  vipAyraStageDraft.splice(targetIdx,0,moved);
+  vipAyraStageDragSrc=null;
+  renderVipAyraStagesModal();
+}
+function addVipAyraStage() {
+  if(!vipAyraStageDraft)return;
+  vipAyraStageDraft.push({id:'vip_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),label:'Nova etapa',color:STAGE_PALETTE[vipAyraStageDraft.length%STAGE_PALETTE.length]});
+  renderVipAyraStagesModal();
+  setTimeout(()=>{const inputs=document.querySelectorAll('#vipAyraStagesList .stage-name-input');const last=inputs[inputs.length-1];if(last){last.focus();last.select();}},50);
+}
+function removeVipAyraStage(idx) {
+  if(!vipAyraStageDraft||vipAyraStageDraft.length<=1)return;
+  vipAyraStageDraft.splice(idx,1);
+  renderVipAyraStagesModal();
+}
+async function saveVipAyraStages() {
+  if(!isGestorOrAdmin()||!vipAyraStageDraft?.length)return;
+  const draft=vipAyraStageDraft.map((stage,ordem)=>({...stage,label:(stage.label||'').trim()||'Sem nome',ordem}));
+  const removed=vipAyraPersistedStages.filter(old=>!draft.some(stage=>stage.id===old.id));
+  const affectedByRemoved=removed.map(stage=>({stage,leads:APP.leads.filter(lead=>lead.vip_ayra_etapa===stage.id)})).filter(item=>item.leads.length);
+  if(affectedByRemoved.length){
+    const total=affectedByRemoved.reduce((sum,item)=>sum+item.leads.length,0);
+    if(!confirm(`${total} contato(s) estão em etapas que serão removidas. Eles serão movidos para "${draft[0].label}". Continuar?`))return;
+  }
+  try {
+    if(APP.supabase&&APP.sbConnected){
+      const {error:saveError}=await APP.supabase.from('vip_ayra_etapas').upsert(draft.map(({id,label,color,ordem})=>({id,nome:label,cor:color,ordem})),{onConflict:'id'});
+      if(saveError)throw saveError;
+      for(const {stage} of affectedByRemoved){
+        const {error}=await APP.supabase.from('leads').update({vip_ayra_etapa:draft[0].id}).eq('vip_ayra_etapa',stage.id);
+        if(error)throw error;
+      }
+      if(removed.length){
+        const {error}=await APP.supabase.from('vip_ayra_etapas').delete().in('id',removed.map(stage=>stage.id));
+        if(error)throw error;
+      }
+    }
+    for(const {stage,leads} of affectedByRemoved){
+      for(const lead of leads){lead.vip_ayra_etapa=draft[0].id;addHistory(lead.id,`Grupo VIP AYRA: ${stage.label} removida; movido para ${draft[0].label}`,'update');}
+    }
+    VIP_AYRA_STAGES=draft.map(s=>({...s}));
+    vipAyraPersistedStages=VIP_AYRA_STAGES.map(s=>({...s}));
+    localStorage.setItem('3ps_vip_ayra_stages',JSON.stringify(VIP_AYRA_STAGES));
+    saveToLocal();
+    vipAyraStageDraft=null;
+    closeModal('vipAyraStagesModal');
+    refreshAll();
+    toast('Etapas do funil AYRA salvas!','success');
+  } catch(error) {
+    console.error('Não foi possível salvar as etapas do funil AYRA:',error);
+    toast('Não foi possível salvar as etapas. Confira sua conexão e tente novamente.','error');
+  }
+}
+
 function renderVipAyra() {
+  const editButton = document.getElementById('vipAyraEditStagesBtn');
+  if(editButton) editButton.style.display = isGestorOrAdmin() ? '' : 'none';
   const select = document.getElementById('vipAyraBroker'), current = select.value;
   const brokers = [...new Set(getLeadsDoUsuario().map(l=>l.corretor).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   select.innerHTML = '<option value="">Todos os corretores</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
@@ -3211,7 +3353,7 @@ function renderVipAyra() {
   document.getElementById('vipAyraSummary').textContent = `${leads.length} contato(s) no funil VIP AYRA · Total nos filtros: ${formatDealValue(sumDealValues(leads))}`;
   document.getElementById('vipAyraBoard').innerHTML = VIP_AYRA_STAGES.map(stage=>{
     const members=leads.filter(l=>l.vip_ayra_etapa===stage.id);
-    return `<div class="kanban-col" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${stage.label}</span><span class="col-count">${members.length}</span></div><div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(members))}</div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
+    return `<div class="kanban-col" style="border-top:2px solid ${agentEscape(stage.color||'#8b5cf6')}" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${agentEscape(stage.label)}</span><span class="col-count">${members.length}</span></div><div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(members))}</div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
   }).join('');
 }
 function dropVipAyra(event,stage) { event.preventDefault(); if(vipDragLead) setVipAyraStage(vipDragLead,stage); vipDragLead=null; }
