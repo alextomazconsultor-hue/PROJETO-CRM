@@ -1304,12 +1304,18 @@ CREATE TABLE historico (
 
       <!-- AGENDA -->
       <div class="page" id="page-vipayra">
+        <div class="metrics-grid" id="vipAyraMetrics" style="margin:0 0 18px"></div>
+        <div class="dashboard-grid" style="grid-template-columns:minmax(0,1fr) minmax(260px,340px);margin-bottom:18px">
+          <div class="chart-card"><div class="chart-title">Leads ativos por etapa</div><div id="vipAyraStageMetrics"></div></div>
+          <div class="chart-card"><div class="chart-title">Motivos de perda</div><div id="vipAyraLossReasons"></div></div>
+        </div>
         <div class="agenda-toolbar">
           <input class="form-input" id="vipAyraSearch" placeholder="Buscar nome ou telefone" oninput="renderVipAyra()">
           <select class="form-input" id="vipAyraBroker" onchange="renderVipAyra()"></select>
+          <select class="form-input" id="vipAyraLeadStatus" onchange="renderVipAyra()" aria-label="Exibir leads ativos ou perdidos"><option value="ativos">Leads ativos</option><option value="perdidos">Leads perdidos</option></select>
           <button class="btn btn-primary" onclick="openVipAyraAdd()">+ Incluir contato</button><button class="btn btn-secondary" id="vipAyraEditStagesBtn" onclick="openVipAyraStagesModal()" style="display:none">✏️ Editar etapas</button>
         </div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px">Contatos do grupo VIP AYRA. Mova os cards entre as colunas ou use o seletor; gestores e administradores podem editar nomes, cores e ordem das etapas.</p>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px">Acompanhe os indicadores do grupo, mova os cards entre etapas e marque um contato como perdido sem criar uma coluna para isso.</p>
         <div id="vipAyraSummary" style="font-size:13px;margin-bottom:12px;color:var(--text-secondary)"></div>
         <div class="kanban-wrap" id="vipAyraBoard"></div>
       </div>
@@ -3340,20 +3346,105 @@ async function saveVipAyraStages() {
   }
 }
 
+function renderVipAyraDashboard(allLeads) {
+  const active=allLeads.filter(lead=>!lead.vip_ayra_perdido);
+  const lost=allLeads.filter(lead=>!!lead.vip_ayra_perdido);
+  const total=allLeads.length;
+  const lossRate=total?lost.length/total*100:0;
+  const negotiationStage=VIP_AYRA_STAGES.find(stage=>stage.label.toLocaleLowerCase('pt-BR').includes('negocia'))||VIP_AYRA_STAGES[VIP_AYRA_STAGES.length-1];
+  const negotiationCount=negotiationStage?active.filter(lead=>lead.vip_ayra_etapa===negotiationStage.id).length:0;
+  const metrics=document.getElementById('vipAyraMetrics');
+  metrics.innerHTML=`
+    <div class="metric-card purple"><div class="metric-label">Leads ativos</div><div class="metric-value">${active.length}</div><div class="metric-change">Em andamento no Grupo VIP AYRA</div><div class="metric-icon">👥</div></div>
+    <div class="metric-card pink"><div class="metric-label">Leads perdidos</div><div class="metric-value">${lost.length}</div><div class="metric-change">Mantidos para consulta e recuperação</div><div class="metric-icon">↩️</div></div>
+    <div class="metric-card amber"><div class="metric-label">Taxa de perdas</div><div class="metric-value">${lossRate.toLocaleString('pt-BR',{maximumFractionDigits:1})}%</div><div class="metric-change">Perdidos ÷ todos os contatos do grupo</div><div class="metric-icon">📉</div></div>
+    <div class="metric-card green"><div class="metric-label">Valor ativo</div><div class="metric-value" style="font-size:24px">${formatDealValue(sumDealValues(active))}</div><div class="metric-change">Soma das negociações ativas</div><div class="metric-icon">💰</div></div>
+    <div class="metric-card blue"><div class="metric-label">Valor perdido</div><div class="metric-value" style="font-size:24px">${formatDealValue(sumDealValues(lost))}</div><div class="metric-change">Soma das negociações marcadas como perdidas</div><div class="metric-icon">📊</div></div>
+    <div class="metric-card purple"><div class="metric-label">Na etapa de negociação</div><div class="metric-value">${negotiationCount}</div><div class="metric-change">${agentEscape(negotiationStage?.label||'Etapa final')}</div><div class="metric-icon">🤝</div></div>`;
+  const maxCount=Math.max(1,...VIP_AYRA_STAGES.map(stage=>active.filter(lead=>lead.vip_ayra_etapa===stage.id).length));
+  document.getElementById('vipAyraStageMetrics').innerHTML=VIP_AYRA_STAGES.map(stage=>{
+    const members=active.filter(lead=>lead.vip_ayra_etapa===stage.id);
+    const percent=active.length?members.length/active.length*100:0;
+    return `<div style="margin:0 0 14px">
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:5px;font-size:12px"><strong>${agentEscape(stage.label)}</strong><span>${members.length} · ${formatDealValue(sumDealValues(members))}</span></div>
+      <div style="height:7px;background:var(--bg-surface);border-radius:99px;overflow:hidden"><div style="height:100%;width:${members.length/maxCount*100}%;background:${agentEscape(stage.color||'#8b5cf6')};border-radius:99px"></div></div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:3px">${percent.toLocaleString('pt-BR',{maximumFractionDigits:1})}% dos leads ativos</div>
+    </div>`;
+  }).join('')||'<div class="agenda-empty">Nenhuma etapa configurada.</div>';
+  const reasons={};
+  lost.forEach(lead=>{const reason=(lead.vip_ayra_perdido_motivo||'Motivo não informado').split(' — ')[0];reasons[reason]=(reasons[reason]||0)+1;});
+  const reasonRows=Object.entries(reasons).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('vipAyraLossReasons').innerHTML=reasonRows.length?reasonRows.map(([reason,count])=>`<div class="recent-item" style="justify-content:space-between"><span>${agentEscape(reason)}</span><strong>${count}</strong></div>`).join(''):'<div class="agenda-empty">Ainda não há leads marcados como perdidos.</div>';
+}
+
+let vipAyraLostLeadId=null;
+function openVipAyraLost(leadId) {
+  const lead=getLeadsDoUsuario().find(item=>item.id===leadId&&item.vip_ayra_etapa);
+  if(!lead)return;
+  vipAyraLostLeadId=leadId;
+  document.getElementById('vipAyraLostLeadName').textContent=lead.nome;
+  document.getElementById('vipAyraLostReason').value='';
+  document.getElementById('vipAyraLostDetails').value='';
+  openModal('vipAyraLostModal');
+}
+async function saveVipAyraLost() {
+  const lead=APP.leads.find(item=>item.id===vipAyraLostLeadId);
+  if(!lead)return;
+  const reason=document.getElementById('vipAyraLostReason').value.trim();
+  const details=document.getElementById('vipAyraLostDetails').value.trim();
+  const motivo=[reason,details].filter(Boolean).join(' — ')||null;
+  const button=document.getElementById('vipAyraLostSave');
+  button.disabled=true;
+  try {
+    const update={vip_ayra_perdido:true,vip_ayra_perdido_motivo:motivo,vip_ayra_perdido_em:new Date().toISOString()};
+    if(APP.supabase&&APP.sbConnected){
+      const {data,error}=await APP.supabase.from('leads').update(update).eq('id',lead.id).select('id');
+      if(error||!data?.length)throw error||new Error('Contato não atualizado');
+    }
+    Object.assign(lead,update);
+    addHistory(lead.id,'Grupo VIP AYRA: marcado como perdido'+(motivo?' · '+motivo:''),'update');
+    saveToLocal();closeModal('vipAyraLostModal');vipAyraLostLeadId=null;refreshAll();
+    toast('Lead registrado como perdido.','success');
+  } catch(error) {
+    console.error(error);toast('Não foi possível registrar o lead como perdido.','error');
+  } finally { button.disabled=false; }
+}
+async function restoreVipAyraLead(leadId) {
+  const lead=getLeadsDoUsuario().find(item=>item.id===leadId&&item.vip_ayra_etapa);
+  if(!lead)return;
+  try {
+    const update={vip_ayra_perdido:false,vip_ayra_perdido_motivo:null,vip_ayra_perdido_em:null};
+    if(APP.supabase&&APP.sbConnected){
+      const {data,error}=await APP.supabase.from('leads').update(update).eq('id',lead.id).select('id');
+      if(error||!data?.length)throw error||new Error('Contato não atualizado');
+    }
+    Object.assign(lead,update);
+    addHistory(lead.id,'Grupo VIP AYRA: lead restaurado ao funil','update');
+    saveToLocal();refreshAll();toast('Lead restaurado ao funil na etapa anterior.','success');
+  } catch(error) { console.error(error);toast('Não foi possível restaurar o lead.','error'); }
+}
+
 function renderVipAyra() {
-  const editButton = document.getElementById('vipAyraEditStagesBtn');
-  if(editButton) editButton.style.display = isGestorOrAdmin() ? '' : 'none';
-  const select = document.getElementById('vipAyraBroker'), current = select.value;
-  const brokers = [...new Set(getLeadsDoUsuario().map(l=>l.corretor).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-  select.innerHTML = '<option value="">Todos os corretores</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
-  select.value = current; select.style.display = isGestorOrAdmin()?'':'none';
-  const query = document.getElementById('vipAyraSearch').value.trim().toLocaleLowerCase('pt-BR');
-  const digits = query.replace(/\D/g,'');
-  const leads = getLeadsDoUsuario().filter(l=>l.vip_ayra_etapa && (!select.value||l.corretor===select.value) && (!query || (l.nome||'').toLocaleLowerCase('pt-BR').includes(query) || (digits.length>=4 && (l.telefone||'').replace(/\D/g,'').includes(digits))));
-  document.getElementById('vipAyraSummary').textContent = `${leads.length} contato(s) no funil VIP AYRA · Total nos filtros: ${formatDealValue(sumDealValues(leads))}`;
-  document.getElementById('vipAyraBoard').innerHTML = VIP_AYRA_STAGES.map(stage=>{
-    const members=leads.filter(l=>l.vip_ayra_etapa===stage.id);
-    return `<div class="kanban-col" style="border-top:2px solid ${agentEscape(stage.color||'#8b5cf6')}" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${agentEscape(stage.label)}</span><span class="col-count">${members.length}</span></div><div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(members))}</div><div class="kanban-cards">${members.map(l=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${l.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${l.id}')"><div class="kanban-card-name">${agentEscape(l.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(l.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(l.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(l.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(l.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${l.id}',this.value)">${VIP_AYRA_STAGES.map(s=>`<option value="${s.id}" ${s.id===stage.id?'selected':''}>${s.label}</option>`).join('')}</select></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
+  const editButton=document.getElementById('vipAyraEditStagesBtn');
+  if(editButton)editButton.style.display=isGestorOrAdmin()?'':'none';
+  const select=document.getElementById('vipAyraBroker'),current=select.value;
+  const brokers=[...new Set(getLeadsDoUsuario().map(lead=>lead.corretor).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  select.innerHTML='<option value="">Todos os corretores</option>'+brokers.map(broker=>`<option value="${agentEscape(broker)}">${agentEscape(broker)}</option>`).join('');
+  select.value=current;select.style.display=isGestorOrAdmin()?'':'none';
+  const query=document.getElementById('vipAyraSearch').value.trim().toLocaleLowerCase('pt-BR');
+  const digits=query.replace(/\D/g,'');
+  const allLeads=getLeadsDoUsuario().filter(lead=>lead.vip_ayra_etapa&&(!select.value||lead.corretor===select.value));
+  renderVipAyraDashboard(allLeads);
+  const lostView=document.getElementById('vipAyraLeadStatus').value==='perdidos';
+  const leads=allLeads.filter(lead=>!!lead.vip_ayra_perdido===lostView&&(!query||(lead.nome||'').toLocaleLowerCase('pt-BR').includes(query)||(digits.length>=4&&(lead.telefone||'').replace(/\D/g,'').includes(digits))));
+  document.getElementById('vipAyraSummary').textContent=lostView?`${leads.length} lead(s) perdidos encontrados`:`${leads.length} lead(s) ativos · Valor ativo nos filtros: ${formatDealValue(sumDealValues(leads))}`;
+  if(lostView){
+    document.getElementById('vipAyraBoard').innerHTML=`<div class="kanban-col" style="min-width:300px;width:min(100%,520px);border-top:2px solid var(--danger)"><div class="kanban-col-head"><span class="col-title">Leads perdidos</span><span class="col-count">${leads.length}</span></div><div class="kanban-cards">${leads.map(lead=>`<div class="kanban-card" onclick="openLeadDetail('${lead.id}')"><div class="kanban-card-name">${agentEscape(lead.nome)}</div><div class="kanban-card-value">${formatDealValue(lead.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(lead.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(lead.telefone||'Sem telefone')}</div><div class="kanban-card-detail">Motivo: ${agentEscape(lead.vip_ayra_perdido_motivo||'Não informado')}</div><div class="kanban-card-detail">Etapa anterior: ${agentEscape(VIP_AYRA_STAGES.find(stage=>stage.id===lead.vip_ayra_etapa)?.label||lead.vip_ayra_etapa||'—')}</div><button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="event.stopPropagation();restoreVipAyraLead('${lead.id}')">↩ Restaurar ao funil</button></div>`).join('')||'<div class="agenda-empty">Nenhum lead perdido neste filtro.</div>'}</div></div>`;
+    return;
+  }
+  document.getElementById('vipAyraBoard').innerHTML=VIP_AYRA_STAGES.map(stage=>{
+    const members=leads.filter(lead=>lead.vip_ayra_etapa===stage.id);
+    return `<div class="kanban-col" style="border-top:2px solid ${agentEscape(stage.color||'#8b5cf6')}" ondragover="event.preventDefault()" ondrop="dropVipAyra(event,'${stage.id}')"><div class="kanban-col-head"><span class="col-title">${agentEscape(stage.label)}</span><span class="col-count">${members.length}</span></div><div class="kanban-stage-value" aria-label="Valor total da etapa">${formatDealValue(sumDealValues(members))}</div><div class="kanban-cards">${members.map(lead=>`<div class="kanban-card" draggable="true" ondragstart="vipDragLead='${lead.id}'" ondragend="vipDragLead=null" onclick="openLeadDetail('${lead.id}')"><div class="kanban-card-name">${agentEscape(lead.nome)}</div><div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(lead.valor_negociacao)}</div><div class="kanban-card-detail">👤 ${agentEscape(lead.corretor||'Sem corretor')}</div><div class="kanban-card-detail">📱 ${agentEscape(lead.telefone||'Sem telefone')}</div><div class="lead-actions-mini">${leadActionBadges(lead.id)}</div><select class="form-input" style="width:100%;font-size:11px;margin-top:8px" aria-label="Etapa VIP de ${agentEscape(lead.nome)}" onclick="event.stopPropagation()" onchange="setVipAyraStage('${lead.id}',this.value)">${VIP_AYRA_STAGES.map(stageOption=>`<option value="${stageOption.id}" ${stageOption.id===stage.id?'selected':''}>${agentEscape(stageOption.label)}</option>`).join('')}</select><button class="btn btn-ghost btn-sm" style="width:100%;margin-top:5px;color:#f87171" onclick="event.stopPropagation();openVipAyraLost('${lead.id}')">Marcar como perdido</button></div>`).join('')||'<div class="agenda-empty">Nenhum contato nesta etapa.</div>'}</div></div>`;
   }).join('');
 }
 function dropVipAyra(event,stage) { event.preventDefault(); if(vipDragLead) setVipAyraStage(vipDragLead,stage); vipDragLead=null; }
@@ -5543,6 +5634,23 @@ document.addEventListener('keydown', e => {
 initPasswordRecovery();
 restoreLogin();
 </script>
+
+<!-- MODAL REGISTRAR LEAD PERDIDO NO VIP AYRA -->
+<div class="modal-overlay" id="vipAyraLostModal">
+  <div class="modal form-modal" style="max-width:480px">
+    <div class="modal-head"><div><div class="modal-name">Registrar lead perdido</div><div class="modal-sub" id="vipAyraLostLeadName"></div></div><button class="modal-close" onclick="closeModal('vipAyraLostModal')">×</button></div>
+    <div class="modal-body">
+      <label class="field"><span>Motivo da perda (opcional)</span>
+        <select class="form-input" id="vipAyraLostReason">
+          <option value="">Não informado</option><option>Sem retorno</option><option>Preço ou condições</option><option>Escolheu outro imóvel</option><option>Desistiu da compra</option><option>Fora do perfil</option><option>Outro</option>
+        </select>
+      </label>
+      <label class="field"><span>Detalhes (opcional)</span><textarea class="form-input" id="vipAyraLostDetails" rows="3" placeholder="Anote um detalhe útil para a equipe"></textarea></label>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 16px">O contato sai da visão de ativos, mas permanece no CRM e pode ser restaurado depois.</p>
+      <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-ghost" onclick="closeModal('vipAyraLostModal')">Cancelar</button><button class="btn btn-primary" id="vipAyraLostSave" onclick="saveVipAyraLost()">Marcar como perdido</button></div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL ETAPAS -->
 <div class="modal-overlay" id="stagesModal">
