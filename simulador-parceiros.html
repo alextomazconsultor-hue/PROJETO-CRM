@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>3Ps · Simulador de Fluxo para Parceiros</title>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#111118;--card:#16161f;--card2:#1c1c28;--border:rgba(120,80,220,.18);--border2:rgba(140,90,255,.36);--purple:#8b5cf6;--purple2:#a78bfa;--text:#f0eeff;--muted:#9490b0;--dim:#5a5575;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--gold:#c39a6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}.shell{max-width:880px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:9px;padding:8px 12px;cursor:pointer}.title h1{font-size:22px;margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:13px}.status{margin-left:auto;color:var(--muted);font-size:12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.step{padding:11px;border:1px solid var(--border);background:var(--card);border-radius:10px;color:var(--muted);font-size:12px;text-align:center;cursor:pointer}.step.active{background:rgba(139,92,246,.18);color:var(--purple2);border-color:var(--purple)}.step.done{color:var(--ok);border-color:rgba(16,185,129,.35)}.section{display:none}.section.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}.card-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:650}.hint{font-size:10px;color:var(--dim);line-height:1.45}input,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12)}select option{background:#181822}.nav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.btn{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}.btn.ok{border:none;background:var(--ok);color:#fff}.btn.ghost{background:transparent;color:var(--muted)}.btn:disabled{opacity:.45;cursor:not-allowed}.mini-btn{padding:5px 9px;font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;cursor:pointer}.mini-btn:hover{color:var(--purple2);border-color:var(--border2)}.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.toggle input{width:auto}.status-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.metric strong{font-size:21px}.missing{margin-top:10px;padding:16px;border-radius:12px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28)}.missing small{display:block;color:#fcd34d;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.missing strong{font-size:27px;color:#fcd34d}.missing.ok{background:rgba(16,185,129,.09);border-color:rgba(16,185,129,.28)}.missing.ok small,.missing.ok strong{color:#6ee7b7}.suggestions{margin-top:12px;display:grid;gap:8px}.suggestion{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid rgba(245,158,11,.25);border-radius:10px}.suggestion span{font-size:12px;line-height:1.4}.suggestion button{flex-shrink:0}.reinforcements{margin-top:10px}.reinforcement{display:grid;grid-template-columns:1.1fr .85fr .75fr .65fr auto;gap:8px;align-items:end;margin:8px 0;padding:10px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px}.reinforcement .remove{background:none;border:none;color:#f87171;cursor:pointer;padding:10px}.client-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.client-info{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}.client-info small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.client-info b{font-size:14px}.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.big small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}.big strong{font-size:22px}.oktxt{color:var(--ok)}.goldtxt{color:var(--gold)}.badtxt{color:#f87171}.flow{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}.flow-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}.flow-line:last-child{border-bottom:0}.flow-line span{color:var(--muted)}.flow-line b{text-align:right}.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}.alert.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:#6ee7b7}.alert.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:#fcd34d}.alert.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.loading{text-align:center;color:var(--muted);padding:40px}.hidden{display:none!important}.recent-row{margin-bottom:14px}
+@media(max-width:620px){.shell{padding:12px}.grid2,.status-grid,.summary,.client-head{grid-template-columns:1fr}.reinforcement{grid-template-columns:1fr}.title h1{font-size:18px}.status{display:none}}
+body.embed .shell{max-width:none;padding:0}body.embed .top{display:none}
+@media print{body{background:#fff;color:#111}.top,.steps,.recent-row,.actions,.nav,#loading{display:none!important}.shell{max-width:none;padding:0}.section{display:none!important}#sec3{display:block!important}.card{background:#fff;color:#111;border:1px solid #ddd}.big,.flow{background:#fff;color:#111;border-color:#ddd}.hint,.flow-line span,.card-title{color:#666}.oktxt{color:#0a7a52}.goldtxt{color:#8a673f}.alert.ok{color:#176244;background:#effaf5;border-color:#bfe8d4}}
+
+/* Tema claro do construtor */
+body.light{--bg:#f5f6fa;--surface:#fff;--card:#fff;--card2:#f0f1f7;--border:#d9dce8;--border2:#a795dd;--text:#202238;--muted:#51576c;--dim:#676d82;--purple2:#6942b8;--gold:#866136}
+body.light select option{background:#fff;color:#202238}
+body.light .flow-line{border-color:#e8e9f0}
+body.light .reinforcement{background:#f8f8fc}
+body.light .missing small,body.light .missing strong,body.light .alert.warn{color:#87620b}
+body.light .missing.ok small,body.light .missing.ok strong,body.light .alert.ok{color:#126b49}
+body.light .alert.bad,body.light .badtxt{color:#b42334}
+body.light .step.active{background:#f0eaff}
+body.light .toolbar{background:#fff}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .mini-btn{padding:9px 11px;font-size:12px}
+.toolbar .danger{color:var(--bad)}
+@media print{.toolbar{display:none!important}}
+
+@media(max-width:620px){
+  .shell{padding:12px 12px 30px}
+  .top{flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .top .title{flex:1;min-width:180px}
+  .top .back{min-height:42px}
+  .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .toolbar .mini-btn{min-height:42px;white-space:normal}
+  .steps{gap:5px}.step{padding:10px 5px;font-size:11px}
+  input,select{min-height:44px;font-size:16px}
+  .card{padding:16px}
+  .nav{display:grid;grid-template-columns:1fr 1fr}
+  .nav .btn:only-child{grid-column:1/-1}
+  .nav .btn{min-height:44px}
+  .actions .btn{flex:1 1 140px;min-height:44px}
+  .reinforcement{grid-template-columns:1fr 1fr}
+  .reinforcement .field:first-child{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top">
+    <div class="title"><h1>Simulador de Fluxo para Parceiros</h1><p>Monte a proposta, confira os percentuais e exporte em PDF.</p></div>
+    <div class="status" id="saveState">Modo parceiro · sem sincronização com o CRM</div>
+  </div>
+
+  <div id="loading" class="loading">Preparando simulador...</div>
+  <div id="app" class="hidden">
+    <div class="toolbar">
+      <button class="mini-btn" type="button" onclick="novaSimulacao()">＋ Novo fluxo</button>
+      <button class="mini-btn" type="button" onclick="recomecarFluxo()">↺ Recomeçar</button>
+      <button class="mini-btn" type="button" id="themeToggle" onclick="alternarTema()" aria-pressed="false">☀ Fundo branco</button>
+    </div>
+
+    <div class="steps">
+      <div class="step active" id="step1" onclick="goStep(1)">1 · Imóvel</div>
+      <div class="step" id="step2" onclick="goStep(2)">2 · Pagamento</div>
+      <div class="step" id="step3" onclick="goStep(3)">3 · Fechamento</div>
+    </div>
+
+    <section class="section active" id="sec1">
+      <div class="card">
+        <div class="card-title">Dados da proposta</div>
+        <div class="grid2">
+          <div class="field"><label>Cliente</label><input id="clienteNome" placeholder="Nome do cliente"></div>
+          <div class="field"><label>Empreendimento</label><input id="empreendimento" list="empList" placeholder="Nome do empreendimento"><datalist id="empList"></datalist></div>
+          <div class="field"><label>Unidade</label><input id="unidade" placeholder="Ex.: 1204 A"></div>
+          <div class="field"><label>Valor do imóvel</label><input type="text" inputmode="decimal" id="valorTotal" placeholder="500.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
+          <div class="field"><label>% mínimo até as chaves</label><input type="number" id="percMinimo" value="30" min="0" max="100" step="0.1" oninput="atualizarStatus()"><span class="hint">Há tolerância de até 0,2 ponto percentual.</span></div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn primary" onclick="goStep(2)">Próximo →</button></div>
+    </section>
+
+    <section class="section" id="sec2">
+      <div class="card">
+        <div class="card-title">Condições de pagamento</div>
+        <div class="grid2">
+          <div class="field"><label>Entrada</label><input type="text" inputmode="decimal" id="entradaValor" placeholder="50.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
+          <div class="field"><label>Valor da parcela</label><input type="text" inputmode="decimal" id="parcelaValor" placeholder="3.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
+          <div class="field"><label>Número de parcelas</label><input type="number" id="parcelaNum" min="0" placeholder="36" oninput="atualizarStatus()"><span class="hint">Informe a quantidade total de parcelas.</span></div>
+          <div class="field"><label>Pós-chaves</label><label class="toggle"><input type="checkbox" id="posChavesCheck" onchange="togglePos();atualizarStatus()"> Parcelar o saldo restante</label></div>
+        </div>
+
+        <div id="posBox" class="grid2 hidden" style="margin-top:12px">
+          <div class="field"><label>Nº de parcelas pós-chaves</label><input type="number" id="posChavesNum" value="24" min="1" oninput="atualizarStatus()"></div>
+        </div>
+
+        <div class="reinforcements">
+          <button class="mini-btn" onclick="addReforco()">+ adicionar reforço</button>
+          <div id="reforcos"></div>
+        </div>
+
+        <div class="status-box">
+          <div class="status-grid">
+            <div class="metric"><small>Percentual atual</small><strong id="statusPerc">0,0%</strong></div>
+            <div class="metric"><small>Saldo nas chaves</small><strong class="goldtxt" id="statusSaldoPerc">100,0%</strong></div>
+          </div>
+          <div class="missing" id="missingBox">
+            <small id="missingLabel">Falta para fechar</small>
+            <strong id="missingValue">R$ 0,00</strong>
+            <div class="hint" id="missingHint" style="margin-top:5px"></div><div class="suggestions" id="suggestions"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav"><button class="btn ghost" onclick="goStep(1)">← Voltar</button><button class="btn primary" onclick="fecharFluxo()">Fechar fluxo →</button></div>
+    </section>
+
+    <section class="section" id="sec3">
+      <div class="card">
+        <div class="card-title">Proposta de pagamento</div>
+
+        <div class="client-head">
+          <div class="client-info"><small>Unidade</small><b id="rUnidade">—</b></div>
+          <div class="client-info"><small>Valor do imóvel</small><b id="rValorImovel">—</b></div>
+        </div>
+
+        <div class="summary">
+          <div class="big"><small>Pago até as chaves</small><strong class="oktxt" id="rPerc">—</strong><div class="hint" id="rPreValue">—</div></div>
+          <div class="big"><small>Saldo nas chaves</small><strong class="goldtxt" id="rSaldoPerc">—</strong><div class="hint" id="rSaldoValue">—</div></div>
+        </div>
+
+        <div class="flow" id="flowResumo"></div>
+
+        <div class="actions">
+          <button class="btn primary" onclick="exportarPDF()">📄 Baixar proposta em PDF</button>
+          <button class="btn" onclick="imprimirFluxo()">🖨️ Imprimir ou salvar</button>
+        </div>
+        <div class="hint" style="margin-top:10px">As simulações são processadas neste navegador e não são salvas no CRM. Baixe o PDF para guardar ou compartilhar com o cliente.</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const TOLERANCIA_PP=0.2;
+
+const $=id=>document.getElementById(id);
+const num=id=>parseFloat($(id)?.value)||0;
+const int=id=>parseInt($(id)?.value)||0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pct=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const pctValor=(valor,total)=>pct(total?valor/total*100:0);
+function parseBRL(value){
+  let s=String(value??'').trim().replace(/^R\$\s*/i,'').replace(/\s/g,'');
+  if(!s)return 0;
+  if(s.includes(',')){
+    s=s.replace(/\./g,'').replace(',','.');
+  }else{
+    const dots=(s.match(/\./g)||[]).length;
+    if(dots>1 || /^\d{1,3}\.\d{3}$/.test(s)) s=s.replace(/\./g,'');
+  }
+  s=s.replace(/[^0-9.-]/g,'');
+  return Number.parseFloat(s)||0;
+}
+const brl=id=>parseBRL($(id)?.value);
+function formatBRLValue(value){
+  return Number(value||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function formatMoneyInput(el){
+  if(!el||!String(el.value).trim())return;
+  el.value=formatBRLValue(parseBRL(el.value));
+  atualizarStatus();
+}
+const normalizePhone=v=>{let x=String(v||'').replace(/\D/g,'');if(x.length===10||x.length===11)x='55'+x;return x};
+
+let lastCalc=null,refCount=0,lastSuggestion=null;
+
+function toast(t){$('saveState').textContent=t;setTimeout(()=>$('saveState').textContent='Modo parceiro · sem sincronização com o CRM',2600)}
+function goStep(n){[1,2,3].forEach(k=>{$('sec'+k).classList.toggle('active',k===n);$('step'+k).className='step'+(k===n?' active':k<n?' done':'')});window.scrollTo({top:0,behavior:'smooth'});if(n===2)atualizarStatus()}
+function togglePos(){$('posBox').classList.toggle('hidden',!$('posChavesCheck').checked)}
+
+function init(){
+  atualizarBotaoTema();
+  $('loading').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  atualizarStatus();
+}
+
+function toggleRefOutro(id){
+  const sel=$('rp-'+id),box=$('ri-'+id);
+  if(!sel||!box)return;
+  box.parentElement.classList.toggle('hidden',sel.value!=='outro');
+  atualizarStatus();
+}
+function addReforco(data={}){
+  const id=++refCount;
+  const periodo=data.periodo||'anual';
+  const intervalo=data.intervalo||'';
+  const row=document.createElement('div');row.className='reinforcement';row.id='ref-'+id;
+  row.innerHTML=
+    '<div class="field"><label>Valor do reforço</label><input type="text" inputmode="decimal" id="rv-'+id+'" value="'+(data.valor?formatBRLValue(data.valor):'')+'" placeholder="22.200,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>'+
+    '<div class="field"><label>Periodicidade</label><select id="rp-'+id+'" onchange="toggleRefOutro('+id+')"><option value="semestral" '+(periodo==='semestral'?'selected':'')+'>Semestral</option><option value="anual" '+(periodo==='anual'?'selected':'')+'>Anual</option><option value="outro" '+(periodo==='outro'?'selected':'')+'>Outro</option></select></div>'+
+    '<div class="field '+(periodo==='outro'?'':'hidden')+'"><label>A cada (meses)</label><input type="number" id="ri-'+id+'" min="1" value="'+intervalo+'" placeholder="Ex.: 8" oninput="atualizarStatus()"></div>'+ 
+    '<div class="field"><label>Nº de balões</label><input type="number" id="rq-'+id+'" min="1" step="1" value="'+(data.quantidade||'')+'" placeholder="Todos" oninput="atualizarStatus()"></div>'+
+    '<button class="remove" onclick="removerReforco('+id+')">×</button>';
+  $('reforcos').appendChild(row);
+  atualizarStatus();
+}
+function removerReforco(id){$('ref-'+id)?.remove();atualizarStatus()}
+function getRefPlans(){
+  return [...document.querySelectorAll('.reinforcement')].map(el=>{
+    const id=el.id.split('-')[1],periodo=$('rp-'+id)?.value||'anual';
+    const intervalo=periodo==='semestral'?6:periodo==='anual'?12:parseInt($('ri-'+id)?.value)||0;
+    return{valor:parseBRL($('rv-'+id)?.value),periodo,intervalo,quantidade:parseInt($('rq-'+id)?.value)||0};
+  }).filter(p=>p.valor>0)
+}
+function periodoLabel(p){return p.periodo==='semestral'?'semestral':p.periodo==='anual'?'anual':'a cada '+p.intervalo+' meses'}
+function gerarReforcos(qtd,plans){
+  const ultimoMesPermitido=Math.max(qtd,0);
+  const events=[],summaries=[];
+  let invalid=false;
+  plans.forEach((p,pi)=>{
+    if(!Number.isInteger(p.intervalo)||p.intervalo<1||!Number.isInteger(p.quantidade)||p.quantidade<0){invalid=true;return}
+    const quantidade=p.quantidade>0?p.quantidade:Math.floor(ultimoMesPermitido/p.intervalo);
+    const meses=Array.from({length:quantidade},(_,i)=>(i+1)*p.intervalo);
+    meses.forEach((m,idx)=>events.push({tipo:'reforco',mes:m,label:'Reforço '+(idx+1)+'/'+meses.length,valor:p.valor,competencia:'Mês '+m,planIndex:pi}));
+    summaries.push({valor:p.valor,periodo:p.periodo,intervalo:p.intervalo,qtd:meses.length,meses});
+  });
+  return{events,summaries,invalid,ultimoMesPermitido}
+}
+
+function validarBasico(){
+  const req=[['clienteNome','cliente'],['empreendimento','empreendimento'],['valorTotal','valor do imóvel'],['parcelaNum','número de parcelas']];
+  for(const [id,label] of req){if(!$(id).value){alert('Informe '+label+'.');return false}}
+  if(num('percMinimo')<=0){alert('Informe a porcentagem mínima até as chaves.');return false}
+  return true
+}
+
+function buildPostPlan(saldo){
+  if(!$('posChavesCheck').checked||saldo<=0)return{enabled:false,valid:true,events:[],summary:'Saldo pago nas chaves'};
+  const qtd=Math.max(int('posChavesNum'),1);
+  const totalCentavos=Math.round(saldo*100);
+  const baseCentavos=Math.floor(totalCentavos/qtd);
+  const resto=totalCentavos-(baseCentavos*qtd);
+  if(baseCentavos<=0)return{enabled:true,valid:false,events:[],summary:'Quantidade de parcelas maior que o saldo disponível'};
+  const valores=Array.from({length:qtd},(_,idx)=>(baseCentavos+(idx<resto?1:0))/100);
+  const events=valores.map((valor,idx)=>({tipo:'poschaves',mes:idx+1,label:'Pós-chaves '+(idx+1)+'/'+qtd,valor,competencia:'Pós-chaves',acumulado:0,percentual:'—'}));
+  const grupos={};valores.forEach(v=>{const k=v.toFixed(2);grupos[k]=(grupos[k]||0)+1});
+  const summary=Object.entries(grupos).map(([v,q])=>q+'x '+money(Number(v))).join(' + ');
+  return{enabled:true,valid:true,events,summary}
+}
+
+function calcular(){
+  const total=brl('valorTotal'),entrada=brl('entradaValor'),mensal=brl('parcelaValor'),qtd=int('parcelaNum'),plans=getRefPlans(),meta=num('percMinimo');
+  const refData=gerarReforcos(qtd,plans);
+  const totalRefs=refData.events.reduce((s,e)=>s+e.valor,0);
+  const totalPre=entrada+(mensal*qtd)+totalRefs;
+  const percPre=total?totalPre/total*100:0;
+  const saldo=Math.max(total-totalPre,0),saldoPerc=total?saldo/total*100:0,excesso=Math.max(totalPre-total,0);
+  const limiteAceite=Math.max(meta-TOLERANCIA_PP,0);
+  const metaOk=percPre+0.000001>=limiteAceite;
+  const faltaExata=Math.max(total*meta/100-totalPre,0);
+  const faltaAceite=Math.max(total*limiteAceite/100-totalPre,0);
+  const diferencaDentroTolerancia=metaOk&&percPre<meta;
+  const post=buildPostPlan(saldo);
+  const ready=metaOk&&excesso===0&&post.valid&&!refData.invalid;
+
+  let events=[];
+  if(entrada>0)events.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato'});
+  for(let x=1;x<=qtd;x++)if(mensal>0)events.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x});
+  events.push(...refData.events);
+  events.sort((a,b)=>a.mes-b.mes||(a.tipo==='reforco'?1:-1));
+
+  let acum=0;
+  const fluxo=events.map(e=>{acum+=e.valor;return{...e,percentualValor:pctValor(e.valor,total),acumulado:acum,percentual:pct(total?acum/total*100:0)}});
+  if(post.enabled){
+    fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
+    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,mes:qtd+e.mes,percentualValor:pctValor(e.valor,total),acumulado:acum,percentual:pct(total?acum/total*100:0)})})
+  }else{
+    acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
+  }
+
+  return{total,entrada,mensal,qtd,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
+}
+
+function sugerirAjustes(c){
+  if(!c.total||c.faltaExata<0.01||c.excesso>0||c.refData.invalid)return null;
+  const alvoCentavos=Math.ceil(c.total*c.meta-0.000001);
+  const entradaCentavos=Math.round(c.entrada*100),refsCentavos=Math.round(c.totalRefs*100);
+  const sugestao={parcela:null,balao:null};
+  if(c.qtd>0){
+    const minimo=Math.ceil((alvoCentavos-entradaCentavos-refsCentavos)/c.qtd);
+    const maximo=Math.floor((Math.round(c.total*100)-entradaCentavos-refsCentavos)/c.qtd);
+    const arredondado=Math.ceil(minimo/1000)*1000; // múltiplo de R$ 10
+    const centavos=arredondado<=maximo?arredondado:minimo;
+    if(centavos>Math.round(c.mensal*100)&&centavos<=maximo)sugestao.parcela=centavos/100;
+  }
+  return sugestao;
+}
+function calcularSugestaoBaloes(c,periodo,quantidade){
+  const intervalo=periodo==='anual'?12:6;
+  const maximo=Math.ceil(c.refData.ultimoMesPermitido/intervalo);
+  if(!maximo||!Number.isInteger(quantidade)||quantidade<1||quantidade>maximo)return null;
+  const minimo=Math.ceil((c.faltaExata*100-0.000001)/quantidade);
+  const maximoPorBalao=Math.floor(Math.round((c.total-c.totalPre)*100)/quantidade);
+  const arredondado=Math.ceil(minimo/10000)*10000; // múltiplo de R$ 100
+  const centavos=arredondado<=maximoPorBalao?arredondado:minimo;
+  if(centavos<=0||centavos>maximoPorBalao)return null;
+  return{valor:centavos/100,periodo,quantidade,mesFinal:quantidade*intervalo};
+}
+function aplicarSugestaoParcela(){
+  if(!lastSuggestion?.parcela)return;
+  $('parcelaValor').value=formatBRLValue(lastSuggestion.parcela);
+  atualizarStatus();
+}
+function aplicarSugestaoBalao(){
+  if(!lastSuggestion?.balao)return;
+  const b=lastSuggestion.balao;
+  addReforco({valor:b.valor,periodo:b.periodo,quantidade:b.quantidade});
+}
+function atualizarSugestaoBaloes(){
+  if(!lastCalc||!lastSuggestion)return;
+  const periodo=$('sugPeriodo')?.value||'semestral';
+  const maximo=Math.ceil(lastCalc.refData.ultimoMesPermitido/(periodo==='anual'?12:6));
+  const seletor=$('sugQtd');
+  if(!seletor)return;
+  const escolha=Math.min(Math.max(parseInt(seletor.value)||2,1),maximo);
+  seletor.innerHTML=Array.from({length:maximo},(_,i)=>'<option value="'+(i+1)+'" '+(i+1===escolha?'selected':'')+'>'+(i+1)+'</option>').join('');
+  const b=calcularSugestaoBaloes(lastCalc,periodo,escolha);
+  lastSuggestion.balao=b;
+  $('sugBalaoResultado').textContent=b
+    ? escolha+' balão'+(escolha===1?'':'ões')+' de '+money(b.valor)+' · último no mês '+b.mesFinal+' · total até as chaves '+pct((lastCalc.totalPre+b.valor*escolha)/lastCalc.total*100)
+    :'Informe a quantidade e a periodicidade dos reforços.';
+  $('sugAplicarBalao').disabled=!b;
+}
+function mostrarSugestoes(c){
+  const wrap=$('suggestions');
+  const periodoAnterior=$('sugPeriodo')?.value||'semestral';
+  const qtdAnterior=parseInt($('sugQtd')?.value)||2;
+  lastSuggestion=sugerirAjustes(c);
+  if(!lastSuggestion){wrap.innerHTML='';return}
+  const maxSemestral=Math.ceil(c.refData.ultimoMesPermitido/6);
+  const maxAnual=Math.ceil(c.refData.ultimoMesPermitido/12);
+  if(!lastSuggestion.parcela&&!maxSemestral){wrap.innerHTML='';return}
+  let html='<div class="hint">Sugestões para atingir a meta exata de '+pct(c.meta)+' (escolha uma):</div>';
+  if(lastSuggestion.parcela){
+    const valor=lastSuggestion.parcela;
+    html+='<div class="suggestion"><span>'+c.qtd+' parcelas de <b>'+money(valor)+'</b> · total até as chaves '+pct((c.entrada+c.totalRefs+valor*c.qtd)/c.total*100)+'</span><button class="mini-btn" onclick="aplicarSugestaoParcela()">Usar parcelas</button></div>';
+  }
+  if(maxSemestral){
+    const periodo=periodoAnterior==='anual'&&maxAnual?'anual':'semestral';
+    html+='<div class="suggestion" style="display:block"><div class="grid2"><div class="field"><label>Periodicidade dos balões</label><select id="sugPeriodo" onchange="atualizarSugestaoBaloes()"><option value="semestral"'+(periodo==='semestral'?' selected':'')+'>Semestral</option>'+(maxAnual?'<option value="anual"'+(periodo==='anual'?' selected':'')+'>Anual</option>':'')+'</select></div><div class="field"><label>Quantidade de balões</label><select id="sugQtd" onchange="atualizarSugestaoBaloes()"><option value="'+qtdAnterior+'">'+qtdAnterior+'</option></select></div></div><div class="hint" id="sugBalaoResultado" style="margin:9px 0"></div><button class="mini-btn" id="sugAplicarBalao" onclick="aplicarSugestaoBalao()">Adicionar balões</button></div>';
+  }
+  wrap.innerHTML=html;
+  if(maxSemestral)atualizarSugestaoBaloes();
+}
+function atualizarStatus(){
+  const c=calcular();lastCalc=c;
+  $('statusPerc').textContent=pct(c.percPre);$('statusPerc').className=c.metaOk?'oktxt':'badtxt';
+  $('statusSaldoPerc').textContent=pct(c.saldoPerc);
+  const box=$('missingBox');
+  mostrarSugestoes(c);
+  if(c.refData.invalid){
+    box.className='missing';
+    $('missingLabel').textContent='Ajuste os reforços';
+    $('missingValue').textContent='Dados inválidos';
+    $('missingHint').textContent='Informe uma periodicidade válida e uma quantidade inteira de reforços.';
+    return;
+  }
+  if(c.metaOk){
+    box.className='missing ok';
+    $('missingLabel').textContent=c.diferencaDentroTolerancia?'Fechado dentro da tolerância':'Percentual fechado';
+    $('missingValue').textContent=c.diferencaDentroTolerancia?pct(c.percPre):pct(c.percPre);
+    $('missingHint').textContent=c.diferencaDentroTolerancia
+      ?'Meta '+pct(c.meta)+' · diferença de '+money(c.faltaExata)+' aceita pela tolerância de 0,2 p.p.'
+      :'Meta mínima de '+pct(c.meta)+' atingida.';
+  }else{
+    box.className='missing';
+    $('missingLabel').textContent='Falta para fechar '+pct(c.meta);
+    $('missingValue').textContent=money(c.faltaAceite);
+    $('missingHint').textContent='Com a tolerância, o mínimo aceito é '+pct(c.limiteAceite)+'.';
+  }
+}
+
+function fecharFluxo(){
+  if(!validarBasico())return;
+  const c=calcular();lastCalc=c;atualizarStatus();
+  if(c.refData.invalid){alert('Confira a periodicidade e a quantidade dos reforços.');return}
+  if(!c.metaOk){alert('Ainda faltam '+money(c.faltaAceite)+' para fechar a porcentagem mínima. Veja as sugestões de parcela ou balão abaixo.');return}
+  if(c.excesso>0){alert('O fluxo ultrapassa o valor do imóvel em '+money(c.excesso)+'.');return}
+  if(!c.post.valid){alert('Não foi possível dividir o saldo pós-chaves com essa quantidade de parcelas.');return}
+  renderResultado(c)
+}
+
+function renderResultado(c){
+  $('rUnidade').textContent=$('unidade').value.trim()||'—';
+  $('rValorImovel').textContent=money(c.total);
+  $('rPerc').textContent=pct(c.percPre);
+  $('rPreValue').textContent=money(c.totalPre)+' pagos até as chaves';
+  $('rSaldoPerc').textContent=pct(c.saldoPerc);
+  $('rSaldoValue').textContent=money(c.saldo)+' de saldo';
+
+  const lines=[];
+  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')']);
+  if(c.mensal>0&&c.qtd>0)lines.push(['Parcelamento',c.qtd+'x '+money(c.mensal)+' · total '+money(c.mensal*c.qtd)+' ('+pctValor(c.mensal*c.qtd,c.total)+')']);
+  c.refData.summaries.forEach((r,idx)=>{const valorTotalReforcos=r.qtd*r.valor;lines.push(['Reforços'+(c.refData.summaries.length>1?' '+(idx+1):''),r.qtd+'x '+money(r.valor)+' · total '+money(valorTotalReforcos)+' ('+pctValor(valorTotalReforcos,c.total)+') · '+periodoLabel(r)])});
+  lines.push(['Total pago até as chaves',money(c.totalPre)+' · '+pct(c.percPre)]);
+  lines.push(['Saldo nas chaves',money(c.saldo)+' · '+pct(c.saldoPerc)]);
+  if(c.post.enabled)lines.push(['Pós-chaves',c.post.summary+' · total '+money(c.saldo)+' ('+pctValor(c.saldo,c.total)+')']);
+  $('flowResumo').innerHTML=lines.map(x=>'<div class="flow-line"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>').join('');
+  goStep(3)
+}
+
+function criarDocumentoPDF(c){
+  const root=document.createElement('div');
+  root.id='pdfProposalTemp';
+  root.style.position='static';
+  root.style.left='auto';
+  root.style.top='0';
+  root.style.width='760px';
+  root.style.background='#ffffff';
+  root.style.color='#171717';
+  root.style.padding='28px';
+  root.style.fontFamily='Arial, sans-serif';
+  root.style.zIndex='auto';
+
+  const refRows=c.refData.summaries.map((r,idx)=>{
+    const valorTotalReforcos=r.qtd*r.valor;
+    return '<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1">'+
+      '<span style="color:#777">Reforços'+(c.refData.summaries.length>1?' '+(idx+1):'')+'</span>'+
+      '<b>'+esc(r.qtd+'x '+money(r.valor)+' · total '+money(valorTotalReforcos)+' ('+pctValor(valorTotalReforcos,c.total)+') · '+periodoLabel(r))+'</b>'+
+    '</div>'
+  }).join('');
+
+  const posRow=c.post.enabled
+    ?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0"><span style="color:#777">Pós-chaves</span><b>'+esc(c.post.summary+' · total '+money(c.saldo)+' ('+pctValor(c.saldo,c.total)+')')+'</b></div>'
+    :'';
+
+  root.innerHTML=
+    '<div style="background:#111116;color:#fff;border-radius:16px;padding:22px;margin-bottom:14px">'+
+      '<div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#bbb4c6;margin-bottom:7px">Proposta de pagamento</div>'+
+      '<div style="font-size:24px;font-weight:700">'+esc($('empreendimento').value)+'</div>'+
+      '<div style="font-size:12px;color:#c8c3d0;margin-top:6px">'+esc($('clienteNome').value)+'</div>'+
+    '</div>'+
+    '<div style="border:1px solid #e7e2da;border-radius:14px;padding:18px;margin-bottom:12px">'+
+      '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:12px">Imóvel</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+        '<div style="background:#faf9f7;border:1px solid #e7e2da;border-radius:10px;padding:14px"><small style="display:block;color:#777;margin-bottom:5px">UNIDADE</small><b>'+esc($('unidade').value.trim()||'—')+'</b></div>'+
+        '<div style="background:#faf9f7;border:1px solid #e7e2da;border-radius:10px;padding:14px"><small style="display:block;color:#777;margin-bottom:5px">VALOR DO IMÓVEL</small><b>'+money(c.total)+'</b></div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="border:1px solid #e7e2da;border-radius:14px;padding:18px;margin-bottom:12px">'+
+      '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:12px">Forma de pagamento</div>'+
+      (c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Entrada</span><b>'+money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')</b></div>':'')+
+      (c.mensal>0&&c.qtd>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Parcelamento</span><b>'+c.qtd+'x '+money(c.mensal)+' · total '+money(c.mensal*c.qtd)+' ('+pctValor(c.mensal*c.qtd,c.total)+')</b></div>':'')+
+      refRows+posRow+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+      '<div style="border:1px solid #e7e2da;border-radius:12px;padding:16px"><small style="display:block;color:#777;margin-bottom:5px">PAGO ATÉ AS CHAVES</small><b style="font-size:22px">'+pct(c.percPre)+'</b><div style="font-size:11px;color:#777;margin-top:5px">'+money(c.totalPre)+'</div></div>'+
+      '<div style="border:1px solid #e7e2da;border-radius:12px;padding:16px"><small style="display:block;color:#777;margin-bottom:5px">SALDO NAS CHAVES</small><b style="font-size:22px">'+pct(c.saldoPerc)+'</b><div style="font-size:11px;color:#777;margin-top:5px">'+money(c.saldo)+'</div></div>'+
+    '</div>'+
+    '<div style="font-size:10px;color:#777;line-height:1.5;margin-top:16px">Valores de parcelas e reforços poderão ser reajustados pelo CUB/SC quando previsto em contrato. Esta simulação é informativa e não substitui as condições oficiais do contrato.</div>';
+
+  const host=document.createElement('div');
+  host.id='pdfProposalHost';
+  host.style.cssText='position:absolute;left:-10000px;top:0;width:760px;pointer-events:none;';
+  host.appendChild(root);
+  document.body.appendChild(host);
+  return root;
+}
+
+async function exportarPDF(){
+  const c=calcular();
+  if(!c.ready){fecharFluxo();return}
+  const root=criarDocumentoPDF(c);
+  const cliente=($('clienteNome').value||'Cliente').replace(/[^a-zA-ZÀ-ÿ0-9_-]+/g,'_');
+  const empreendimento=($('empreendimento').value||'Proposta').replace(/[^a-zA-ZÀ-ÿ0-9_-]+/g,'_');
+  try{
+    if(document.fonts?.ready)await document.fonts.ready;
+    await html2pdf().set({
+      margin:10,
+      filename:'Fluxo_'+cliente+'_'+empreendimento+'.pdf',
+      image:{type:'jpeg',quality:.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(root).save();
+    toast('PDF baixado');
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  }finally{
+    root.parentElement?.remove();
+  }
+}
+
+function imprimirFluxo(){
+  const c=calcular();if(!c.ready){fecharFluxo();return}
+  renderResultado(c);
+  setTimeout(()=>window.print(),80)
+}
+
+function alternarTema(){
+  const claro=document.body.classList.toggle('light');
+  localStorage.setItem('3ps_fluxo_tema',claro?'claro':'escuro');
+  atualizarBotaoTema();
+}
+function atualizarBotaoTema(){
+  const claro=document.body.classList.contains('light');
+  $('themeToggle').textContent=claro?'☾ Fundo escuro':'☀ Fundo branco';
+  $('themeToggle').setAttribute('aria-pressed',String(claro));
+}
+function novaSimulacao(){
+  currentId=null;
+  lastCalc=null;
+  ['clienteNome','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');
+  $('percMinimo').value=30;
+  $('posChavesCheck').checked=false;
+  $('posChavesNum').value=24;
+  $('reforcos').innerHTML='';
+  refCount=0;
+  togglePos();
+  atualizarStatus();
+  goStep(1);
+  $('saveState').textContent='Nova simulação · somente neste navegador';
+}
+
+if(localStorage.getItem('3ps_fluxo_tema')==='claro')document.body.classList.add('light');
+init();
+</script>
+</body>
+</html>
