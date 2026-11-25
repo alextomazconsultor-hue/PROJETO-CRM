@@ -173,6 +173,7 @@ const int=id=>parseInt($(id)?.value)||0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const pct=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const pctValor=(valor,total)=>pct(total?valor/total*100:0);
 function parseBRL(value){
   let s=String(value??'').trim().replace(/^R\$\s*/i,'').replace(/\s/g,'');
   if(!s)return 0;
@@ -311,10 +312,10 @@ function calcular(){
   events.sort((a,b)=>a.mes-b.mes||(a.tipo==='reforco'?1:-1));
 
   let acum=0;
-  const fluxo=events.map(e=>{acum+=e.valor;return{...e,acumulado:acum,percentual:pct(total?acum/total*100:0)}});
+  const fluxo=events.map(e=>{acum+=e.valor;return{...e,percentualValor:pctValor(e.valor,total),acumulado:acum,percentual:pct(total?acum/total*100:0)}});
   if(post.enabled){
     fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:0,displayValor:money(saldo)+' de saldo',competencia:'Chaves',acumulado:acum,percentual:pct(percPre)});
-    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,mes:qtd+e.mes,acumulado:acum,percentual:pct(total?acum/total*100:0)})})
+    if(post.valid)post.events.forEach(e=>{acum+=e.valor;fluxo.push({...e,mes:qtd+e.mes,percentualValor:pctValor(e.valor,total),acumulado:acum,percentual:pct(total?acum/total*100:0)})})
   }else{
     acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
   }
@@ -440,12 +441,12 @@ function renderResultado(c){
   $('rSaldoValue').textContent=money(c.saldo)+' de saldo';
 
   const lines=[];
-  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)]);
-  if(c.mensal>0&&c.qtd>0)lines.push(['Parcelamento',c.qtd+'x '+money(c.mensal)]);
-  c.refData.summaries.forEach((r,idx)=>lines.push(['Reforços'+(c.refData.summaries.length>1?' '+(idx+1):''),r.qtd+'x '+money(r.valor)+' · '+periodoLabel(r)]));
+  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')']);
+  if(c.mensal>0&&c.qtd>0)lines.push(['Parcelamento',c.qtd+'x '+money(c.mensal)+' · total '+money(c.mensal*c.qtd)+' ('+pctValor(c.mensal*c.qtd,c.total)+')']);
+  c.refData.summaries.forEach((r,idx)=>{const valorTotalReforcos=r.qtd*r.valor;lines.push(['Reforços'+(c.refData.summaries.length>1?' '+(idx+1):''),r.qtd+'x '+money(r.valor)+' · total '+money(valorTotalReforcos)+' ('+pctValor(valorTotalReforcos,c.total)+') · '+periodoLabel(r)])});
   lines.push(['Total pago até as chaves',money(c.totalPre)+' · '+pct(c.percPre)]);
   lines.push(['Saldo nas chaves',money(c.saldo)+' · '+pct(c.saldoPerc)]);
-  if(c.post.enabled)lines.push(['Pós-chaves',c.post.summary]);
+  if(c.post.enabled)lines.push(['Pós-chaves',c.post.summary+' · total '+money(c.saldo)+' ('+pctValor(c.saldo,c.total)+')']);
   $('flowResumo').innerHTML=lines.map(x=>'<div class="flow-line"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>').join('');
   $('emailBtn').disabled=!c.ready;
   $('whatsappBtn').disabled=!c.ready;
@@ -518,15 +519,16 @@ function criarDocumentoPDF(c){
   root.style.fontFamily='Arial, sans-serif';
   root.style.zIndex='auto';
 
-  const refRows=c.refData.summaries.map((r,idx)=>
-    '<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1">'+
+  const refRows=c.refData.summaries.map((r,idx)=>{
+    const valorTotalReforcos=r.qtd*r.valor;
+    return '<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1">'+
       '<span style="color:#777">Reforços'+(c.refData.summaries.length>1?' '+(idx+1):'')+'</span>'+
-      '<b>'+esc(r.qtd+'x '+money(r.valor)+' · '+periodoLabel(r))+'</b>'+
+      '<b>'+esc(r.qtd+'x '+money(r.valor)+' · total '+money(valorTotalReforcos)+' ('+pctValor(valorTotalReforcos,c.total)+') · '+periodoLabel(r))+'</b>'+
     '</div>'
-  ).join('');
+  }).join('');
 
   const posRow=c.post.enabled
-    ?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0"><span style="color:#777">Pós-chaves</span><b>'+esc(c.post.summary)+'</b></div>'
+    ?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0"><span style="color:#777">Pós-chaves</span><b>'+esc(c.post.summary+' · total '+money(c.saldo)+' ('+pctValor(c.saldo,c.total)+')')+'</b></div>'
     :'';
 
   root.innerHTML=
@@ -544,8 +546,8 @@ function criarDocumentoPDF(c){
     '</div>'+
     '<div style="border:1px solid #e7e2da;border-radius:14px;padding:18px;margin-bottom:12px">'+
       '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:12px">Forma de pagamento</div>'+
-      (c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Entrada</span><b>'+money(c.entrada)+'</b></div>':'')+
-      (c.mensal>0&&c.qtd>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Parcelamento</span><b>'+c.qtd+'x '+money(c.mensal)+'</b></div>':'')+
+      (c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Entrada</span><b>'+money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')</b></div>':'')+
+      (c.mensal>0&&c.qtd>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Parcelamento</span><b>'+c.qtd+'x '+money(c.mensal)+' · total '+money(c.mensal*c.qtd)+' ('+pctValor(c.mensal*c.qtd,c.total)+')</b></div>':'')+
       refRows+posRow+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
