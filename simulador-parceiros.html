@@ -57,7 +57,6 @@ body.light .toolbar{background:#fff}
   <div id="app" class="hidden">
     <div class="toolbar">
       <button class="mini-btn" type="button" onclick="novaSimulacao()">＋ Novo fluxo</button>
-      <button class="mini-btn" type="button" onclick="recomecarFluxo()">↺ Recomeçar</button>
       <button class="mini-btn" type="button" id="themeToggle" onclick="alternarTema()" aria-pressed="false">☀ Fundo branco</button>
     </div>
 
@@ -513,7 +512,6 @@ function atualizarBotaoTema(){
   $('themeToggle').setAttribute('aria-pressed',String(claro));
 }
 function novaSimulacao(){
-  currentId=null;
   lastCalc=null;
   ['clienteNome','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');
   $('percMinimo').value=30;
