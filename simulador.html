@@ -26,6 +26,9 @@ body.light .toolbar{background:#fff}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .toolbar .mini-btn{padding:9px 11px;font-size:12px}
 .toolbar .danger{color:var(--bad)}
+.entry-installments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.entry-installment{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px}
+.entry-installment-title{grid-column:1/-1;color:var(--muted);font-size:11px;font-weight:650}
 @media print{.toolbar{display:none!important}}
 
 @media(max-width:620px){
@@ -44,6 +47,7 @@ body.light .toolbar{background:#fff}
   .actions .btn{flex:1 1 140px;min-height:44px}
   .reinforcement{grid-template-columns:1fr 1fr}
   .reinforcement .field:first-child{grid-column:1/-1}
+  .entry-installments{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -96,7 +100,9 @@ body.light .toolbar{background:#fff}
       <div class="card">
         <div class="card-title">Condições de pagamento</div>
         <div class="grid2">
-          <div class="field"><label>Entrada</label><input type="text" inputmode="decimal" id="entradaValor" placeholder="50.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
+          <div class="field"><label>Parcelas da entrada</label><select id="entradaQtd" onchange="renderEntradaParcelas()"><option value="1">À vista</option><option value="2">2 parcelas</option><option value="3">3 parcelas</option></select><span class="hint">Defina um valor e, se quiser, o vencimento de cada parcela.</span></div>
+          <div class="field"><label>Total da entrada</label><div id="entradaTotal" style="padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;min-height:42px">R$ 0,00</div></div>
+          <div class="field" style="grid-column:1/-1"><div id="entradaParcelas" class="entry-installments"></div></div>
           <div class="field"><label>Valor da parcela</label><input type="text" inputmode="decimal" id="parcelaValor" placeholder="3.000,00" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>
           <div class="field"><label>Número de parcelas</label><input type="number" id="parcelaNum" min="0" placeholder="36" oninput="atualizarStatus()"><span class="hint">O CRM usa exatamente a quantidade digitada.</span></div>
           <div class="field"><label>Pós-chaves</label><label class="toggle"><input type="checkbox" id="posChavesCheck" onchange="togglePos();atualizarStatus()"> Parcelar o saldo restante</label></div>
@@ -195,6 +201,27 @@ function formatMoneyInput(el){
   el.value=formatBRLValue(parseBRL(el.value));
   atualizarStatus();
 }
+function getEntradaParcelas(){
+  const qtd=Math.min(Math.max(parseInt($('entradaQtd')?.value,10)||1,1),3);
+  return Array.from({length:qtd},(_,i)=>({valor:$('entradaValor'+i)?.value||'',data:$('entradaData'+i)?.value||''}));
+}
+function renderEntradaParcelas(parcelas){
+  const qtd=Math.min(Math.max(parseInt($('entradaQtd')?.value,10)||1,1),3);
+  const atuais=Array.isArray(parcelas)?parcelas:getEntradaParcelas();
+  $('entradaParcelas').innerHTML=Array.from({length:qtd},(_,i)=>{
+    const item=atuais[i]||{};
+    return '<div class="entry-installment"><div class="entry-installment-title">'+(qtd===1?'Entrada':'Parcela '+(i+1)+'/'+qtd)+'</div>'+
+      '<div class="field"><label>Valor</label><input type="text" inputmode="decimal" id="entradaValor'+i+'" placeholder="Ex.: 25.000,00" value="'+esc(item.valor||'')+'" oninput="atualizarStatus()" onblur="formatMoneyInput(this)"></div>'+
+      '<div class="field"><label>Vencimento (opcional)</label><input type="date" id="entradaData'+i+'" value="'+esc(item.data||'')+'" onchange="atualizarStatus()"></div></div>'
+  }).join('');
+  atualizarTotalEntrada();
+}
+function atualizarTotalEntrada(){
+  const centavos=getEntradaParcelas().reduce((s,p)=>s+Math.round(parseBRL(p.valor)*100),0);
+  const total=centavos/100;
+  if($('entradaTotal'))$('entradaTotal').textContent=money(total);
+  return total;
+}
 const normalizePhone=v=>{let x=String(v||'').replace(/\D/g,'');if(x.length===10||x.length===11)x='55'+x;return x};
 
 let user=null,profile=null,leads=[],empreendimentos=[],simulacoes=[],currentId=null,currentToken=null,lastCalc=null,refCount=0,lastSuggestion=null;
@@ -210,6 +237,7 @@ async function init(){
   const {data:p,error}=await sb.from('usuarios').select('*').eq('id',user.id).single();
   if(error||!p){alert('Perfil do CRM não encontrado.');location.href='index.html';return}
   profile=p;
+  renderEntradaParcelas();
   const [lr,er,sr]=await Promise.all([
     sb.from('leads').select('id,nome,telefone,email,empreendimento,corretor').order('nome'),
     sb.from('empreendimentos').select('nome').order('nome'),
@@ -291,7 +319,7 @@ function buildPostPlan(saldo){
 }
 
 function calcular(){
-  const total=brl('valorTotal'),entrada=brl('entradaValor'),mensal=brl('parcelaValor'),qtd=int('parcelaNum'),plans=getRefPlans(),meta=num('percMinimo');
+  const total=brl('valorTotal'),entradaParcelas=getEntradaParcelas().map(p=>({...p,valor:parseBRL(p.valor)})),entrada=entradaParcelas.reduce((s,p)=>s+Math.round(p.valor*100),0)/100,mensal=brl('parcelaValor'),qtd=int('parcelaNum'),plans=getRefPlans(),meta=num('percMinimo');
   const refData=gerarReforcos(qtd,plans);
   const totalRefs=refData.events.reduce((s,e)=>s+e.valor,0);
   const totalPre=entrada+(mensal*qtd)+totalRefs;
@@ -306,7 +334,7 @@ function calcular(){
   const ready=metaOk&&excesso===0&&post.valid&&!refData.invalid;
 
   let events=[];
-  if(entrada>0)events.push({tipo:'entrada',mes:0,label:'Entrada',valor:entrada,competencia:'Ato'});
+  entradaParcelas.forEach((p,idx)=>{if(p.valor>0){const data=p.data||null;events.push({tipo:'entrada',mes:idx,label:entradaParcelas.length>1?'Entrada '+(idx+1)+'/'+entradaParcelas.length:'Entrada',valor:p.valor,competencia:data?formatDateBR(data):(idx===0?'Ato':'Entrada '+(idx+1)),dataVencimento:data})}});
   for(let x=1;x<=qtd;x++)if(mensal>0)events.push({tipo:'parcela',mes:x,label:'Parcela '+x+'/'+qtd,valor:mensal,competencia:'Parcela '+x});
   events.push(...refData.events);
   events.sort((a,b)=>a.mes-b.mes||(a.tipo==='reforco'?1:-1));
@@ -320,7 +348,12 @@ function calcular(){
     acum+=saldo;fluxo.push({tipo:'chaves',mes:qtd,label:'Saldo nas chaves · '+pct(saldoPerc),valor:saldo,competencia:'Chaves',acumulado:acum,percentual:pct(total?100:0)})
   }
 
-  return{total,entrada,mensal,qtd,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
+  return{total,entrada,entradaParcelas,mensal,qtd,plans,refData,totalRefs,totalPre,percPre,saldo,saldoPerc,meta,limiteAceite,metaOk,faltaExata,faltaAceite,diferencaDentroTolerancia,excesso,post,ready,fluxo}
+}
+
+function formatDateBR(value){
+  const parts=String(value||'').split('-');
+  return parts.length===3?parts.reverse().join('/') : String(value||'');
 }
 
 function sugerirAjustes(c){
@@ -395,6 +428,7 @@ function mostrarSugestoes(c){
   if(maxSemestral)atualizarSugestaoBaloes();
 }
 function atualizarStatus(){
+  atualizarTotalEntrada();
   const c=calcular();lastCalc=c;
   $('statusPerc').textContent=pct(c.percPre);$('statusPerc').className=c.metaOk?'oktxt':'badtxt';
   $('statusSaldoPerc').textContent=pct(c.saldoPerc);
@@ -441,7 +475,12 @@ function renderResultado(c){
   $('rSaldoValue').textContent=money(c.saldo)+' de saldo';
 
   const lines=[];
-  if(c.entrada>0)lines.push(['Entrada',money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')']);
+  c.entradaParcelas.forEach((p,idx)=>{
+    if(p.valor<=0)return;
+    const label=c.entradaParcelas.length>1?'Entrada '+(idx+1)+'/'+c.entradaParcelas.length:'Entrada';
+    lines.push([label+(p.data?' · '+formatDateBR(p.data):''),money(p.valor)+' ('+pctValor(p.valor,c.total)+')']);
+  });
+  if(c.entradaParcelas.length>1&&c.entrada>0)lines.push(['Total da entrada',money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')']);
   if(c.mensal>0&&c.qtd>0)lines.push(['Parcelamento',c.qtd+'x '+money(c.mensal)+' · total '+money(c.mensal*c.qtd)+' ('+pctValor(c.mensal*c.qtd,c.total)+')']);
   c.refData.summaries.forEach((r,idx)=>{const valorTotalReforcos=r.qtd*r.valor;lines.push(['Reforços'+(c.refData.summaries.length>1?' '+(idx+1):''),r.qtd+'x '+money(r.valor)+' · total '+money(valorTotalReforcos)+' ('+pctValor(valorTotalReforcos,c.total)+') · '+periodoLabel(r)])});
   lines.push(['Total pago até as chaves',money(c.totalPre)+' · '+pct(c.percPre)]);
@@ -453,7 +492,7 @@ function renderResultado(c){
   goStep(3)
 }
 
-function formData(){return{leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:$('entradaValor').value,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refPlans:getRefPlans()}}
+function formData(){const entradas=getEntradaParcelas();return{leadId:$('leadSelect').value,clienteNome:$('clienteNome').value,clienteTelefone:$('clienteTelefone').value,clienteEmail:$('clienteEmail').value,empreendimento:$('empreendimento').value,unidade:$('unidade').value,valorTotal:$('valorTotal').value,percMinimo:$('percMinimo').value,entradaValor:formatBRLValue(entradas.reduce((s,p)=>s+Math.round(parseBRL(p.valor)*100),0)/100),entradaParcelas:entradas,parcelaValor:$('parcelaValor').value,parcelaNum:$('parcelaNum').value,posChavesCheck:$('posChavesCheck').checked,posChavesNum:$('posChavesNum').value,refPlans:getRefPlans()}}
 function payload(c){
   const corretor=(leads.find(l=>l.id===$('leadSelect').value)?.corretor)||(profile.corretor_ref||profile.nome);
   return{lead_id:$('leadSelect').value||null,created_by:user.id,corretor,cliente_nome:$('clienteNome').value.trim(),cliente_telefone:$('clienteTelefone').value.trim()||null,empreendimento:$('empreendimento').value.trim(),unidade:$('unidade').value.trim()||null,valor_total:c.total,data_proposta:new Date().toISOString().slice(0,10),data_chaves:null,validade_dias:7,perc_minimo:c.meta,total_ate_chaves:c.totalPre,saldo_chaves:c.saldo,percentual_ate_chaves:c.percPre,fluxo:c.fluxo,dados:{cubTexto:'Valores de parcelas e reforços serão reajustados pelo CUB/SC quando previsto em contrato.',saldoPercentual:c.saldoPerc,posChaves:c.post,reforcosPlanos:c.refData.summaries,fluxoPronto:c.ready,toleranciaPontos:TOLERANCIA_PP,diferencaDentroTolerancia:c.diferencaDentroTolerancia,form:formData()},updated_at:new Date().toISOString()}
@@ -519,6 +558,12 @@ function criarDocumentoPDF(c){
   root.style.fontFamily='Arial, sans-serif';
   root.style.zIndex='auto';
 
+  const entradaRows=c.entradaParcelas.map((p,idx)=>{
+    if(p.valor<=0)return'';
+    const label=c.entradaParcelas.length>1?'Entrada '+(idx+1)+'/'+c.entradaParcelas.length:'Entrada';
+    return '<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">'+esc(label+(p.data?' · '+formatDateBR(p.data):''))+'</span><b>'+money(p.valor)+' ('+pctValor(p.valor,c.total)+')</b></div>';
+  }).join('')+(c.entradaParcelas.length>1&&c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Total da entrada</span><b>'+money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')</b></div>':'');
+
   const refRows=c.refData.summaries.map((r,idx)=>{
     const valorTotalReforcos=r.qtd*r.valor;
     return '<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1">'+
@@ -546,7 +591,7 @@ function criarDocumentoPDF(c){
     '</div>'+
     '<div style="border:1px solid #e7e2da;border-radius:14px;padding:18px;margin-bottom:12px">'+
       '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:12px">Forma de pagamento</div>'+
-      (c.entrada>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Entrada</span><b>'+money(c.entrada)+' ('+pctValor(c.entrada,c.total)+')</b></div>':'')+
+      entradaRows+
       (c.mensal>0&&c.qtd>0?'<div style="display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #ece8e1"><span style="color:#777">Parcelamento</span><b>'+c.qtd+'x '+money(c.mensal)+' · total '+money(c.mensal*c.qtd)+' ('+pctValor(c.mensal*c.qtd,c.total)+')</b></div>':'')+
       refRows+posRow+
     '</div>'+
@@ -632,7 +677,9 @@ function setv(id,v){if($(id))$(id).value=v??''}
 
 function abrirSalva(id){
   if(!id)return;const s=simulacoes.find(x=>x.id===id);if(!s)return;currentId=s.id;currentToken=s.share_token;const f=s.dados?.form||{};
-  setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('clienteEmail',f.clienteEmail||leads.find(l=>l.id===(f.leadId||s.lead_id))?.email||'');setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',formatBRLValue(parseBRL(f.valorTotal||s.valor_total)));setv('percMinimo',f.percMinimo||s.perc_minimo);setv('entradaValor',f.entradaValor?formatBRLValue(parseBRL(f.entradaValor)):'');setv('parcelaValor',f.parcelaValor?formatBRLValue(parseBRL(f.parcelaValor)):'');setv('parcelaNum',f.parcelaNum||'');
+  setv('leadSelect',f.leadId||s.lead_id||'');setv('clienteNome',f.clienteNome||s.cliente_nome);setv('clienteTelefone',f.clienteTelefone||s.cliente_telefone);setv('clienteEmail',f.clienteEmail||leads.find(l=>l.id===(f.leadId||s.lead_id))?.email||'');setv('empreendimento',f.empreendimento||s.empreendimento);setv('unidade',f.unidade||s.unidade);setv('valorTotal',formatBRLValue(parseBRL(f.valorTotal||s.valor_total)));setv('percMinimo',f.percMinimo||s.perc_minimo);setv('parcelaValor',f.parcelaValor?formatBRLValue(parseBRL(f.parcelaValor)):'');setv('parcelaNum',f.parcelaNum||'');
+  const entradasSalvas=Array.isArray(f.entradaParcelas)&&f.entradaParcelas.length?f.entradaParcelas:[{valor:f.entradaValor?formatBRLValue(parseBRL(f.entradaValor)):'',data:''}];
+  $('entradaQtd').value=String(Math.min(Math.max(entradasSalvas.length,1),3));renderEntradaParcelas(entradasSalvas);
   $('posChavesCheck').checked=!!f.posChavesCheck;setv('posChavesNum',f.posChavesNum||24);$('reforcos').innerHTML='';refCount=0;
   const oldRefs=Array.isArray(f.refs)?f.refs:[];const plans=Array.isArray(f.refPlans)?f.refPlans:[];
   if(plans.length)plans.forEach(p=>addReforco(p));
@@ -666,7 +713,7 @@ async function apagarFluxoSalvo(){
 }
 
 function novaSimulacao(){
-  currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','clienteEmail','empreendimento','unidade','valorTotal','entradaValor','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação';atualizarBotaoApagar()
+  currentId=null;currentToken=null;lastCalc=null;['clienteNome','clienteTelefone','clienteEmail','empreendimento','unidade','valorTotal','parcelaValor','parcelaNum'].forEach(id=>$(id).value='');$('leadSelect').value='';$('entradaQtd').value='1';renderEntradaParcelas([{valor:'',data:''}]);$('percMinimo').value=30;$('posChavesCheck').checked=false;$('posChavesNum').value=24;$('reforcos').innerHTML='';refCount=0;$('savedSelect').value='';$('publicLinkInfo').textContent='';togglePos();atualizarStatus();goStep(1);$('saveState').textContent='Nova simulação';atualizarBotaoApagar()
 }
 if(localStorage.getItem('3ps_fluxo_tema')==='claro')document.body.classList.add('light');
 init();
