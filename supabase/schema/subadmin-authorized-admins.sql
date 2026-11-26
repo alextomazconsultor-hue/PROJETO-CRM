@@ -129,20 +129,19 @@ end;
 $$;
 
 
-
 create or replace function private.consume_subadmin_authorization_on_admin_promotion()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $subadmin$
 begin
   if new.perfil = 'admin' and old.perfil is distinct from new.perfil then
     delete from public.subadmin_authorized_users where target_user_id = new.id;
   end if;
   return new;
 end;
-$;
+$subadmin$;
 
 revoke all on function private.consume_subadmin_authorization_on_admin_promotion() from public;
 
