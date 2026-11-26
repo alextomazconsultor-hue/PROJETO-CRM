@@ -2233,6 +2233,7 @@ async function enterApp() {
     await loadEmpFromSB();
     if (isGestorOrAdmin()) await carregarUsuarios();
     else if (APP.user?.perfil === 'subadmin') await loadSubadminPromotableUsers();
+    if (APP.user?.perfil === 'subadmin') showPage('config', document.getElementById('navConfig'));
     startSbHeartbeat();
   } catch(e) {
     console.error('enterApp Supabase erro:', e);
