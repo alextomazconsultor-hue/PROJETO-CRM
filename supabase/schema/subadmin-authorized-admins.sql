@@ -7,8 +7,8 @@ create table if not exists public.subadmin_authorized_users (
 
 create table if not exists public.subadmin_role_promotions (
   id uuid primary key default gen_random_uuid(),
-  actor_id uuid not null references public.usuarios(id) on delete restrict,
-  target_user_id uuid not null references public.usuarios(id) on delete restrict,
+  actor_id uuid not null,
+  target_user_id uuid not null,
   previous_profile text not null,
   promoted_at timestamptz not null default now()
 );
@@ -57,6 +57,8 @@ begin
     raise exception 'A lista pode incluir apenas usuários existentes que ainda não sejam administradores ou sub-administradores';
   end if;
 
+  perform pg_catalog.pg_advisory_xact_lock(9134, 3);
+
   delete from public.subadmin_authorized_users;
 
   insert into public.subadmin_authorized_users (target_user_id, authorized_by)
@@ -98,6 +100,8 @@ begin
     raise exception 'Apenas sub-administradores podem promover usuários autorizados';
   end if;
 
+  perform pg_catalog.pg_advisory_xact_lock(9134, 3);
+
   select u.perfil into v_previous_profile
   from public.usuarios u
   where u.id = p_target_user_id
@@ -107,10 +111,11 @@ begin
     raise exception 'O usuário não pode ser promovido por esta ação';
   end if;
 
-  if not exists (
-    select 1 from public.subadmin_authorized_users a
-    where a.target_user_id = p_target_user_id
-  ) then
+  perform 1 from public.subadmin_authorized_users a
+  where a.target_user_id = p_target_user_id
+  for update;
+
+  if not found then
     raise exception 'Este usuário não está na lista autorizada pelo administrador';
   end if;
 
@@ -122,6 +127,28 @@ begin
   delete from public.subadmin_authorized_users where target_user_id = p_target_user_id;
 end;
 $$;
+
+
+
+create or replace function private.consume_subadmin_authorization_on_admin_promotion()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if new.perfil = 'admin' and old.perfil is distinct from new.perfil then
+    delete from public.subadmin_authorized_users where target_user_id = new.id;
+  end if;
+  return new;
+end;
+$;
+
+revoke all on function private.consume_subadmin_authorization_on_admin_promotion() from public;
+
+create trigger consume_subadmin_authorization_after_admin_promotion
+after update of perfil on public.usuarios
+for each row execute function private.consume_subadmin_authorization_on_admin_promotion();
 
 revoke all on function public.admin_set_subadmin_authorizations(uuid[]) from public;
 revoke all on function public.subadmin_list_authorized_users() from public;
