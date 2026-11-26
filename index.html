@@ -1405,10 +1405,22 @@ CREATE TABLE historico (
             <select class="form-input" id="uPerfil">
               <option value="corretor">👤 Corretor</option>
               <option value="gestor">👑 Gestor</option>
+              <option value="subadmin">🛡️ Sub-adm</option>
             </select>
             <button class="btn btn-primary btn-sm" onclick="criarUsuario()" style="height:38px">Criar usuário</button>
           </div>
           <div id="usuariosList"></div>
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+            <div class="settings-title">Lista de promoção autorizada</div>
+            <div class="settings-desc">Marque quem os Sub-adms poderão promover a admin. Só administradores podem alterar esta lista.</div>
+            <div id="subadminAuthorizationEditor"></div>
+            <button class="btn btn-primary btn-sm" onclick="saveSubadminAuthorizations()" style="margin-top:10px">Salvar lista autorizada</button>
+          </div>
+        </div>
+        <div class="settings-section" id="sectionSubadminPromote" style="display:none">
+          <div class="settings-title">🛡️ Promoções autorizadas</div>
+          <div class="settings-desc">Você pode promover a admin somente os usuários autorizados pelo administrador.</div>
+          <div id="subadminPromoteList"></div>
         </div>
       </div>
     </div>
@@ -1424,6 +1436,8 @@ const APP = {
   brokers: ['Alex','Leide','Eliane'],
   empreendimentos: [],
   usuarios: [],
+  subadminAuthorizedIds: [],
+  subadminTargetUsers: [],
   currentLead: null,
   statusFilter: 'all',
   supabase: null,
@@ -1965,8 +1979,67 @@ async function carregarUsuarios() {
   if (error) { console.error('carregarUsuarios erro:', error); return; }
   APP.usuarios = data || [];
   renderUsuariosList();
+  if (APP.user?.perfil === 'admin') await loadSubadminAuthorizationEditor();
 }
 
+async function loadSubadminAuthorizationEditor() {
+  if (APP.user?.perfil !== 'admin' || !APP.supabase || !APP.sbConnected) return;
+  const { data, error } = await APP.supabase.from('subadmin_authorized_users').select('target_user_id');
+  if (error) { console.error('Erro ao carregar lista autorizada:', error); return; }
+  APP.subadminAuthorizedIds = (data || []).map(row => row.target_user_id);
+  renderSubadminAuthorizationEditor();
+}
+
+function renderSubadminAuthorizationEditor() {
+  const el = document.getElementById('subadminAuthorizationEditor');
+  if (!el) return;
+  el.replaceChildren();
+  const targets = APP.usuarios.filter(user => !['admin', 'subadmin'].includes(user.perfil));
+  if (!targets.length) { el.textContent = 'Cadastre usuários para montar a lista.'; return; }
+  targets.forEach(user => {
+    const label = document.createElement('label'); label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px';
+    const input = document.createElement('input'); input.type = 'checkbox'; input.value = user.id; input.checked = APP.subadminAuthorizedIds.includes(user.id);
+    const name = document.createElement('span'); name.textContent = user.nome;
+    const role = document.createElement('span'); role.textContent = '(' + user.perfil + ')'; role.style.color = 'var(--text-muted)';
+    label.append(input, name, role); el.appendChild(label);
+  });
+}
+
+async function saveSubadminAuthorizations() {
+  if (APP.user?.perfil !== 'admin' || !APP.supabase || !APP.sbConnected) { toast('Apenas um admin conectado pode alterar a lista', 'error'); return; }
+  const ids = [...document.querySelectorAll('#subadminAuthorizationEditor input[type="checkbox"]:checked')].map(input => input.value);
+  const { error } = await APP.supabase.rpc('admin_set_subadmin_authorizations', { p_target_user_ids: ids });
+  if (error) { console.error('Erro ao salvar autorizações:', error); toast('Não foi possível salvar a lista autorizada', 'error'); return; }
+  APP.subadminAuthorizedIds = ids; toast('Lista de promoção salva', 'success');
+}
+
+async function loadSubadminPromotableUsers() {
+  if (APP.user?.perfil !== 'subadmin' || !APP.supabase || !APP.sbConnected) return;
+  const { data, error } = await APP.supabase.rpc('subadmin_list_authorized_users');
+  if (error) { console.error('Erro ao carregar usuários autorizados:', error); return; }
+  APP.subadminTargetUsers = data || []; renderSubadminPromotableUsers();
+}
+
+function renderSubadminPromotableUsers() {
+  const el = document.getElementById('subadminPromoteList'); if (!el) return; el.replaceChildren();
+  if (!APP.subadminTargetUsers.length) { el.textContent = 'Nenhum usuário foi liberado para promoção.'; return; }
+  APP.subadminTargetUsers.forEach(user => {
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)';
+    const details = document.createElement('div'); const name = document.createElement('strong'); name.textContent = user.nome;
+    const meta = document.createElement('div'); meta.style.cssText = 'font-size:12px;color:var(--text-muted)'; meta.textContent = user.email + ' · ' + user.perfil; details.append(name, meta);
+    const button = document.createElement('button'); button.className = 'btn btn-primary btn-sm'; button.textContent = 'Tornar admin'; button.addEventListener('click', () => promoteAuthorizedUser(user.id));
+    row.append(details, button); el.appendChild(row);
+  });
+}
+
+async function promoteAuthorizedUser(userId) {
+  if (APP.user?.perfil !== 'subadmin' || !APP.supabase || !APP.sbConnected) return;
+  const user = APP.subadminTargetUsers.find(item => item.id === userId); if (!user || !confirm('Promover ' + user.nome + ' a admin?')) return;
+  const { error } = await APP.supabase.rpc('subadmin_promote_authorized_user', { p_target_user_id: userId });
+  if (error) { console.error('Erro ao promover usuário:', error); toast('Não foi possível promover este usuário', 'error'); return; }
+  APP.subadminTargetUsers = APP.subadminTargetUsers.filter(item => item.id !== userId); renderSubadminPromotableUsers();
+  toast(user.nome + ' agora é admin', 'success');
+}
 function renderUsuariosList() {
   const el = document.getElementById('usuariosList');
   if (!el) return;
@@ -1974,9 +2047,9 @@ function renderUsuariosList() {
     el.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Nenhum usuário cadastrado ainda.</div>';
     return;
   }
-  const perfilIcons = { admin: '👑', gestor: '🔑', corretor: '👤' };
-  const perfilColors = { admin: 'rgba(245,158,11,0.15)', gestor: 'rgba(168,85,247,0.15)', corretor: 'rgba(139,92,246,0.15)' };
-  const perfilTextColors = { admin: '#f59e0b', gestor: '#a855f7', corretor: '#8b5cf6' };
+  const perfilIcons = { admin: '👑', gestor: '🔑', subadmin: '🛡️', corretor: '👤' };
+  const perfilColors = { admin: 'rgba(245,158,11,0.15)', gestor: 'rgba(168,85,247,0.15)', subadmin: 'rgba(20,184,166,0.15)', corretor: 'rgba(139,92,246,0.15)' };
+  const perfilTextColors = { admin: '#f59e0b', gestor: '#a855f7', subadmin: '#14b8a6', corretor: '#8b5cf6' };
   el.innerHTML = `
     <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px">
       <thead>
@@ -1994,7 +2067,7 @@ function renderUsuariosList() {
           <td style="padding:8px 12px;color:var(--text-muted)">${u.email}</td>
           <td style="padding:8px 12px">
             <span style="background:${perfilColors[u.perfil]||perfilColors.corretor};color:${perfilTextColors[u.perfil]||perfilTextColors.corretor};padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600">
-              ${{admin:'Admin',gestor:'Gestor',corretor:'Corretor'}[u.perfil]||'Corretor'}
+              ${{admin:'Admin',gestor:'Gestor',subadmin:'Sub-adm',corretor:'Corretor'}[u.perfil]||'Corretor'}
             </span>
           </td>
           <td style="padding:8px 12px">
@@ -2004,6 +2077,7 @@ function renderUsuariosList() {
               <option value="">Mudar perfil...</option>
               <option value="admin" ${u.perfil==='admin'?'selected':''}>👑 Admin</option>
               <option value="gestor" ${u.perfil==='gestor'?'selected':''}>🔑 Gestor</option>
+              <option value="subadmin" ${u.perfil==='subadmin'?'selected':''}>🛡️ Sub-adm</option>
               <option value="corretor" ${u.perfil==='corretor'?'selected':''}>👤 Corretor</option>
             </select>
             <button onclick="apagarUsuario('${u.id}','${u.nome}')" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#f87171;font-size:11px;padding:3px 8px;cursor:pointer" title="Apagar usuário">🗑️</button>
@@ -2031,7 +2105,8 @@ async function alterarPerfilUsuario(userId, novoPerfil) {
       return;
     }
   }
-  const nomes = { admin: 'Admin', gestor: 'Gestor', corretor: 'Corretor' };
+  const nomes = { admin: 'Admin', gestor: 'Gestor', subadmin: 'Sub-adm', corretor: 'Corretor' };
+  renderSubadminAuthorizationEditor();
   toast(`${usuario.nome} agora é ${nomes[novoPerfil]}!`, 'success');
 }
 
@@ -2053,11 +2128,16 @@ function aplicarPermissoes() {
   const perfil = APP.user?.perfil;
   const isAdmin = perfil === 'admin';
   const isGestor = perfil === 'gestor' || isAdmin;
+  const isSubadmin = perfil === 'subadmin';
   const isCorretor = perfil === 'corretor';
 
   // Menu — oculta Equipe e Configurações para corretor
   document.getElementById('navEquipe').style.display = isGestor ? 'flex' : 'none';
-  document.getElementById('navSistema').style.display = isGestor ? 'block' : 'none';
+  document.getElementById('navSistema').style.display = (isGestor || isSubadmin) ? 'block' : 'none';
+  document.querySelectorAll('.sidebar-nav > .nav-section').forEach(section => {
+    if (isSubadmin) section.style.display = section.id === 'navSistema' ? 'block' : 'none';
+    else section.style.display = '';
+  });
 
   // Seção de usuários — só admin
   const su = document.getElementById('sectionUsuarios');
@@ -2066,10 +2146,13 @@ function aplicarPermissoes() {
   // Seção Supabase config — só admin
   const sc = document.getElementById('sectionSupabase');
   if (sc) sc.style.display = isAdmin ? 'block' : 'none';
+  document.querySelectorAll('#page-config > .settings-section').forEach(section => { if (isSubadmin) section.style.display = 'none'; });
+  const subadminSection = document.getElementById('sectionSubadminPromote');
+  if (subadminSection) subadminSection.style.display = isSubadmin ? 'block' : 'none';
 
   // Badge de perfil no sidebar
-  const badges = { admin: '👑 Admin', gestor: '🔑 Gestor', corretor: '👤 Corretor' };
-  const colors = { admin: '#f59e0b', gestor: '#a855f7', corretor: 'var(--text-muted)' };
+  const badges = { admin: '👑 Admin', gestor: '🔑 Gestor', subadmin: '🛡️ Sub-adm', corretor: '👤 Corretor' };
+  const colors = { admin: '#f59e0b', gestor: '#a855f7', subadmin: '#14b8a6', corretor: 'var(--text-muted)' };
   document.getElementById('userRole').textContent = badges[perfil] || '👤 Corretor';
   document.getElementById('userRole').style.color = colors[perfil] || 'var(--text-muted)';
 
@@ -2149,6 +2232,8 @@ async function enterApp() {
     await loadHistoryFromSB();
     await loadEmpFromSB();
     if (isGestorOrAdmin()) await carregarUsuarios();
+    else if (APP.user?.perfil === 'subadmin') await loadSubadminPromotableUsers();
+    if (APP.user?.perfil === 'subadmin') showPage('config', document.getElementById('navConfig'));
     startSbHeartbeat();
   } catch(e) {
     console.error('enterApp Supabase erro:', e);
