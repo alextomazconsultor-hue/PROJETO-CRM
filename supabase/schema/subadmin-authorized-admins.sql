@@ -1,7 +1,7 @@
 -- Sub-administrator role with an admin-managed, one-time promotion allowlist.
 create table if not exists public.subadmin_authorized_users (
   target_user_id uuid primary key references public.usuarios(id) on delete cascade,
-  authorized_by uuid not null references public.usuarios(id) on delete restrict,
+  authorized_by uuid references public.usuarios(id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -15,6 +15,9 @@ create table if not exists public.subadmin_role_promotions (
 
 alter table public.subadmin_authorized_users enable row level security;
 alter table public.subadmin_role_promotions enable row level security;
+
+grant select on public.subadmin_authorized_users to authenticated;
+grant select on public.subadmin_role_promotions to authenticated;
 
 create policy subadmin_authorizations_admin_read
   on public.subadmin_authorized_users for select to authenticated
