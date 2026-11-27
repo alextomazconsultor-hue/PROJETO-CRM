@@ -31,7 +31,6 @@ as $$
       from public.subadmin_managed_users scope
       join public.usuarios managed on managed.id = scope.managed_user_id
       where scope.subadmin_user_id = auth.uid()
-        and managed.perfil = 'corretor'
         and coalesce(nullif(managed.corretor_ref, ''), managed.nome) = p_broker
     );
 $$;
@@ -89,9 +88,12 @@ begin
     select 1
     from unnest(coalesce(p_managed_user_ids, '{}'::uuid[])) as requested(id)
     left join public.usuarios u on u.id = requested.id
-    where u.id is null or u.perfil <> 'corretor'
+    where u.id is null or not exists (
+      select 1 from public.corretores c
+      where c.nome = coalesce(nullif(u.corretor_ref, ''), u.nome)
+    )
   ) then
-    raise exception 'A equipe do Sub-adm pode incluir apenas corretores existentes';
+    raise exception 'A equipe do Sub-adm pode incluir apenas usuários associados a corretores cadastrados';
   end if;
 
   perform pg_catalog.pg_advisory_xact_lock(9134, 4);
