@@ -311,3 +311,8 @@ begin
   from unnest(coalesce(p_target_user_ids, '{}'::uuid[])) as requested(id);
 end;
 $$;
+
+
+-- Sub-admins manage only their assigned broker leads; they cannot promote users.
+revoke all on function public.subadmin_promote_authorized_user(uuid) from authenticated;
+revoke all on function public.subadmin_list_authorized_users() from authenticated;
