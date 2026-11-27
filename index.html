@@ -1118,14 +1118,14 @@ CREATE TABLE historico (
           Leads
           <span class="nav-badge" id="leadsCount">0</span>
         </div>
-        <div class="nav-item" onclick="showPage('kanban',this)">
+        <div class="nav-item" id="navKanban" onclick="showPage('kanban',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
           Pipeline Kanban
         </div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Gestão</div>
-        <div class="nav-item" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
+        <div class="nav-item" id="navMateriais" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
         <div class="nav-item" onclick="showPage('simulador',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="17" y2="16"/></svg>
           Simulador de Fluxo
@@ -2156,6 +2156,12 @@ function aplicarPermissoes() {
   const isSubadmin = perfil === 'subadmin';
   const isCorretor = perfil === 'corretor';
   const hasManagerWorkspace = isGestor || isSubadmin;
+
+  // Recursos de uso comum ficam visíveis para os perfis da base.
+  const navKanban = document.getElementById('navKanban');
+  const navMateriais = document.getElementById('navMateriais');
+  if (navKanban) navKanban.style.display = 'flex';
+  if (navMateriais) navMateriais.style.display = 'flex';
 
   // Menu — oculta Equipe e Configurações para corretor
   document.getElementById('navEquipe').style.display = hasManagerWorkspace ? 'flex' : 'none';
