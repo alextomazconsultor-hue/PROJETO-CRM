@@ -1122,27 +1122,13 @@ CREATE TABLE historico (
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
           Pipeline Kanban
         </div>
-        <div class="nav-item" onclick="showPage('vipayra',this)">
-          <span style="font-size:17px">⭐</span> Grupo VIP AYRA
-        </div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Gestão</div>
-        <div class="nav-item" onclick="showPage('agenda',this)">
-          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Agenda & Follow-up
-          <span class="nav-badge" id="tasksCount">0</span>
-        </div>
-        <div class="nav-item" onclick="showPage('site',this)"><span style="font-size:17px">🌐</span> Site Exclusive</div>
         <div class="nav-item" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
         <div class="nav-item" onclick="showPage('simulador',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="17" y2="16"/></svg>
           Simulador de Fluxo
-        </div>
-        <div class="nav-item" onclick="showAssistant()" style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.1));border:1px solid rgba(124,58,237,0.4);margin-top:4px">
-          <span style="font-size:16px">🤖</span>
-          Agente IA
-          <span style="margin-left:auto;font-size:9px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:2px 7px;border-radius:99px;font-weight:700">NOVO</span>
         </div>
         <div class="nav-item" id="navEquipe" onclick="showPage('equipe',this)">
           <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -1191,10 +1177,6 @@ CREATE TABLE historico (
           <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Novo Lead
         </button>
-        <button onclick="showAssistant()" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:99px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 0 20px rgba(124,58,237,0.4);transition:all .2s" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 30px rgba(124,58,237,0.6)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 20px rgba(124,58,237,0.4)'">
-          <span style="font-size:16px">🤖</span>
-          <span class="agent-btn-text">Agente IA</span>
-        </button>
         <button class="btn btn-secondary" id="exportCsvBtn" onclick="openExportPDF()" style="display:none" title="Escolher filtros e baixar lista em PDF">
           <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Exportar PDF
@@ -1213,7 +1195,7 @@ CREATE TABLE historico (
         <div class="dashboard-toolbar">
           <div class="dashboard-scope" id="dashboardFilterBar"><label for="dashboardBroker">Visão da equipe</label><select class="form-input" id="dashboardBroker" onchange="renderDashboard()"></select></div>
           <span class="dashboard-date" id="dashboardDate"></span>
-          <div class="dashboard-quick-actions"><button class="btn btn-primary" onclick="openModal('addLeadModal')">+ Novo lead</button><button class="btn btn-secondary" onclick="openModal('addTaskModal')">+ Agendar retorno</button><button class="btn btn-secondary" onclick="dashboardNavigate('kanban')">Abrir Kanban</button></div>
+          <div class="dashboard-quick-actions"><button class="btn btn-primary" onclick="openModal('addLeadModal')">+ Novo lead</button><button class="btn btn-secondary" onclick="dashboardNavigate('kanban')">Abrir Kanban</button></div>
         </div>
         <div class="dashboard-period-bar">
           <label for="dashboardPeriod">Período</label><select class="form-input" id="dashboardPeriod" onchange="setDashboardPeriod(this.value)"><option value="all">Todo o período</option><option value="today">Hoje</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este mês</option><option value="custom">Personalizado</option></select>
@@ -1227,7 +1209,7 @@ CREATE TABLE historico (
           <div class="metric-card blue"><div class="metric-label">VGV em negociação</div><div class="metric-value dashboard-vgv" id="m-vgv">R$ 0,00</div><div class="metric-change">Valores dos leads ativos</div><div class="metric-icon">💰</div></div>
         </div>
         <div class="alerts-panel" id="alertsPanel"></div>
-        <div class="dashboard-upcoming" id="dashboardUpcoming"></div>
+        <div class="dashboard-upcoming" id="dashboardUpcoming" style="display:none"></div>
         <div class="dashboard-grid">
           <div class="chart-card">
             <div class="chart-title">Leads por Status<span class="subtitle">Distribuição atual</span></div>
@@ -1288,7 +1270,6 @@ CREATE TABLE historico (
                 <label for="kanbanEnd">Até</label><input class="form-input" type="date" id="kanbanEnd" onchange="updateKanbanPeriod()" aria-label="Data final de cadastro">
               </div>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" id="sequenceManagerBtn" onclick="openSequenceManager()">Sequências de Follow-up</button>
           </div>
           <div id="kanbanPeriodHint" role="status" aria-live="polite"></div>
           <div id="kanbanSearchStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--text-muted);flex-shrink:0"></div>
@@ -2361,7 +2342,9 @@ function clearData() {
 }
 
 // -- PAGES --
+const DISABLED_CRM_MODULES = Object.freeze({assistant:true,vipayra:true,agenda:true,site:true});
 function showPage(name, el) {
+  if (DISABLED_CRM_MODULES[name]) return;
   document.querySelector('.content').classList.toggle('kanban-expanded',name==='kanban');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
@@ -2462,7 +2445,8 @@ function updateBadges() {
   const leads = getLeadsDoUsuario();
   const tasks = getTasksDoUsuario();
   document.getElementById('leadsCount').textContent = leads.filter(l => l.status !== 'fechada' && l.status !== 'perdido').length;
-  document.getElementById('tasksCount').textContent = tasks.filter(t => !t.concluida).length;
+  const tasksCount = document.getElementById('tasksCount');
+  if (tasksCount) tasksCount.textContent = tasks.filter(t => !t.concluida).length;
 }
 
 // -- EXPORTAR LEADS EM PDF --
@@ -3000,10 +2984,7 @@ function renderKanban() {
         <div class="kanban-card kanban-priority-${priority.kind}" draggable="true" data-id="${l.id}" onclick="openLeadDetail('${l.id}')">
           ${priority.kind!=='normal'?`<button type="button" class="kanban-priority-indicator" title="${agentEscape(priority.title)}" aria-label="${agentEscape(priority.title)}" onclick="event.stopPropagation();toast(this.title,\'info\')"></button>`:''}
           <div class="kanban-card-name">${l.nome}</div>
-          ${isFollowupStage(l.status)?`<button type="button" class="btn btn-secondary btn-sm followup-card-button" onclick="event.stopPropagation();openFollowup('${l.id}')">📋 Histórico e sequência</button>`:''}
-          ${isFollowupStage(l.status)?followupCardSummary(l):''}
           <div class="kanban-quick-actions">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();scheduleLeadVisit('${l.id}')">📅 Agendar visita</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openNewDeal('${l.id}')">+ Novo negócio</button>
           </div>
           <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
@@ -3134,6 +3115,7 @@ async function followupFetchAll(table,configure){
   return result;
 }
 async function openFollowup(id){
+  if (DISABLED_CRM_MODULES.agenda) return;
   const lead=followupAccessibleLead(id);if(!lead){toast('Lead indisponível para seu acesso','error');return;}
   const request=++followupState.request;
   Object.assign(followupState,{leadId:id,events:followupEvents(lead,APP.history[id]||[],getTasksDoUsuario()),sequences:[],enrollment:null,loading:true,error:''});
@@ -3623,11 +3605,8 @@ function openLeadDetail(id) {
   av.style.color = getAvatarColor(lead.nome);
 
   document.getElementById('modalActions').innerHTML = `
-    ${isFollowupStage(lead.status)?`<button class="btn btn-primary btn-sm" onclick="closeModal('leadModal');openFollowup('${lead.id}')">📋 Histórico e sequência de follow-up</button>`:''}
-    <button class="btn btn-secondary btn-sm" onclick="setVipAyraStage('${lead.id}', '${lead.vip_ayra_etapa ? '' : 'aceitou'}')">${lead.vip_ayra_etapa?'⭐ Remover do funil VIP AYRA':'⭐ Incluir no VIP AYRA'}</button>
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
     <button class="btn btn-secondary btn-sm" onclick="openLeadAction('${lead.id}')">📞 Registrar ação</button>
-    <button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${lead.id}')">📅 Agendar follow-up</button>
     <button class="btn btn-secondary btn-sm" onclick="openNewDeal('${lead.id}')">+ Novo negócio</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirSimuladorLead('${lead.id}')" style="gap:5px;border-color:rgba(139,92,246,.45);color:var(--purple-light)">🧮 Criar fluxo</button>
@@ -3642,7 +3621,6 @@ function openLeadDetail(id) {
     <div class="info-row"><div class="info-label">Telefone</div><div class="info-value">${lead.telefone||'—'}</div></div>
     <div class="info-row"><div class="info-label">E-mail</div><div class="info-value">${lead.email||'—'}</div></div>
     <div class="info-row"><div class="info-label">Origem</div><div class="info-value">${lead.origem||'—'}</div></div>
-    <div class="info-row"><div class="info-label">Grupo VIP AYRA</div><div class="info-value">${VIP_AYRA_STAGES.find(s=>s.id===lead.vip_ayra_etapa)?.label||'Ainda não incluído'}</div></div>
     <div class="info-row">
       <div class="info-label">Corretor Responsável</div>
       <div class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -3655,7 +3633,6 @@ function openLeadDetail(id) {
     </div>
     <div class="info-row"><div class="info-label">Cidade</div><div class="info-value">${lead.cidade||'—'}</div></div>
     <div class="info-row"><div class="info-label">Cadastrado em</div><div class="info-value">${formatDate(lead.created_at)}</div></div>
-    <div class="info-row"><div class="info-label">Próxima ação</div><div class="info-value">${agendaTasksForLead(lead).sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora)).slice(0,1).map(t=>`${agentEscape(t.titulo)} · ${formatDateTime(t.data_hora)} · ${agentEscape(t.corretor||'')}`).join('')||'Sem próxima ação agendada'}</div></div>
     <div class="info-row" style="grid-column:1/-1"><div class="info-label">Observações</div><div class="info-value">${lead.observacoes||'—'}</div></div>
   `;
 
@@ -3762,6 +3739,7 @@ async function saveLeadAction() {
 
 // -- ASSISTENTE --
 function showAssistant() {
+  if (DISABLED_CRM_MODULES.assistant) return;
   agentNovo();
   document.getElementById('assistantModal').classList.add('open');
 }
