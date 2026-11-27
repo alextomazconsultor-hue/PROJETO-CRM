@@ -2017,7 +2017,8 @@ function renderSubadminScopeEditor() {
   el.replaceChildren();
   const subId = selector.value;
   if (!subId) { el.textContent = 'Cadastre ou selecione um Sub-adm para configurar a equipe.'; return; }
-  const brokers = APP.usuarios.filter(user => user.perfil === 'corretor');
+  const brokerNames = new Set(APP.brokers);
+  const brokers = APP.usuarios.filter(user => brokerNames.has(user.corretor_ref || user.nome));
   if (!brokers.length) { el.textContent = 'Nenhum corretor cadastrado.'; return; }
   brokers.forEach(user => { const label = document.createElement('label'); label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px'; const input = document.createElement('input'); input.type = 'checkbox'; input.value = user.id; input.checked = (APP.subadminManagedUsersBySubadmin[subId] || []).includes(user.id); const name = document.createElement('span'); name.textContent = user.nome; label.append(input, name); el.appendChild(label); });
 }
