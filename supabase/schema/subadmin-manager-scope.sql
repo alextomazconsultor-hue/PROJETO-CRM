@@ -315,6 +315,13 @@ end;
 $$;
 
 
--- Sub-admins manage only their assigned broker leads; they cannot promote users.
-revoke all on function public.subadmin_promote_authorized_user(uuid) from authenticated;
-revoke all on function public.subadmin_list_authorized_users() from authenticated;
+-- Keep these SECURITY DEFINER RPCs unavailable to anonymous callers.
+revoke all on function public.admin_set_subadmin_authorizations(uuid[]) from public, anon;
+revoke all on function public.admin_set_subadmin_managed_users(uuid, uuid[]) from public, anon;
+revoke all on function public.subadmin_list_authorized_users() from public, anon, authenticated;
+revoke all on function public.subadmin_list_managed_users() from public, anon;
+revoke all on function public.subadmin_promote_authorized_user(uuid) from public, anon, authenticated;
+
+grant execute on function public.admin_set_subadmin_authorizations(uuid[]) to authenticated;
+grant execute on function public.admin_set_subadmin_managed_users(uuid, uuid[]) to authenticated;
+grant execute on function public.subadmin_list_managed_users() to authenticated;
