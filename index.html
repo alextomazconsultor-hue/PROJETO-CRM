@@ -1390,6 +1390,13 @@ CREATE TABLE historico (
             <button class="btn btn-primary btn-sm" onclick="criarUsuario()" style="height:38px">Criar usuário</button>
           </div>
           <div id="usuariosList"></div>
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+            <div class="settings-title">Corretores autorizados por gestor</div>
+            <div class="settings-desc">O gestor poderá acompanhar somente os leads dos corretores selecionados pelo Admin.</div>
+            <select class="form-input" id="gestorScopeSelector" onchange="renderGestorScopeEditor()" style="margin-bottom:10px"></select>
+            <div id="gestorScopeEditor"></div>
+            <button class="btn btn-primary btn-sm" onclick="saveGestorScope()" style="margin-top:10px">Salvar autorização do gestor</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1405,6 +1412,8 @@ const APP = {
   brokers: ['Alex','Leide','Eliane'],
   empreendimentos: [],
   usuarios: [],
+  gestorManagedBrokers: [],
+  gestorManagedBrokersByGestor: {},
   currentLead: null,
   statusFilter: 'all',
   supabase: null,
@@ -1941,11 +1950,93 @@ async function criarUsuario() {
 }
 
 async function carregarUsuarios() {
-  if (!APP.supabase || !APP.sbConnected) return;
+  if (!APP.supabase || !APP.sbConnected || !isAdmin()) return;
   const { data, error } = await APP.supabase.from('usuarios').select('*').order('nome');
   if (error) { console.error('carregarUsuarios erro:', error); return; }
   APP.usuarios = data || [];
   renderUsuariosList();
+  await loadGestorScopeAssignments();
+}
+
+async function loadGestorScopeAssignments() {
+  if (!isAdmin() || !APP.supabase || !APP.sbConnected) return;
+  const { data, error } = await APP.supabase.from('gestor_managed_brokers').select('gestor_user_id,broker_name');
+  if (error) { console.error('Erro ao carregar corretores autorizados por gestor:', error); return; }
+  APP.gestorManagedBrokersByGestor = {};
+  (data || []).forEach(row => {
+    (APP.gestorManagedBrokersByGestor[row.gestor_user_id] ||= []).push(row.broker_name);
+  });
+  renderGestorScopeEditor();
+}
+
+function renderGestorScopeEditor() {
+  const selector = document.getElementById('gestorScopeSelector');
+  const editor = document.getElementById('gestorScopeEditor');
+  if (!selector || !editor) return;
+  const previous = selector.value;
+  const managers = APP.usuarios.filter(user => user.perfil === 'gestor');
+  selector.replaceChildren(new Option('Selecione um gestor...', ''));
+  managers.forEach(user => selector.add(new Option(user.nome, user.id)));
+  if (managers.some(user => user.id === previous)) selector.value = previous;
+  editor.replaceChildren();
+  if (!selector.value) {
+    editor.textContent = managers.length ? 'Selecione um gestor para definir os corretores autorizados.' : 'Cadastre um usuário com perfil Gestor para configurar as autorizações.';
+    return;
+  }
+  const brokers = [...new Set(APP.brokers)].sort((a,b) => a.localeCompare(b,'pt-BR'));
+  if (!brokers.length) {
+    editor.textContent = 'Cadastre os corretores antes de autorizar o gestor.';
+    return;
+  }
+  const authorized = APP.gestorManagedBrokersByGestor[selector.value] || [];
+  brokers.forEach(broker => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.value = broker;
+    input.checked = authorized.includes(broker);
+    const name = document.createElement('span');
+    name.textContent = broker;
+    label.append(input, name);
+    editor.appendChild(label);
+  });
+}
+
+async function saveGestorScope() {
+  if (!isAdmin() || !APP.supabase || !APP.sbConnected) {
+    toast('Somente o Admin conectado pode autorizar corretores para gestores.', 'error');
+    return;
+  }
+  const gestorId = document.getElementById('gestorScopeSelector')?.value;
+  if (!gestorId) {
+    toast('Selecione um gestor.', 'error');
+    return;
+  }
+  const brokerNames = [...document.querySelectorAll('#gestorScopeEditor input[type="checkbox"]:checked')].map(input => input.value);
+  const { error } = await APP.supabase.rpc('admin_set_gestor_managed_brokers', {
+    p_gestor_user_id: gestorId,
+    p_broker_names: brokerNames
+  });
+  if (error) {
+    console.error('Erro ao salvar autorização do gestor:', error);
+    toast('Não foi possível salvar as autorizações.', 'error');
+    return;
+  }
+  APP.gestorManagedBrokersByGestor[gestorId] = brokerNames;
+  renderGestorScopeEditor();
+  toast('Corretores autorizados para o gestor.', 'success');
+}
+
+async function loadGestorManagedBrokers() {
+  if (APP.user?.perfil !== 'gestor' || !APP.supabase || !APP.sbConnected) return;
+  const { data, error } = await APP.supabase.rpc('gestor_list_managed_brokers');
+  if (error) {
+    console.error('Erro ao carregar corretores autorizados:', error);
+    APP.gestorManagedBrokers = [];
+    return;
+  }
+  APP.gestorManagedBrokers = (data || []).map(row => row.broker_name).filter(Boolean);
 }
 
 function renderUsuariosList() {
@@ -2012,6 +2103,7 @@ async function alterarPerfilUsuario(userId, novoPerfil) {
       return;
     }
   }
+  if (isAdmin()) await carregarUsuarios();
   const nomes = { admin: 'Admin', gestor: 'Gestor', corretor: 'Corretor' };
   toast(`${usuario.nome} agora é ${nomes[novoPerfil]}!`, 'success');
 }
@@ -2121,12 +2213,13 @@ async function enterApp() {
       await loadStagesFromSB();
     }
     await loadVipAyraStagesFromSB();
-    await loadLeadsFromSB(); // leads depois das etapas e do escopo autorizado
     await loadBrokersFromSB();
+    if (isAdmin()) await carregarUsuarios();
+    else if (APP.user?.perfil === 'gestor') await loadGestorManagedBrokers();
+    await loadLeadsFromSB(); // aplica o escopo autorizado pelo banco
     await loadTasksFromSB();
     await loadHistoryFromSB();
     await loadEmpFromSB();
-    if (isGestorOrAdmin()) await carregarUsuarios();
     startSbHeartbeat();
   } catch(e) {
     console.error('enterApp Supabase erro:', e);
@@ -2297,13 +2390,25 @@ function refreshAll() {
 
 function isAdmin() { return APP.user?.perfil === 'admin'; }
 function isGestorOrAdmin() { return APP.user?.perfil === 'gestor' || APP.user?.perfil === 'admin'; }
+function getBrokersDoUsuario() {
+  if (isAdmin()) return APP.brokers;
+  if (APP.user?.perfil === 'gestor') return APP.gestorManagedBrokers;
+  return APP.user?.perfil === 'corretor' && APP.user?.corretor_ref ? [APP.user.corretor_ref] : [];
+}
+
+function gestorCanAccessBroker(broker) {
+  return APP.user?.perfil === 'gestor' && APP.gestorManagedBrokers.includes(broker);
+}
+
 function getTasksDoUsuario() {
-  if (isGestorOrAdmin()) return APP.tasks;
+  if (isAdmin()) return APP.tasks;
+  if (APP.user?.perfil === 'gestor') return APP.tasks.filter(t => gestorCanAccessBroker(t.corretor) || gestorCanAccessBroker(agendaLeadForTask(t)?.corretor));
   return APP.tasks.filter(t => !t.corretor || t.corretor === APP.user?.corretor_ref);
 }
 
 function getLeadsDoUsuario() {
-  if (isGestorOrAdmin()) return APP.leads;
+  if (isAdmin()) return APP.leads;
+  if (APP.user?.perfil === 'gestor') return APP.leads.filter(l => gestorCanAccessBroker(l.corretor));
   return APP.leads.filter(l => l.corretor === APP.user?.corretor_ref);
 }
 
@@ -2332,7 +2437,7 @@ async function openExportPDF() {
         todos.push(...(data||[]));
         if(!data||data.length<1000)break;
       }
-      pdfExportLeads=isGestorOrAdmin()?todos:todos.filter(l=>l.corretor===APP.user?.corretor_ref);
+      pdfExportLeads=isAdmin()?todos:isGestorOrAdmin()?todos.filter(l=>gestorCanAccessBroker(l.corretor)):todos.filter(l=>l.corretor===APP.user?.corretor_ref);
     }else pdfExportLeads=getLeadsDoUsuario();
   }catch(error){
     console.error('Erro ao carregar leads da exportação:',error);
@@ -2531,7 +2636,7 @@ function renderDashboardFilter() {
   const select=document.getElementById('dashboardBroker');
   document.getElementById('dashboardFilterBar').style.display=isGestorOrAdmin()?'flex':'none';
   const current=select.value;
-  const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor),...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const brokers=[...new Set([...getBrokersDoUsuario(),...getLeadsDoUsuario().map(l=>l.corretor),...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   select.innerHTML='<option value="">Equipe inteira</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
   select.value=isGestorOrAdmin()?current:'';
 }
@@ -2746,7 +2851,7 @@ function clearKanbanSearch() {
 function renderKanbanFilterBar() {
   const bar=document.getElementById('kanbanFilterBar');if(!bar)return;
   if(!isGestorOrAdmin()){bar.style.display='none';return;}
-  const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const brokers=[...new Set([...getBrokersDoUsuario(),...getLeadsDoUsuario().map(l=>l.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   const leads=getKanbanContacts({broker:'todos'});
   bar.style.display='flex';
   bar.innerHTML='<label class="kanban-filter-label" for="kanbanBrokerSelect">Corretor</label><select id="kanbanBrokerSelect" class="form-input kanban-filter-select" aria-label="Filtrar Kanban por corretor ou equipe">'+['todos',...brokers].map(b=>{
@@ -3154,7 +3259,7 @@ function openNewDeal(id){
  const enterprises=Array.from(new Set(APP.empreendimentos||[]));
  document.getElementById('newDealEnterprise').innerHTML='<option value="">Selecione o empreendimento</option>'+enterprises.map(e=>`<option value="${agentEscape(e)}">${agentEscape(e)}</option>`).join('');
  document.getElementById('newDealEnterprise').value='';
- document.getElementById('newDealBroker').innerHTML=APP.brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
+ document.getElementById('newDealBroker').innerHTML=getBrokersDoUsuario().map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
  document.getElementById('newDealBroker').value=isGestorOrAdmin()?lead.corretor:APP.user?.corretor_ref;
  document.getElementById('newDealBrokerField').style.display=isGestorOrAdmin()?'':'none';
  document.getElementById('newDealStage').innerHTML=APP.stages.map(s=>`<option value="${agentEscape(s.id)}">${agentEscape(s.label)}</option>`).join('');document.getElementById('newDealStage').value=APP.stages.some(s=>s.id==='novo')?'novo':APP.stages[0]?.id||'';
@@ -3493,7 +3598,7 @@ function openLeadDetail(id) {
         <span id="corretorLabel_${lead.id}">${lead.corretor||'—'}</span>
         <select onchange="changeLeadCorretor('${lead.id}',this.value)" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 8px;color:var(--text-secondary);font-size:11px;cursor:pointer">
           <option value="">Mudar corretor...</option>
-          ${APP.brokers.map(b=>`<option value="${b}" ${lead.corretor===b?'selected':''}>${b}</option>`).join('')}
+          ${getBrokersDoUsuario().map(b=>`<option value="${b}" ${lead.corretor===b?'selected':''}>${b}</option>`).join('')}
         </select>
       </div>
     </div>
@@ -3846,7 +3951,7 @@ function extrairLead(msg) {
 
   // Corretor
   let corretor = '';
-  for (const b of APP.brokers) {
+  for (const b of getBrokersDoUsuario()) {
     if (textoLower.includes(b.toLowerCase())) {
       corretor = b;
       break;
@@ -4643,7 +4748,7 @@ function renderBrokerFilterBar() {
   }
 
   bar.style.display = 'flex';
-  const brokers = ['todos', ...APP.brokers];
+  const brokers = ['todos', ...getBrokersDoUsuario()];
   bar.innerHTML = `<span class="broker-filter-label">Corretor:</span>` +
     brokers.map(b => `
       <button class="bfbtn ${activeBrokerFilter===b?'active':''}" onclick="setBrokerFilter('${b}')">
@@ -4777,7 +4882,7 @@ function agendaSelectedBroker() {
   if (!isGestorOrAdmin()) { filter.parentElement.style.display = 'none'; return APP.user?.corretor_ref || ''; }
   filter.parentElement.style.display = 'flex';
   const current = filter.value;
-  const brokers = [...new Set([...APP.brokers, ...APP.leads.map(l=>l.corretor), ...APP.tasks.map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const brokers = [...new Set([...getBrokersDoUsuario(), ...getLeadsDoUsuario().map(l=>l.corretor), ...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   filter.innerHTML = '<option value="">Todos</option>' + brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
   filter.value = current;
   return filter.value;
@@ -5007,7 +5112,7 @@ function deleteTask(id) {
 
 // -- TEAM --
 function renderTeam() {
-  const brokers = APP.brokers;
+  const brokers = isAdmin() ? APP.brokers : getBrokersDoUsuario();
   const grid = document.getElementById('teamGrid');
 
   const stats = brokers.map(b => ({
@@ -5067,7 +5172,7 @@ function renderBrokerSelects() {
       const cur = sel.value;
       sel.disabled = false;
       sel.style.opacity = '1';
-      sel.innerHTML = '<option value="">Selecione...</option>' + APP.brokers.map(b => `<option value="${b}">${b}</option>`).join('');
+      sel.innerHTML = '<option value="">Selecione...</option>' + getBrokersDoUsuario().map(b => `<option value="${b}">${b}</option>`).join('');
       sel.value = cur;
     }
   });
@@ -5240,7 +5345,7 @@ function abrirEdicaoLead(id) {
   if (isGestorOrAdmin()) {
     corretorField.style.display = 'block';
     corretorSel.innerHTML = '<option value="">Selecione...</option>' +
-      APP.brokers.map(b => `<option value="${b}" ${lead.corretor === b ? 'selected' : ''}>${b}</option>`).join('');
+      getBrokersDoUsuario().map(b => `<option value="${b}" ${lead.corretor === b ? 'selected' : ''}>${b}</option>`).join('');
   } else {
     corretorField.style.display = 'none';
   }
