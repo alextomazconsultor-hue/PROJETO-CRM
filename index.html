@@ -1386,26 +1386,10 @@ CREATE TABLE historico (
             <select class="form-input" id="uPerfil">
               <option value="corretor">👤 Corretor</option>
               <option value="gestor">👑 Gestor</option>
-              <option value="subadmin">🛡️ Sub-adm</option>
             </select>
             <button class="btn btn-primary btn-sm" onclick="criarUsuario()" style="height:38px">Criar usuário</button>
           </div>
           <div id="usuariosList"></div>
-          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
-            <div class="settings-title">Equipe autorizada dos Sub-adms</div>
-            <div class="settings-desc">Escolha um Sub-adm e os corretores cujos leads ele poderá gerenciar no CRM.</div>
-            <select class="form-input" id="subadminScopeSelector" onchange="renderSubadminScopeEditor()" style="margin-bottom:10px"></select>
-            <div id="subadminScopeEditor"></div>
-            <button class="btn btn-primary btn-sm" onclick="saveSubadminScope()" style="margin-top:10px">Salvar equipe do Sub-adm</button>
-          </div>
-            <div class="settings-title">Promoção a administrador</div>
-            <div class="settings-desc">Promoção de usuários a administrador é restrita ao administrador do sistema.</div>
-          </div>
-        </div>
-        <div class="settings-section" id="sectionSubadminPromote" style="display:none">
-          <div class="settings-title">👥 Sua equipe autorizada</div>
-          <div class="settings-desc">Você pode gerenciar leads e atividades destes corretores.</div>
-          <div id="subadminPromoteList"></div>
         </div>
       </div>
     </div>
@@ -1421,11 +1405,6 @@ const APP = {
   brokers: ['Alex','Leide','Eliane'],
   empreendimentos: [],
   usuarios: [],
-  subadminAuthorizedIds: [],
-  subadminTargetUsers: [],
-  subadminManagedUsers: [],
-  subadminManagedBrokers: [],
-  subadminManagedUsersBySubadmin: {},
   currentLead: null,
   statusFilter: 'all',
   supabase: null,
@@ -1651,7 +1630,6 @@ async function loadBrokersFromSB() {
     if (error) { console.error('loadBrokersFromSB erro:', error); return; }
     if (data && data.length > 0) {
       APP.brokers = data.map(b => b.nome);
-      if (APP.user?.perfil === 'subadmin') APP.brokers = APP.brokers.filter(nome => APP.subadminManagedBrokers.includes(nome));
       saveToLocal();
       renderBrokerList();
       renderBrokerSelects();
@@ -1968,103 +1946,8 @@ async function carregarUsuarios() {
   if (error) { console.error('carregarUsuarios erro:', error); return; }
   APP.usuarios = data || [];
   renderUsuariosList();
-  if (APP.user?.perfil === 'admin') { await loadSubadminAuthorizationEditor(); await loadSubadminScopeAssignments(); }
 }
 
-async function loadSubadminAuthorizationEditor() {
-  if (APP.user?.perfil !== 'admin' || !APP.supabase || !APP.sbConnected) return;
-  const { data, error } = await APP.supabase.from('subadmin_authorized_users').select('target_user_id');
-  if (error) { console.error('Erro ao carregar lista autorizada:', error); return; }
-  APP.subadminAuthorizedIds = (data || []).map(row => row.target_user_id);
-  renderSubadminAuthorizationEditor();
-}
-
-async function loadSubadminScopeAssignments() {
-  if (APP.user?.perfil !== 'admin' || !APP.supabase || !APP.sbConnected) return;
-  const { data, error } = await APP.supabase.from('subadmin_managed_users').select('subadmin_user_id,managed_user_id');
-  if (error) { console.error('Erro ao carregar equipes dos Sub-adms:', error); return; }
-  APP.subadminManagedUsersBySubadmin = {};
-  (data || []).forEach(row => { (APP.subadminManagedUsersBySubadmin[row.subadmin_user_id] ||= []).push(row.managed_user_id); });
-  renderSubadminScopeEditor();
-}
-
-function renderSubadminScopeEditor() {
-  const selector = document.getElementById('subadminScopeSelector'); const el = document.getElementById('subadminScopeEditor');
-  if (!selector || !el) return;
-  const previous = selector.value;
-  const subs = APP.usuarios.filter(user => user.perfil === 'subadmin');
-  selector.innerHTML = '<option value="">Selecione um Sub-adm...</option>' + subs.map(user => '<option value="' + user.id + '">' + user.nome + '</option>').join('');
-  if (subs.some(user => user.id === previous)) selector.value = previous;
-  el.replaceChildren();
-  const subId = selector.value;
-  if (!subId) { el.textContent = 'Cadastre ou selecione um Sub-adm para configurar a equipe.'; return; }
-  const brokerNames = new Set(APP.brokers);
-  const brokers = APP.usuarios.filter(user => brokerNames.has(user.corretor_ref || user.nome));
-  if (!brokers.length) { el.textContent = 'Nenhum corretor cadastrado.'; return; }
-  brokers.forEach(user => { const label = document.createElement('label'); label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px'; const input = document.createElement('input'); input.type = 'checkbox'; input.value = user.id; input.checked = (APP.subadminManagedUsersBySubadmin[subId] || []).includes(user.id); const name = document.createElement('span'); name.textContent = user.nome; label.append(input, name); el.appendChild(label); });
-}
-
-async function saveSubadminScope() {
-  if (APP.user?.perfil !== 'admin' || !APP.supabase || !APP.sbConnected) { toast('Apenas um admin conectado pode configurar equipes', 'error'); return; }
-  const subId = document.getElementById('subadminScopeSelector')?.value;
-  if (!subId) { toast('Selecione um Sub-adm', 'error'); return; }
-  const ids = [...document.querySelectorAll('#subadminScopeEditor input[type="checkbox"]:checked')].map(input => input.value);
-  const { error } = await APP.supabase.rpc('admin_set_subadmin_managed_users', { p_subadmin_user_id: subId, p_managed_user_ids: ids });
-  if (error) { console.error('Erro ao salvar equipe do Sub-adm:', error); toast('Não foi possível salvar a equipe', 'error'); return; }
-  APP.subadminManagedUsersBySubadmin[subId] = ids; toast('Equipe autorizada salva', 'success');
-}
-
-function renderSubadminAuthorizationEditor() {
-  const el = document.getElementById('subadminAuthorizationEditor');
-  if (!el) return;
-  el.replaceChildren();
-  const targets = APP.usuarios.filter(user => !['admin', 'subadmin'].includes(user.perfil));
-  if (!targets.length) { el.textContent = 'Cadastre usuários para montar a lista.'; return; }
-  targets.forEach(user => {
-    const label = document.createElement('label'); label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px';
-    const input = document.createElement('input'); input.type = 'checkbox'; input.value = user.id; input.checked = APP.subadminAuthorizedIds.includes(user.id);
-    const name = document.createElement('span'); name.textContent = user.nome;
-    const role = document.createElement('span'); role.textContent = '(' + user.perfil + ')'; role.style.color = 'var(--text-muted)';
-    label.append(input, name, role); el.appendChild(label);
-  });
-}
-
-async function saveSubadminAuthorizations() {
-  if (APP.user?.perfil !== 'admin' || !APP.supabase || !APP.sbConnected) { toast('Apenas um admin conectado pode alterar a lista', 'error'); return; }
-  const ids = [...document.querySelectorAll('#subadminAuthorizationEditor input[type="checkbox"]:checked')].map(input => input.value);
-  const { error } = await APP.supabase.rpc('admin_set_subadmin_authorizations', { p_target_user_ids: ids });
-  if (error) { console.error('Erro ao salvar autorizações:', error); toast('Não foi possível salvar a lista autorizada', 'error'); return; }
-  APP.subadminAuthorizedIds = ids; toast('Lista de promoção salva', 'success');
-}
-
-async function loadSubadminManagedUsers() {
-  if (APP.user?.perfil !== 'subadmin' || !APP.supabase || !APP.sbConnected) return;
-  const { data, error } = await APP.supabase.rpc('subadmin_list_managed_users');
-  if (error) { console.error('Erro ao carregar equipe autorizada:', error); return; }
-  APP.subadminManagedUsers = data || [];
-  APP.subadminManagedBrokers = APP.subadminManagedUsers.map(user => user.corretor_ref || user.nome);
-  renderSubadminManagedUsers();
-}
-
-function renderSubadminManagedUsers() {
-  const el = document.getElementById('subadminPromoteList'); if (!el) return; el.replaceChildren();
-  if (!APP.subadminManagedUsers.length) { el.textContent = 'Nenhum corretor foi autorizado pelo administrador.'; return; }
-  APP.subadminManagedUsers.forEach(user => { const row = document.createElement('div'); row.style.cssText = 'padding:9px 0;border-bottom:1px solid var(--border)'; row.textContent = user.nome + ' · Corretor'; el.appendChild(row); });
-}
-
-function renderSubadminPromotableUsers() {
-  const el = document.getElementById('subadminPromoteList'); if (!el) return; el.replaceChildren();
-  if (!APP.subadminTargetUsers.length) { el.textContent = 'Nenhum usuário foi liberado para promoção.'; return; }
-  APP.subadminTargetUsers.forEach(user => {
-    const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)';
-    const details = document.createElement('div'); const name = document.createElement('strong'); name.textContent = user.nome;
-    const meta = document.createElement('div'); meta.style.cssText = 'font-size:12px;color:var(--text-muted)'; meta.textContent = user.email + ' · ' + user.perfil; details.append(name, meta);
-    const button = document.createElement('button'); button.className = 'btn btn-primary btn-sm'; button.textContent = 'Tornar admin'; button.addEventListener('click', () => promoteAuthorizedUser(user.id));
-    row.append(details, button); el.appendChild(row);
-  });
-}
-
-async function promoteAuthorizedUser() { toast('Este perfil gerencia leads autorizados e não pode promover usuários.', 'error'); }
 function renderUsuariosList() {
   const el = document.getElementById('usuariosList');
   if (!el) return;
@@ -2072,9 +1955,9 @@ function renderUsuariosList() {
     el.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Nenhum usuário cadastrado ainda.</div>';
     return;
   }
-  const perfilIcons = { admin: '👑', gestor: '🔑', subadmin: '🛡️', corretor: '👤' };
-  const perfilColors = { admin: 'rgba(245,158,11,0.15)', gestor: 'rgba(168,85,247,0.15)', subadmin: 'rgba(20,184,166,0.15)', corretor: 'rgba(139,92,246,0.15)' };
-  const perfilTextColors = { admin: '#f59e0b', gestor: '#a855f7', subadmin: '#14b8a6', corretor: '#8b5cf6' };
+  const perfilIcons = { admin: '👑', gestor: '🔑', corretor: '👤' };
+  const perfilColors = { admin: 'rgba(245,158,11,0.15)', gestor: 'rgba(168,85,247,0.15)', corretor: 'rgba(139,92,246,0.15)' };
+  const perfilTextColors = { admin: '#f59e0b', gestor: '#a855f7', corretor: '#8b5cf6' };
   el.innerHTML = `
     <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px">
       <thead>
@@ -2092,7 +1975,7 @@ function renderUsuariosList() {
           <td style="padding:8px 12px;color:var(--text-muted)">${u.email}</td>
           <td style="padding:8px 12px">
             <span style="background:${perfilColors[u.perfil]||perfilColors.corretor};color:${perfilTextColors[u.perfil]||perfilTextColors.corretor};padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600">
-              ${{admin:'Admin',gestor:'Gestor',subadmin:'Sub-adm',corretor:'Corretor'}[u.perfil]||'Corretor'}
+              ${{admin:'Admin',gestor:'Gestor',corretor:'Corretor'}[u.perfil]||'Corretor'}
             </span>
           </td>
           <td style="padding:8px 12px">
@@ -2102,7 +1985,6 @@ function renderUsuariosList() {
               <option value="">Mudar perfil...</option>
               <option value="admin" ${u.perfil==='admin'?'selected':''}>👑 Admin</option>
               <option value="gestor" ${u.perfil==='gestor'?'selected':''}>🔑 Gestor</option>
-              <option value="subadmin" ${u.perfil==='subadmin'?'selected':''}>🛡️ Sub-adm</option>
               <option value="corretor" ${u.perfil==='corretor'?'selected':''}>👤 Corretor</option>
             </select>
             <button onclick="apagarUsuario('${u.id}','${u.nome}')" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#f87171;font-size:11px;padding:3px 8px;cursor:pointer" title="Apagar usuário">🗑️</button>
@@ -2130,8 +2012,7 @@ async function alterarPerfilUsuario(userId, novoPerfil) {
       return;
     }
   }
-  const nomes = { admin: 'Admin', gestor: 'Gestor', subadmin: 'Sub-adm', corretor: 'Corretor' };
-  renderSubadminAuthorizationEditor();
+  const nomes = { admin: 'Admin', gestor: 'Gestor', corretor: 'Corretor' };
   toast(`${usuario.nome} agora é ${nomes[novoPerfil]}!`, 'success');
 }
 
@@ -2153,50 +2034,35 @@ function aplicarPermissoes() {
   const perfil = APP.user?.perfil;
   const isAdmin = perfil === 'admin';
   const isGestor = perfil === 'gestor' || isAdmin;
-  const isSubadmin = perfil === 'subadmin';
   const isCorretor = perfil === 'corretor';
-  const hasManagerWorkspace = isGestor || isSubadmin;
 
-  // Recursos de uso comum ficam visíveis para os perfis da base.
   const navKanban = document.getElementById('navKanban');
   const navMateriais = document.getElementById('navMateriais');
   if (navKanban) navKanban.style.display = 'flex';
   if (navMateriais) navMateriais.style.display = 'flex';
 
-  // Menu — oculta Equipe e Configurações para corretor
-  document.getElementById('navEquipe').style.display = hasManagerWorkspace ? 'flex' : 'none';
-  document.getElementById('navSistema').style.display = (isGestor || isSubadmin) ? 'block' : 'none';
+  document.getElementById('navEquipe').style.display = isGestor ? 'flex' : 'none';
+  document.getElementById('navSistema').style.display = isGestor ? 'block' : 'none';
   document.querySelectorAll('.sidebar-nav > .nav-section').forEach(section => { section.style.display = ''; });
 
-  // Seção de usuários — só admin
   const su = document.getElementById('sectionUsuarios');
   if (su) su.style.display = isAdmin ? 'block' : 'none';
-
-  // Seção Supabase config — só admin
   const sc = document.getElementById('sectionSupabase');
   if (sc) sc.style.display = isAdmin ? 'block' : 'none';
-  document.querySelectorAll('#page-config > .settings-section').forEach(section => { if (isSubadmin) section.style.display = 'none'; });
-  const subadminSection = document.getElementById('sectionSubadminPromote');
-  if (subadminSection) subadminSection.style.display = isSubadmin ? 'block' : 'none';
 
-  // Badge de perfil no sidebar
-  const badges = { admin: '👑 Admin', gestor: '🔑 Gestor', subadmin: '🛡️ Sub-adm', corretor: '👤 Corretor' };
-  const colors = { admin: '#f59e0b', gestor: '#a855f7', subadmin: '#14b8a6', corretor: 'var(--text-muted)' };
+  const badges = { admin: '👑 Admin', gestor: '🔑 Gestor', corretor: '👤 Corretor' };
+  const colors = { admin: '#f59e0b', gestor: '#a855f7', corretor: 'var(--text-muted)' };
   document.getElementById('userRole').textContent = badges[perfil] || '👤 Corretor';
   document.getElementById('userRole').style.color = colors[perfil] || 'var(--text-muted)';
 
-  // Botão editar etapas — só gestor/admin
   const stagesBtn = document.getElementById('editStagesBtn');
   if (stagesBtn) stagesBtn.style.display = isGestor ? 'inline-flex' : 'none';
-
-  // Filtro de corretor no Kanban — corretor: fixo nos próprios leads, sem barra de filtro
   if (isCorretor) {
     APP.kanbanBrokerFilter = APP.user.corretor_ref;
     const fb = document.getElementById('kanbanFilterBar');
     if (fb) fb.style.display = 'none';
   }
 }
-
 
 function showLoginError(msg) {
   const el = document.getElementById('loginError');
@@ -2255,14 +2121,12 @@ async function enterApp() {
       await loadStagesFromSB();
     }
     await loadVipAyraStagesFromSB();
-    if (APP.user?.perfil === 'subadmin') await loadSubadminManagedUsers();
     await loadLeadsFromSB(); // leads depois das etapas e do escopo autorizado
     await loadBrokersFromSB();
     await loadTasksFromSB();
     await loadHistoryFromSB();
     await loadEmpFromSB();
     if (isGestorOrAdmin()) await carregarUsuarios();
-    else if (APP.user?.perfil === 'subadmin') renderSubadminManagedUsers();
     startSbHeartbeat();
   } catch(e) {
     console.error('enterApp Supabase erro:', e);
@@ -2433,17 +2297,13 @@ function refreshAll() {
 
 function isAdmin() { return APP.user?.perfil === 'admin'; }
 function isGestorOrAdmin() { return APP.user?.perfil === 'gestor' || APP.user?.perfil === 'admin'; }
-function hasManagerWorkspace() { return isGestorOrAdmin() || APP.user?.perfil === 'subadmin'; }
-
 function getTasksDoUsuario() {
   if (isGestorOrAdmin()) return APP.tasks;
-  if (APP.user?.perfil === 'subadmin') return APP.tasks.filter(t => APP.subadminManagedBrokers.includes(t.corretor) || APP.subadminManagedBrokers.includes(agendaLeadForTask(t)?.corretor));
   return APP.tasks.filter(t => !t.corretor || t.corretor === APP.user?.corretor_ref);
 }
 
 function getLeadsDoUsuario() {
   if (isGestorOrAdmin()) return APP.leads;
-  if (APP.user?.perfil === 'subadmin') return APP.leads.filter(l => APP.subadminManagedBrokers.includes(l.corretor));
   return APP.leads.filter(l => l.corretor === APP.user?.corretor_ref);
 }
 
@@ -2472,7 +2332,7 @@ async function openExportPDF() {
         todos.push(...(data||[]));
         if(!data||data.length<1000)break;
       }
-      pdfExportLeads=hasManagerWorkspace()?todos.filter(l=>isGestorOrAdmin()||APP.subadminManagedBrokers.includes(l.corretor)):todos.filter(l=>l.corretor===APP.user?.corretor_ref);
+      pdfExportLeads=isGestorOrAdmin()?todos:todos.filter(l=>l.corretor===APP.user?.corretor_ref);
     }else pdfExportLeads=getLeadsDoUsuario();
   }catch(error){
     console.error('Erro ao carregar leads da exportação:',error);
@@ -2669,11 +2529,11 @@ function leadActionBadges(leadId, limit=2) {
 let statusChartInstance = null;
 function renderDashboardFilter() {
   const select=document.getElementById('dashboardBroker');
-  document.getElementById('dashboardFilterBar').style.display=hasManagerWorkspace()?'flex':'none';
+  document.getElementById('dashboardFilterBar').style.display=isGestorOrAdmin()?'flex':'none';
   const current=select.value;
   const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor),...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   select.innerHTML='<option value="">Equipe inteira</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
-  select.value=hasManagerWorkspace()?current:'';
+  select.value=isGestorOrAdmin()?current:'';
 }
 function dashboardDateKey(value){
   const date=new Date(value);if(Number.isNaN(date.getTime()))return '';
@@ -2708,12 +2568,12 @@ function renderDashboardPeriod(){
   hint.style.color=invalid?'var(--danger)':'var(--text-muted)';
 }
 function getDashboardLeads() {
-  const broker=hasManagerWorkspace()?document.getElementById('dashboardBroker')?.value:'';
+  const broker=isGestorOrAdmin()?document.getElementById('dashboardBroker')?.value:'';
   const range=dashboardPeriodRange();
   return getLeadsDoUsuario().filter(l=>(!broker||l.corretor===broker)&&dashboardInPeriod(l.created_at,range));
 }
 function getDashboardScopedTasks() {
-  const manager=hasManagerWorkspace();
+  const manager=isGestorOrAdmin();
   const broker=manager?document.getElementById('dashboardBroker')?.value:APP.user?.corretor_ref;
   return getTasksDoUsuario().filter(t=>manager&&!broker||(t.corretor||agendaLeadForTask(t)?.corretor)===broker);
 }
@@ -2874,7 +2734,7 @@ function filterKanbanContacts(leads,{broker='todos',emp='todos',search='',range=
   return leads.filter(l=>dashboardInPeriod(l.created_at,range)&&(broker==='todos'||l.corretor===broker)&&(emp==='todos'||l.empreendimento===emp)&&(!query||kanbanNormalize(l.nome).includes(nameQuery)||(phoneQuery.length>=4&&String(l.telefone||'').replace(/\D/g,'').endsWith(phoneQuery))));
 }
 function getKanbanContacts(overrides={}) {
-  return filterKanbanContacts(getLeadsDoUsuario(),{broker:hasManagerWorkspace()?APP.kanbanBrokerFilter:APP.user?.corretor_ref,emp:APP.kanbanEmpFilter,search:APP.kanbanSearch,...overrides});
+  return filterKanbanContacts(getLeadsDoUsuario(),{broker:isGestorOrAdmin()?APP.kanbanBrokerFilter:APP.user?.corretor_ref,emp:APP.kanbanEmpFilter,search:APP.kanbanSearch,...overrides});
 }
 function setKanbanSearch(value) {
   APP.kanbanSearch=value;
@@ -2885,7 +2745,7 @@ function clearKanbanSearch() {
 }
 function renderKanbanFilterBar() {
   const bar=document.getElementById('kanbanFilterBar');if(!bar)return;
-  if(!hasManagerWorkspace()){bar.style.display='none';return;}
+  if(!isGestorOrAdmin()){bar.style.display='none';return;}
   const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   const leads=getKanbanContacts({broker:'todos'});
   bar.style.display='flex';
@@ -2896,7 +2756,7 @@ function renderKanbanFilterBar() {
   document.getElementById('kanbanBrokerSelect').addEventListener('change',event=>setKanbanBroker(event.target.value));
 }
 function setKanbanBroker(broker) {
-  if(!hasManagerWorkspace())return;
+  if(!isGestorOrAdmin())return;
   APP.kanbanBrokerFilter=broker;
   renderKanbanFilterBar();renderKanbanEmpFilterBar();renderKanban();
 }
@@ -3295,14 +3155,14 @@ function openNewDeal(id){
  document.getElementById('newDealEnterprise').innerHTML='<option value="">Selecione o empreendimento</option>'+enterprises.map(e=>`<option value="${agentEscape(e)}">${agentEscape(e)}</option>`).join('');
  document.getElementById('newDealEnterprise').value='';
  document.getElementById('newDealBroker').innerHTML=APP.brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
- document.getElementById('newDealBroker').value=hasManagerWorkspace()?lead.corretor:APP.user?.corretor_ref;
- document.getElementById('newDealBrokerField').style.display=hasManagerWorkspace()?'':'none';
+ document.getElementById('newDealBroker').value=isGestorOrAdmin()?lead.corretor:APP.user?.corretor_ref;
+ document.getElementById('newDealBrokerField').style.display=isGestorOrAdmin()?'':'none';
  document.getElementById('newDealStage').innerHTML=APP.stages.map(s=>`<option value="${agentEscape(s.id)}">${agentEscape(s.label)}</option>`).join('');document.getElementById('newDealStage').value=APP.stages.some(s=>s.id==='novo')?'novo':APP.stages[0]?.id||'';
  document.getElementById('newDealValue').value='0';document.getElementById('newDealNote').value='';document.getElementById('newDealSave').disabled=false;openModal('newDealModal');
 }
 async function saveNewDeal(){
  if(newDealState.saving)return;const source=accessibleDeal(newDealState.sourceId);if(!source)return;
- const enterprise=document.getElementById('newDealEnterprise').value,broker=hasManagerWorkspace()?document.getElementById('newDealBroker').value:APP.user?.corretor_ref,stage=document.getElementById('newDealStage').value;
+ const enterprise=document.getElementById('newDealEnterprise').value,broker=isGestorOrAdmin()?document.getElementById('newDealBroker').value:APP.user?.corretor_ref,stage=document.getElementById('newDealStage').value;
  const value=readDealValue('newDealValue');if(value===null)return;
  if(!enterprise||!broker||!stage){toast('Selecione empreendimento, corretor e etapa','error');return;}
  if(!APP.supabase||!APP.sbConnected){toast('Conecte o CRM para criar o negócio','error');return;}
@@ -3548,7 +3408,7 @@ function renderVipAyra() {
   const select=document.getElementById('vipAyraBroker'),current=select.value;
   const brokers=[...new Set(getLeadsDoUsuario().map(lead=>lead.corretor).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   select.innerHTML='<option value="">Todos os corretores</option>'+brokers.map(broker=>`<option value="${agentEscape(broker)}">${agentEscape(broker)}</option>`).join('');
-  select.value=current;select.style.display=hasManagerWorkspace()?'':'none';
+  select.value=current;select.style.display=isGestorOrAdmin()?'':'none';
   const query=document.getElementById('vipAyraSearch').value.trim().toLocaleLowerCase('pt-BR');
   const digits=query.replace(/\D/g,'');
   const allLeads=getLeadsDoUsuario().filter(lead=>lead.vip_ayra_etapa&&(!select.value||lead.corretor===select.value));
@@ -4776,7 +4636,7 @@ function renderBrokerFilterBar() {
   if (!bar) return;
 
   // Corretor não vê o filtro de corretor na tela de leads
-  if (!hasManagerWorkspace()) {
+  if (!isGestorOrAdmin()) {
     bar.style.display = 'none';
     activeBrokerFilter = APP.user?.corretor_ref || 'todos';
     return;
@@ -4914,7 +4774,7 @@ function agendaTasksForLead(lead) {
 }
 function agendaSelectedBroker() {
   const filter = document.getElementById('agendaBrokerFilter');
-  if (!hasManagerWorkspace()) { filter.parentElement.style.display = 'none'; return APP.user?.corretor_ref || ''; }
+  if (!isGestorOrAdmin()) { filter.parentElement.style.display = 'none'; return APP.user?.corretor_ref || ''; }
   filter.parentElement.style.display = 'flex';
   const current = filter.value;
   const brokers = [...new Set([...APP.brokers, ...APP.leads.map(l=>l.corretor), ...APP.tasks.map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
@@ -4996,7 +4856,7 @@ async function saveTask() {
     id: Date.now().toString(),
     titulo,
     lead_rel: selectedLead?.id || leadMatch[0]?.id || leadInput,
-    corretor: hasManagerWorkspace()
+    corretor: isGestorOrAdmin()
       ? document.getElementById('t_corretor').value
       : APP.user?.corretor_ref,
     data_hora: new Date(when).toISOString(),
@@ -5194,7 +5054,7 @@ function renderConfig() {
 }
 
 function renderBrokerSelects() {
-  const isGestor = hasManagerWorkspace();
+  const isGestor = isGestorOrAdmin();
   ['f_corretor','t_corretor'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -5377,7 +5237,7 @@ function abrirEdicaoLead(id) {
   // Corretor — só gestor pode mudar
   const corretorField = document.getElementById('editCorretorField');
   const corretorSel = document.getElementById('e_corretor');
-  if (hasManagerWorkspace()) {
+  if (isGestorOrAdmin()) {
     corretorField.style.display = 'block';
     corretorSel.innerHTML = '<option value="">Selecione...</option>' +
       APP.brokers.map(b => `<option value="${b}" ${lead.corretor === b ? 'selected' : ''}>${b}</option>`).join('');
@@ -5411,7 +5271,7 @@ async function salvarEdicaoLead() {
     observacoes: document.getElementById('e_observacoes').value,
     status: document.getElementById('e_status').value,
   };
-  if (hasManagerWorkspace()) {
+  if (isGestorOrAdmin()) {
     updates.corretor = document.getElementById('e_corretor').value;
   }
 
@@ -5439,7 +5299,7 @@ function openModal(id) {
   }
   if (id === 'addTaskModal') {
     const field = document.getElementById('taskCorretorField');
-    if (field) field.style.display = hasManagerWorkspace() ? 'block' : 'none';
+    if (field) field.style.display = isGestorOrAdmin() ? 'block' : 'none';
     document.getElementById('agendaLeadOptions').innerHTML = getLeadsDoUsuario().map(l => `<option value="${agentEscape(l.nome)}" label="${agentEscape(l.empreendimento||'')}"></option>`).join('');
   }
 }
