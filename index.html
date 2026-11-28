@@ -2160,7 +2160,8 @@ async function enterApp() {
 
   updateSbStatus();
   refreshAll();
-  document.getElementById('setupBanner').style.display = 'block';
+  const setupBanner = document.getElementById('setupBanner');
+  if (setupBanner) setupBanner.style.display = 'block';
 }
 
 // -- LOCAL STORAGE --
@@ -2827,7 +2828,8 @@ function renderKanban() {
   periodHint.textContent=invalidPeriod?'A data inicial deve ser anterior à data final.':'Período pela data de cadastro dos leads.';
   periodHint.style.color=invalidPeriod?'var(--danger)':'var(--text-muted)';
   const priorityNow=Date.now(),priorityTasks=kanbanTaskIndex(getLeadsDoUsuario(),getTasksDoUsuario());
-  document.getElementById('sequenceManagerBtn').style.display=isGestorOrAdmin()?'':'none';
+  const sequenceManagerBtn=document.getElementById('sequenceManagerBtn');
+  if(sequenceManagerBtn) sequenceManagerBtn.style.display=isGestorOrAdmin()?'':'none';
   const searchInput=document.getElementById('kanbanContactSearch');
   if(searchInput.value!==APP.kanbanSearch)searchInput.value=APP.kanbanSearch||'';
   document.getElementById('kanbanSearchStatus').textContent=APP.kanbanSearch?.trim() ? (filteredLeads.length ? `${filteredLeads.length} contato(s) encontrado(s) nos filtros selecionados` : 'Nenhum contato encontrado. Confira a busca e os filtros de corretor, empreendimento e período.') : '';
