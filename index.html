@@ -1118,17 +1118,31 @@ CREATE TABLE historico (
           Leads
           <span class="nav-badge" id="leadsCount">0</span>
         </div>
-        <div class="nav-item" id="navKanban" onclick="showPage('kanban',this)">
+        <div class="nav-item" onclick="showPage('kanban',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
           Pipeline Kanban
+        </div>
+        <div class="nav-item" onclick="showPage('vipayra',this)">
+          <span style="font-size:17px">⭐</span> Grupo VIP AYRA
         </div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Gestão</div>
-        <div class="nav-item" id="navMateriais" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
+        <div class="nav-item" onclick="showPage('agenda',this)">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Agenda & Follow-up
+          <span class="nav-badge" id="tasksCount">0</span>
+        </div>
+        <div class="nav-item" onclick="showPage('site',this)"><span style="font-size:17px">🌐</span> Site Exclusive</div>
+        <div class="nav-item" onclick="showPage('materiais',this)"><span style="font-size:17px">📁</span> Material de apoio</div>
         <div class="nav-item" onclick="showPage('simulador',this)">
           <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="17" y2="16"/></svg>
           Simulador de Fluxo
+        </div>
+        <div class="nav-item" onclick="showAssistant()" style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(168,85,247,0.1));border:1px solid rgba(124,58,237,0.4);margin-top:4px">
+          <span style="font-size:16px">🤖</span>
+          Agente IA
+          <span style="margin-left:auto;font-size:9px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:2px 7px;border-radius:99px;font-weight:700">NOVO</span>
         </div>
         <div class="nav-item" id="navEquipe" onclick="showPage('equipe',this)">
           <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -1177,6 +1191,10 @@ CREATE TABLE historico (
           <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Novo Lead
         </button>
+        <button onclick="showAssistant()" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:99px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 0 20px rgba(124,58,237,0.4);transition:all .2s" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 30px rgba(124,58,237,0.6)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 20px rgba(124,58,237,0.4)'">
+          <span style="font-size:16px">🤖</span>
+          <span class="agent-btn-text">Agente IA</span>
+        </button>
         <button class="btn btn-secondary" id="exportCsvBtn" onclick="openExportPDF()" style="display:none" title="Escolher filtros e baixar lista em PDF">
           <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Exportar PDF
@@ -1195,7 +1213,7 @@ CREATE TABLE historico (
         <div class="dashboard-toolbar">
           <div class="dashboard-scope" id="dashboardFilterBar"><label for="dashboardBroker">Visão da equipe</label><select class="form-input" id="dashboardBroker" onchange="renderDashboard()"></select></div>
           <span class="dashboard-date" id="dashboardDate"></span>
-          <div class="dashboard-quick-actions"><button class="btn btn-primary" onclick="openModal('addLeadModal')">+ Novo lead</button><button class="btn btn-secondary" onclick="dashboardNavigate('kanban')">Abrir Kanban</button></div>
+          <div class="dashboard-quick-actions"><button class="btn btn-primary" onclick="openModal('addLeadModal')">+ Novo lead</button><button class="btn btn-secondary" onclick="openModal('addTaskModal')">+ Agendar retorno</button><button class="btn btn-secondary" onclick="dashboardNavigate('kanban')">Abrir Kanban</button></div>
         </div>
         <div class="dashboard-period-bar">
           <label for="dashboardPeriod">Período</label><select class="form-input" id="dashboardPeriod" onchange="setDashboardPeriod(this.value)"><option value="all">Todo o período</option><option value="today">Hoje</option><option value="7days">Últimos 7 dias</option><option value="30days">Últimos 30 dias</option><option value="month">Este mês</option><option value="custom">Personalizado</option></select>
@@ -1209,7 +1227,7 @@ CREATE TABLE historico (
           <div class="metric-card blue"><div class="metric-label">VGV em negociação</div><div class="metric-value dashboard-vgv" id="m-vgv">R$ 0,00</div><div class="metric-change">Valores dos leads ativos</div><div class="metric-icon">💰</div></div>
         </div>
         <div class="alerts-panel" id="alertsPanel"></div>
-        <div class="dashboard-upcoming" id="dashboardUpcoming" style="display:none"></div>
+        <div class="dashboard-upcoming" id="dashboardUpcoming"></div>
         <div class="dashboard-grid">
           <div class="chart-card">
             <div class="chart-title">Leads por Status<span class="subtitle">Distribuição atual</span></div>
@@ -1270,6 +1288,7 @@ CREATE TABLE historico (
                 <label for="kanbanEnd">Até</label><input class="form-input" type="date" id="kanbanEnd" onchange="updateKanbanPeriod()" aria-label="Data final de cadastro">
               </div>
             </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="sequenceManagerBtn" onclick="openSequenceManager()">Sequências de Follow-up</button>
           </div>
           <div id="kanbanPeriodHint" role="status" aria-live="polite"></div>
           <div id="kanbanSearchStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--text-muted);flex-shrink:0"></div>
@@ -1390,13 +1409,6 @@ CREATE TABLE historico (
             <button class="btn btn-primary btn-sm" onclick="criarUsuario()" style="height:38px">Criar usuário</button>
           </div>
           <div id="usuariosList"></div>
-          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
-            <div class="settings-title">Corretores autorizados por gestor</div>
-            <div class="settings-desc">O gestor poderá acompanhar somente os leads dos corretores selecionados pelo Admin.</div>
-            <select class="form-input" id="gestorScopeSelector" onchange="renderGestorScopeEditor()" style="margin-bottom:10px"></select>
-            <div id="gestorScopeEditor"></div>
-            <button class="btn btn-primary btn-sm" onclick="saveGestorScope()" style="margin-top:10px">Salvar autorização do gestor</button>
-          </div>
         </div>
       </div>
     </div>
@@ -1412,8 +1424,6 @@ const APP = {
   brokers: ['Alex','Leide','Eliane'],
   empreendimentos: [],
   usuarios: [],
-  gestorManagedBrokers: [],
-  gestorManagedBrokersByGestor: {},
   currentLead: null,
   statusFilter: 'all',
   supabase: null,
@@ -1950,93 +1960,11 @@ async function criarUsuario() {
 }
 
 async function carregarUsuarios() {
-  if (!APP.supabase || !APP.sbConnected || !isAdmin()) return;
+  if (!APP.supabase || !APP.sbConnected) return;
   const { data, error } = await APP.supabase.from('usuarios').select('*').order('nome');
   if (error) { console.error('carregarUsuarios erro:', error); return; }
   APP.usuarios = data || [];
   renderUsuariosList();
-  await loadGestorScopeAssignments();
-}
-
-async function loadGestorScopeAssignments() {
-  if (!isAdmin() || !APP.supabase || !APP.sbConnected) return;
-  const { data, error } = await APP.supabase.from('gestor_managed_brokers').select('gestor_user_id,broker_name');
-  if (error) { console.error('Erro ao carregar corretores autorizados por gestor:', error); return; }
-  APP.gestorManagedBrokersByGestor = {};
-  (data || []).forEach(row => {
-    (APP.gestorManagedBrokersByGestor[row.gestor_user_id] ||= []).push(row.broker_name);
-  });
-  renderGestorScopeEditor();
-}
-
-function renderGestorScopeEditor() {
-  const selector = document.getElementById('gestorScopeSelector');
-  const editor = document.getElementById('gestorScopeEditor');
-  if (!selector || !editor) return;
-  const previous = selector.value;
-  const managers = APP.usuarios.filter(user => user.perfil === 'gestor');
-  selector.replaceChildren(new Option('Selecione um gestor...', ''));
-  managers.forEach(user => selector.add(new Option(user.nome, user.id)));
-  if (managers.some(user => user.id === previous)) selector.value = previous;
-  editor.replaceChildren();
-  if (!selector.value) {
-    editor.textContent = managers.length ? 'Selecione um gestor para definir os corretores autorizados.' : 'Cadastre um usuário com perfil Gestor para configurar as autorizações.';
-    return;
-  }
-  const brokers = [...new Set(APP.brokers)].sort((a,b) => a.localeCompare(b,'pt-BR'));
-  if (!brokers.length) {
-    editor.textContent = 'Cadastre os corretores antes de autorizar o gestor.';
-    return;
-  }
-  const authorized = APP.gestorManagedBrokersByGestor[selector.value] || [];
-  brokers.forEach(broker => {
-    const label = document.createElement('label');
-    label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px';
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.value = broker;
-    input.checked = authorized.includes(broker);
-    const name = document.createElement('span');
-    name.textContent = broker;
-    label.append(input, name);
-    editor.appendChild(label);
-  });
-}
-
-async function saveGestorScope() {
-  if (!isAdmin() || !APP.supabase || !APP.sbConnected) {
-    toast('Somente o Admin conectado pode autorizar corretores para gestores.', 'error');
-    return;
-  }
-  const gestorId = document.getElementById('gestorScopeSelector')?.value;
-  if (!gestorId) {
-    toast('Selecione um gestor.', 'error');
-    return;
-  }
-  const brokerNames = [...document.querySelectorAll('#gestorScopeEditor input[type="checkbox"]:checked')].map(input => input.value);
-  const { error } = await APP.supabase.rpc('admin_set_gestor_managed_brokers', {
-    p_gestor_user_id: gestorId,
-    p_broker_names: brokerNames
-  });
-  if (error) {
-    console.error('Erro ao salvar autorização do gestor:', error);
-    toast('Não foi possível salvar as autorizações.', 'error');
-    return;
-  }
-  APP.gestorManagedBrokersByGestor[gestorId] = brokerNames;
-  renderGestorScopeEditor();
-  toast('Corretores autorizados para o gestor.', 'success');
-}
-
-async function loadGestorManagedBrokers() {
-  if (APP.user?.perfil !== 'gestor' || !APP.supabase || !APP.sbConnected) return;
-  const { data, error } = await APP.supabase.rpc('gestor_list_managed_brokers');
-  if (error) {
-    console.error('Erro ao carregar corretores autorizados:', error);
-    APP.gestorManagedBrokers = [];
-    return;
-  }
-  APP.gestorManagedBrokers = (data || []).map(row => row.broker_name).filter(Boolean);
 }
 
 function renderUsuariosList() {
@@ -2103,7 +2031,6 @@ async function alterarPerfilUsuario(userId, novoPerfil) {
       return;
     }
   }
-  if (isAdmin()) await carregarUsuarios();
   const nomes = { admin: 'Admin', gestor: 'Gestor', corretor: 'Corretor' };
   toast(`${usuario.nome} agora é ${nomes[novoPerfil]}!`, 'success');
 }
@@ -2128,33 +2055,36 @@ function aplicarPermissoes() {
   const isGestor = perfil === 'gestor' || isAdmin;
   const isCorretor = perfil === 'corretor';
 
-  const navKanban = document.getElementById('navKanban');
-  const navMateriais = document.getElementById('navMateriais');
-  if (navKanban) navKanban.style.display = 'flex';
-  if (navMateriais) navMateriais.style.display = 'flex';
-
+  // Menu — oculta Equipe e Configurações para corretor
   document.getElementById('navEquipe').style.display = isGestor ? 'flex' : 'none';
   document.getElementById('navSistema').style.display = isGestor ? 'block' : 'none';
-  document.querySelectorAll('.sidebar-nav > .nav-section').forEach(section => { section.style.display = ''; });
 
+  // Seção de usuários — só admin
   const su = document.getElementById('sectionUsuarios');
   if (su) su.style.display = isAdmin ? 'block' : 'none';
+
+  // Seção Supabase config — só admin
   const sc = document.getElementById('sectionSupabase');
   if (sc) sc.style.display = isAdmin ? 'block' : 'none';
 
+  // Badge de perfil no sidebar
   const badges = { admin: '👑 Admin', gestor: '🔑 Gestor', corretor: '👤 Corretor' };
   const colors = { admin: '#f59e0b', gestor: '#a855f7', corretor: 'var(--text-muted)' };
   document.getElementById('userRole').textContent = badges[perfil] || '👤 Corretor';
   document.getElementById('userRole').style.color = colors[perfil] || 'var(--text-muted)';
 
+  // Botão editar etapas — só gestor/admin
   const stagesBtn = document.getElementById('editStagesBtn');
   if (stagesBtn) stagesBtn.style.display = isGestor ? 'inline-flex' : 'none';
+
+  // Filtro de corretor no Kanban — corretor: fixo nos próprios leads, sem barra de filtro
   if (isCorretor) {
     APP.kanbanBrokerFilter = APP.user.corretor_ref;
     const fb = document.getElementById('kanbanFilterBar');
     if (fb) fb.style.display = 'none';
   }
 }
+
 
 function showLoginError(msg) {
   const el = document.getElementById('loginError');
@@ -2195,15 +2125,6 @@ async function enterApp() {
 
   // Carrega localStorage primeiro como cache/fallback
   loadFromLocalStorage();
-  // Remove dados locais possivelmente carregados antes do escopo restrito do gestor.
-  if (APP.user?.perfil === 'gestor') {
-    APP.leads = [];
-    APP.tasks = [];
-    APP.history = {};
-    localStorage.removeItem('3ps_leads');
-    localStorage.removeItem('3ps_tasks');
-    localStorage.removeItem('3ps_history');
-  }
 
   // Conectar Supabase e AGUARDAR o SELECT antes de continuar
   APP.sbUrl = SB_URL;
@@ -2222,13 +2143,12 @@ async function enterApp() {
       await loadStagesFromSB();
     }
     await loadVipAyraStagesFromSB();
+    await loadLeadsFromSB(); // leads depois das etapas
     await loadBrokersFromSB();
-    if (isAdmin()) await carregarUsuarios();
-    else if (APP.user?.perfil === 'gestor') await loadGestorManagedBrokers();
-    await loadLeadsFromSB(); // aplica o escopo autorizado pelo banco
     await loadTasksFromSB();
     await loadHistoryFromSB();
     await loadEmpFromSB();
+    if (isGestorOrAdmin()) await carregarUsuarios();
     startSbHeartbeat();
   } catch(e) {
     console.error('enterApp Supabase erro:', e);
@@ -2314,9 +2234,7 @@ function clearData() {
 }
 
 // -- PAGES --
-const DISABLED_CRM_MODULES = Object.freeze({assistant:true,vipayra:true,agenda:true,site:true});
 function showPage(name, el) {
-  if (DISABLED_CRM_MODULES[name]) return;
   document.querySelector('.content').classList.toggle('kanban-expanded',name==='kanban');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
@@ -2399,25 +2317,14 @@ function refreshAll() {
 
 function isAdmin() { return APP.user?.perfil === 'admin'; }
 function isGestorOrAdmin() { return APP.user?.perfil === 'gestor' || APP.user?.perfil === 'admin'; }
-function getBrokersDoUsuario() {
-  if (isAdmin()) return APP.brokers;
-  if (APP.user?.perfil === 'gestor') return APP.gestorManagedBrokers;
-  return APP.user?.perfil === 'corretor' && APP.user?.corretor_ref ? [APP.user.corretor_ref] : [];
-}
-
-function gestorCanAccessBroker(broker) {
-  return APP.user?.perfil === 'gestor' && APP.gestorManagedBrokers.includes(broker);
-}
 
 function getTasksDoUsuario() {
-  if (isAdmin()) return APP.tasks;
-  if (APP.user?.perfil === 'gestor') return APP.tasks.filter(t => gestorCanAccessBroker(t.corretor) || gestorCanAccessBroker(agendaLeadForTask(t)?.corretor));
+  if (isGestorOrAdmin()) return APP.tasks;
   return APP.tasks.filter(t => !t.corretor || t.corretor === APP.user?.corretor_ref);
 }
 
 function getLeadsDoUsuario() {
-  if (isAdmin()) return APP.leads;
-  if (APP.user?.perfil === 'gestor') return APP.leads.filter(l => gestorCanAccessBroker(l.corretor));
+  if (isGestorOrAdmin()) return APP.leads;
   return APP.leads.filter(l => l.corretor === APP.user?.corretor_ref);
 }
 
@@ -2425,8 +2332,7 @@ function updateBadges() {
   const leads = getLeadsDoUsuario();
   const tasks = getTasksDoUsuario();
   document.getElementById('leadsCount').textContent = leads.filter(l => l.status !== 'fechada' && l.status !== 'perdido').length;
-  const tasksCount = document.getElementById('tasksCount');
-  if (tasksCount) tasksCount.textContent = tasks.filter(t => !t.concluida).length;
+  document.getElementById('tasksCount').textContent = tasks.filter(t => !t.concluida).length;
 }
 
 // -- EXPORTAR LEADS EM PDF --
@@ -2446,7 +2352,7 @@ async function openExportPDF() {
         todos.push(...(data||[]));
         if(!data||data.length<1000)break;
       }
-      pdfExportLeads=isAdmin()?todos:isGestorOrAdmin()?todos.filter(l=>gestorCanAccessBroker(l.corretor)):todos.filter(l=>l.corretor===APP.user?.corretor_ref);
+      pdfExportLeads=isGestorOrAdmin()?todos:todos.filter(l=>l.corretor===APP.user?.corretor_ref);
     }else pdfExportLeads=getLeadsDoUsuario();
   }catch(error){
     console.error('Erro ao carregar leads da exportação:',error);
@@ -2645,7 +2551,7 @@ function renderDashboardFilter() {
   const select=document.getElementById('dashboardBroker');
   document.getElementById('dashboardFilterBar').style.display=isGestorOrAdmin()?'flex':'none';
   const current=select.value;
-  const brokers=[...new Set([...getBrokersDoUsuario(),...getLeadsDoUsuario().map(l=>l.corretor),...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor),...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   select.innerHTML='<option value="">Equipe inteira</option>'+brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
   select.value=isGestorOrAdmin()?current:'';
 }
@@ -2860,7 +2766,7 @@ function clearKanbanSearch() {
 function renderKanbanFilterBar() {
   const bar=document.getElementById('kanbanFilterBar');if(!bar)return;
   if(!isGestorOrAdmin()){bar.style.display='none';return;}
-  const brokers=[...new Set([...getBrokersDoUsuario(),...getLeadsDoUsuario().map(l=>l.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const brokers=[...new Set([...APP.brokers,...getLeadsDoUsuario().map(l=>l.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   const leads=getKanbanContacts({broker:'todos'});
   bar.style.display='flex';
   bar.innerHTML='<label class="kanban-filter-label" for="kanbanBrokerSelect">Corretor</label><select id="kanbanBrokerSelect" class="form-input kanban-filter-select" aria-label="Filtrar Kanban por corretor ou equipe">'+['todos',...brokers].map(b=>{
@@ -2964,7 +2870,10 @@ function renderKanban() {
         <div class="kanban-card kanban-priority-${priority.kind}" draggable="true" data-id="${l.id}" onclick="openLeadDetail('${l.id}')">
           ${priority.kind!=='normal'?`<button type="button" class="kanban-priority-indicator" title="${agentEscape(priority.title)}" aria-label="${agentEscape(priority.title)}" onclick="event.stopPropagation();toast(this.title,\'info\')"></button>`:''}
           <div class="kanban-card-name">${l.nome}</div>
+          ${isFollowupStage(l.status)?`<button type="button" class="btn btn-secondary btn-sm followup-card-button" onclick="event.stopPropagation();openFollowup('${l.id}')">📋 Histórico e sequência</button>`:''}
+          ${isFollowupStage(l.status)?followupCardSummary(l):''}
           <div class="kanban-quick-actions">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();scheduleLeadVisit('${l.id}')">📅 Agendar visita</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openNewDeal('${l.id}')">+ Novo negócio</button>
           </div>
           <div class="kanban-card-value" aria-label="Valor da negociação">${formatDealValue(l.valor_negociacao)}</div>
@@ -3095,7 +3004,6 @@ async function followupFetchAll(table,configure){
   return result;
 }
 async function openFollowup(id){
-  if (DISABLED_CRM_MODULES.agenda) return;
   const lead=followupAccessibleLead(id);if(!lead){toast('Lead indisponível para seu acesso','error');return;}
   const request=++followupState.request;
   Object.assign(followupState,{leadId:id,events:followupEvents(lead,APP.history[id]||[],getTasksDoUsuario()),sequences:[],enrollment:null,loading:true,error:''});
@@ -3268,7 +3176,7 @@ function openNewDeal(id){
  const enterprises=Array.from(new Set(APP.empreendimentos||[]));
  document.getElementById('newDealEnterprise').innerHTML='<option value="">Selecione o empreendimento</option>'+enterprises.map(e=>`<option value="${agentEscape(e)}">${agentEscape(e)}</option>`).join('');
  document.getElementById('newDealEnterprise').value='';
- document.getElementById('newDealBroker').innerHTML=getBrokersDoUsuario().map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
+ document.getElementById('newDealBroker').innerHTML=APP.brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
  document.getElementById('newDealBroker').value=isGestorOrAdmin()?lead.corretor:APP.user?.corretor_ref;
  document.getElementById('newDealBrokerField').style.display=isGestorOrAdmin()?'':'none';
  document.getElementById('newDealStage').innerHTML=APP.stages.map(s=>`<option value="${agentEscape(s.id)}">${agentEscape(s.label)}</option>`).join('');document.getElementById('newDealStage').value=APP.stages.some(s=>s.id==='novo')?'novo':APP.stages[0]?.id||'';
@@ -3585,8 +3493,11 @@ function openLeadDetail(id) {
   av.style.color = getAvatarColor(lead.nome);
 
   document.getElementById('modalActions').innerHTML = `
+    ${isFollowupStage(lead.status)?`<button class="btn btn-primary btn-sm" onclick="closeModal('leadModal');openFollowup('${lead.id}')">📋 Histórico e sequência de follow-up</button>`:''}
+    <button class="btn btn-secondary btn-sm" onclick="setVipAyraStage('${lead.id}', '${lead.vip_ayra_etapa ? '' : 'aceitou'}')">${lead.vip_ayra_etapa?'⭐ Remover do funil VIP AYRA':'⭐ Incluir no VIP AYRA'}</button>
     ${lead.telefone ? `<button class="whatsapp-big" onclick="openWhatsApp('${lead.telefone}')">💬 Conversar no WhatsApp</button>` : ''}
     <button class="btn btn-secondary btn-sm" onclick="openLeadAction('${lead.id}')">📞 Registrar ação</button>
+    <button class="btn btn-secondary btn-sm" onclick="scheduleLeadTask('${lead.id}')">📅 Agendar follow-up</button>
     <button class="btn btn-secondary btn-sm" onclick="openNewDeal('${lead.id}')">+ Novo negócio</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoLead('${lead.id}')" style="gap:5px">✏️ Editar</button>
     <button class="btn btn-secondary btn-sm" onclick="abrirSimuladorLead('${lead.id}')" style="gap:5px;border-color:rgba(139,92,246,.45);color:var(--purple-light)">🧮 Criar fluxo</button>
@@ -3601,18 +3512,20 @@ function openLeadDetail(id) {
     <div class="info-row"><div class="info-label">Telefone</div><div class="info-value">${lead.telefone||'—'}</div></div>
     <div class="info-row"><div class="info-label">E-mail</div><div class="info-value">${lead.email||'—'}</div></div>
     <div class="info-row"><div class="info-label">Origem</div><div class="info-value">${lead.origem||'—'}</div></div>
+    <div class="info-row"><div class="info-label">Grupo VIP AYRA</div><div class="info-value">${VIP_AYRA_STAGES.find(s=>s.id===lead.vip_ayra_etapa)?.label||'Ainda não incluído'}</div></div>
     <div class="info-row">
       <div class="info-label">Corretor Responsável</div>
       <div class="info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span id="corretorLabel_${lead.id}">${lead.corretor||'—'}</span>
         <select onchange="changeLeadCorretor('${lead.id}',this.value)" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px 8px;color:var(--text-secondary);font-size:11px;cursor:pointer">
           <option value="">Mudar corretor...</option>
-          ${getBrokersDoUsuario().map(b=>`<option value="${b}" ${lead.corretor===b?'selected':''}>${b}</option>`).join('')}
+          ${APP.brokers.map(b=>`<option value="${b}" ${lead.corretor===b?'selected':''}>${b}</option>`).join('')}
         </select>
       </div>
     </div>
     <div class="info-row"><div class="info-label">Cidade</div><div class="info-value">${lead.cidade||'—'}</div></div>
     <div class="info-row"><div class="info-label">Cadastrado em</div><div class="info-value">${formatDate(lead.created_at)}</div></div>
+    <div class="info-row"><div class="info-label">Próxima ação</div><div class="info-value">${agendaTasksForLead(lead).sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora)).slice(0,1).map(t=>`${agentEscape(t.titulo)} · ${formatDateTime(t.data_hora)} · ${agentEscape(t.corretor||'')}`).join('')||'Sem próxima ação agendada'}</div></div>
     <div class="info-row" style="grid-column:1/-1"><div class="info-label">Observações</div><div class="info-value">${lead.observacoes||'—'}</div></div>
   `;
 
@@ -3719,7 +3632,6 @@ async function saveLeadAction() {
 
 // -- ASSISTENTE --
 function showAssistant() {
-  if (DISABLED_CRM_MODULES.assistant) return;
   agentNovo();
   document.getElementById('assistantModal').classList.add('open');
 }
@@ -3960,7 +3872,7 @@ function extrairLead(msg) {
 
   // Corretor
   let corretor = '';
-  for (const b of getBrokersDoUsuario()) {
+  for (const b of APP.brokers) {
     if (textoLower.includes(b.toLowerCase())) {
       corretor = b;
       break;
@@ -4757,7 +4669,7 @@ function renderBrokerFilterBar() {
   }
 
   bar.style.display = 'flex';
-  const brokers = ['todos', ...getBrokersDoUsuario()];
+  const brokers = ['todos', ...APP.brokers];
   bar.innerHTML = `<span class="broker-filter-label">Corretor:</span>` +
     brokers.map(b => `
       <button class="bfbtn ${activeBrokerFilter===b?'active':''}" onclick="setBrokerFilter('${b}')">
@@ -4891,7 +4803,7 @@ function agendaSelectedBroker() {
   if (!isGestorOrAdmin()) { filter.parentElement.style.display = 'none'; return APP.user?.corretor_ref || ''; }
   filter.parentElement.style.display = 'flex';
   const current = filter.value;
-  const brokers = [...new Set([...getBrokersDoUsuario(), ...getLeadsDoUsuario().map(l=>l.corretor), ...getTasksDoUsuario().map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const brokers = [...new Set([...APP.brokers, ...APP.leads.map(l=>l.corretor), ...APP.tasks.map(t=>t.corretor)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   filter.innerHTML = '<option value="">Todos</option>' + brokers.map(b=>`<option value="${agentEscape(b)}">${agentEscape(b)}</option>`).join('');
   filter.value = current;
   return filter.value;
@@ -5121,7 +5033,7 @@ function deleteTask(id) {
 
 // -- TEAM --
 function renderTeam() {
-  const brokers = isAdmin() ? APP.brokers : getBrokersDoUsuario();
+  const brokers = APP.brokers;
   const grid = document.getElementById('teamGrid');
 
   const stats = brokers.map(b => ({
@@ -5181,7 +5093,7 @@ function renderBrokerSelects() {
       const cur = sel.value;
       sel.disabled = false;
       sel.style.opacity = '1';
-      sel.innerHTML = '<option value="">Selecione...</option>' + getBrokersDoUsuario().map(b => `<option value="${b}">${b}</option>`).join('');
+      sel.innerHTML = '<option value="">Selecione...</option>' + APP.brokers.map(b => `<option value="${b}">${b}</option>`).join('');
       sel.value = cur;
     }
   });
@@ -5354,7 +5266,7 @@ function abrirEdicaoLead(id) {
   if (isGestorOrAdmin()) {
     corretorField.style.display = 'block';
     corretorSel.innerHTML = '<option value="">Selecione...</option>' +
-      getBrokersDoUsuario().map(b => `<option value="${b}" ${lead.corretor === b ? 'selected' : ''}>${b}</option>`).join('');
+      APP.brokers.map(b => `<option value="${b}" ${lead.corretor === b ? 'selected' : ''}>${b}</option>`).join('');
   } else {
     corretorField.style.display = 'none';
   }
