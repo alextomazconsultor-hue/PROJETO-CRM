@@ -2195,6 +2195,15 @@ async function enterApp() {
 
   // Carrega localStorage primeiro como cache/fallback
   loadFromLocalStorage();
+  // Remove dados locais possivelmente carregados antes do escopo restrito do gestor.
+  if (APP.user?.perfil === 'gestor') {
+    APP.leads = [];
+    APP.tasks = [];
+    APP.history = {};
+    localStorage.removeItem('3ps_leads');
+    localStorage.removeItem('3ps_tasks');
+    localStorage.removeItem('3ps_history');
+  }
 
   // Conectar Supabase e AGUARDAR o SELECT antes de continuar
   APP.sbUrl = SB_URL;
